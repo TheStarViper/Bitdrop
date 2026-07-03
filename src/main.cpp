@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "main.hpp"
 #include <vector>
 #include <cmath>
 #include <string>
@@ -15,28 +16,19 @@ const float GRAVITY = 1200.0f;
 
 const float GAME_SPEED = 0.40f;         
 const int MAX_LAUNCH_CAPACITY = 45;     
-const int STARTING_CREDITS = 85000;     
+const int STARTING_CREDITS = 85000;
 
 const float KINETIC_RESTITUTION = 0.20f; 
-const float FRICTION_DAMPING = 0.95f;    
+const float FRICTION_DAMPING = 0.95f;  
 
 const double TARGET_QUOTA_BYTES = 52428800.0; 
 
-const Color COLOR_BG = { 4, 8, 12, 255 };
-const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
-const Color COLOR_NODE = { 0, 255, 180, 255 };      
-const Color COLOR_PROBE = { 0, 240, 255, 255 };     
-const Color COLOR_UI_GREEN = { 150, 255, 50, 255 };  
-const Color COLOR_UI_AMBER = { 255, 130, 0, 255 };  
-const Color COLOR_BASKET = { 12, 32, 42, 255 };
-const Color COLOR_SHARD_BORDER = { 30, 50, 70, 255 };
-
 std::string FormatByteSize(double bytes) {
-    if (bytes < 1024.0) return "0 KB"; 
-    const char* suffixes[] = { "KB", "MB", "GB", "TB" };
+    if (bytes < 1024.0) return "0 KB";
+    const char* suffixes[] = { "KB", "MB", "GB", "TB" , "EB", "ZB", "YB", "RB", "QB"};
     int i = 0;
     double size = bytes / 1024.0;
-    while (size >= 1024.0 && i < 3) {
+    while (size >= 1024.0 && i < 8) {
         size /= 1024.0;
         i++;
     }
@@ -45,66 +37,6 @@ std::string FormatByteSize(double bytes) {
     return stream.str();
 }
 
-enum ModifierType { MOD_NONE = 0, MOD_BOOST, MOD_GLITCH };
-
-struct Node {
-    Vector2 position;
-    float baseRadius;
-    float currentRadius; 
-    float pulseAnimTimer;
-    ModifierType modifier; 
-};
-
-struct Basket {
-    Rectangle bounds;
-    std::string name;
-    float multiplier;
-};
-
-struct DaemonSlot {
-    float x, y, width, height;
-    std::string name;
-    std::string status;
-    std::string description; 
-    Color accentColor;
-    bool activeGlitch;
-    int fillPct;
-};
-
-struct Probe {
-    int id;               
-    Vector2 position;
-    Vector2 velocity;
-    float radius;
-    int hitCount;         
-    double rawPayloadBytes;
-    float bufferRate;     
-    int lastHitNodeIndex; 
-};
-
-struct CashoutParticle {
-    Vector2 position;
-    std::string text;
-    float lifetime;
-    Color color;
-};
-
-struct GameEngine {
-    std::vector<Probe> activeProbes;
-    std::vector<Node> nodes;
-    std::vector<Basket> baskets;
-    std::vector<DaemonSlot> daemons;
-    std::vector<CashoutParticle> particles;
-    Vector2 centerApexPegPos; 
-
-    int remainingBalls;
-    double globalDataHackedBytes;
-    const int latencyCap = 15;
-
-    std::string calculationLog;
-    float turretBarrelFlash;
-};
-
 GameEngine engine;
 
 void DrawCyberpunkSlot(const DaemonSlot& d, Vector2 mousePos) {
@@ -112,16 +44,16 @@ void DrawCyberpunkSlot(const DaemonSlot& d, Vector2 mousePos) {
     Color currentBg = isHovered ? Color{ 16, 26, 42, 255 } : Color{ 10, 16, 26, 240 };
     
     DrawRectangle(d.x, d.y, d.width, d.height, currentBg);
-    DrawRectangleLinesEx({ d.x, d.y, d.width, d.height }, 1.0f, isHovered ? COLOR_UI_GREEN : COLOR_SHARD_BORDER);
+    DrawRectangleLinesEx({ d.x, d.y, d.width, d.height }, 1.0f, isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
     DrawLineEx({ d.x, d.y }, { d.x + 20, d.y }, 2.5f, d.accentColor);
     DrawLineEx({ d.x, d.y }, { d.x, d.y + 20 }, 2.5f, d.accentColor);
     DrawLineEx({ d.x + d.width - 20, d.y + d.height }, { d.x + d.width, d.height + d.y }, 2.5f, d.accentColor);
     
     if (d.activeGlitch) {
-        DrawRectangle(d.x + 3, d.y + 3, 5, d.height - 6, COLOR_UI_AMBER);
-        DrawText("LOG::OVERHEAT", d.x + 20, d.y + d.height - 18, 9, COLOR_UI_AMBER);
+        DrawRectangle(d.x + 3, d.y + 3, 5, d.height - 6, Config::COLOR_UI_AMBER);
+        DrawText("LOG::OVERHEAT", d.x + 20, d.y + d.height - 18, 9, Config::COLOR_UI_AMBER);
     } else {
-        DrawRectangle(d.x + 3, d.y + 3, 5, d.height - 6, COLOR_GRID_LINE);
+        DrawRectangle(d.x + 3, d.y + 3, 5, d.height - 6, Config::COLOR_GRID_LINE);
     }
 
     DrawText(d.name.c_str(), d.x + 20, d.y + 16, 15, d.accentColor);
@@ -138,9 +70,9 @@ void DrawCyberpunkSlot(const DaemonSlot& d, Vector2 mousePos) {
         float boxY = d.y + (d.height - boxH) / 2.0f;
 
         DrawRectangle(boxX, boxY, boxW, boxH, { 6, 12, 22, 250 });
-        DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, COLOR_UI_GREEN);
-        DrawRectangle(boxX + 1, boxY + 1, 3, boxH - 2, COLOR_UI_GREEN); 
-        DrawText(d.description.c_str(), boxX + 12, boxY + 18, 11, COLOR_PROBE);
+        DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, Config::COLOR_UI_GREEN);
+        DrawRectangle(boxX + 1, boxY + 1, 3, boxH - 2, Config::COLOR_UI_GREEN); 
+        DrawText(d.description.c_str(), boxX + 12, boxY + 18, 11, Config::COLOR_PROBE);
     }
 }
 
@@ -196,11 +128,11 @@ void InitGame() {
     float slotSpacing = 10.0f;
     
     engine.daemons = {
-        { 830.0f, slotYStart, 420.0f, slotHeight, "NETRUNNER_DECK_01", "SECURE // SYNCED", "Main data pipeline routing asset.", COLOR_PROBE, false, 85 },
-        { 830.0f, slotYStart + (slotHeight + slotSpacing), 420.0f, slotHeight, "ICEBREAKER.EXE", "STANDBY RUNTIME", "Circumvents deep corporate firewall blocks.", COLOR_UI_GREEN, false, 40 },
-        { 830.0f, slotYStart + 2*(slotHeight + slotSpacing), 420.0f, slotHeight, "OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "Maximizes drop kinetics at cost of thermal gain.", COLOR_UI_AMBER, true, 100 },
-        { 830.0f, slotYStart + 3*(slotHeight + slotSpacing), 420.0f, slotHeight, "BLACK_WALL_GATE", "RESTRICTED THREAD", "Forbidden AI sub-routines loop injection.", { 255, 40, 80, 255 }, false, 15 },
-        { 830.0f, slotYStart + 4*(slotHeight + slotSpacing), 420.0f, slotHeight, "MALWARE_SINK.IO", "HONEYPOT ACTIVE", "Tracks localized bounce traffic errors.", { 200, 50, 255, 255 }, false, 65 }
+        { 830.0f, slotYStart, 420.0f, slotHeight, "NETRUNNER_DECK_01", "SECURE // SYNCED", "Main data pipeline routing asset.", Config::COLOR_PROBE, false, 85 },
+        { 830.0f, slotYStart + (slotHeight + slotSpacing), 420.0f, slotHeight, "ICEBREAKER.EXE", "STANDBY RUNTIME", "Circumvents deep corporate firewall blocks.", Config::COLOR_UI_GREEN, false, 40 },
+        { 830.0f, slotYStart + 2*(slotHeight + slotSpacing), 420.0f, slotHeight, "OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "Maximizes drop kinetics at cost of thermal gain.", Config::COLOR_UI_AMBER, true, 100 },
+        { 830.0f, slotYStart + 3*(slotHeight + slotSpacing), 420.0f, slotHeight, "BLACK_WALL_GATE", "RESTRICTED THREAD", "Forbidden AI sub-routines loop injection.", Config::COLOR_BASKET, false, 15 },
+        { 830.0f, slotYStart + 4*(slotHeight + slotSpacing), 420.0f, slotHeight, "MALWARE_SINK.IO", "HONEYPOT ACTIVE", "Tracks localized bounce traffic errors.", Config::COLOR_GRID_LINE, false, 65 }
     };
 }
 
@@ -351,7 +283,7 @@ void UpdatePhysics(float dt) {
                 cp.position = { p.position.x - 25.0f, basket.bounds.y - 25.0f };
                 cp.text = "+" + FormatByteSize(localizedFinalBytesYield);
                 cp.lifetime = 1.2f;
-                cp.color = COLOR_UI_GREEN;
+                cp.color = Config::COLOR_UI_GREEN;
                 engine.particles.push_back(cp);
 
                 engine.calculationLog = "DECRYPTED SECTOR LINK YIELDING " + FormatByteSize(localizedFinalBytesYield);
@@ -390,42 +322,42 @@ void UpdateDrawFrame(void) {
     UpdatePhysics(GetFrameTime());
 
     BeginDrawing();
-    ClearBackground(COLOR_BG);
+    ClearBackground(Config::COLOR_BG);
 
-    DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, COLOR_SHARD_BORDER);
-    DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, COLOR_SHARD_BORDER);
+    DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
+    DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
 
     for (const auto& basket : engine.baskets) {
-        DrawRectangleRec(basket.bounds, COLOR_BASKET);
-        DrawRectangleLinesEx(basket.bounds, 1.0f, COLOR_GRID_LINE);
+        DrawRectangleRec(basket.bounds, Config::COLOR_BASKET);
+        DrawRectangleLinesEx(basket.bounds, 1.0f, Config::COLOR_GRID_LINE);
         std::string txt = std::to_string(basket.multiplier).substr(0, 3) + "x";
-        DrawText(txt.c_str(), basket.bounds.x + ((basket.bounds.width - MeasureText(txt.c_str(), 10)) / 2), basket.bounds.y + 5, 10, COLOR_UI_AMBER);
+        DrawText(txt.c_str(), basket.bounds.x + ((basket.bounds.width - MeasureText(txt.c_str(), 10)) / 2), basket.bounds.y + 5, 10, Config::COLOR_UI_AMBER);
     }
     for (const auto& node : engine.nodes) {
-        Color basePinColor = COLOR_NODE;
+        Color basePinColor = Config::COLOR_NODE;
         
-        if (node.modifier == MOD_BOOST) basePinColor = COLOR_UI_GREEN;
+        if (node.modifier == MOD_BOOST) basePinColor = Config::COLOR_UI_GREEN;
         else if (node.modifier == MOD_GLITCH) basePinColor = { 255, 50, 140, 255 };
         
-        if (node.pulseAnimTimer > 0.0f && node.modifier == MOD_NONE) basePinColor = COLOR_PROBE;
+        if (node.pulseAnimTimer > 0.0f && node.modifier == MOD_NONE) basePinColor = Config::COLOR_PROBE;
 
         DrawCircleV(node.position, node.currentRadius, basePinColor);
 
         if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 12.0f)) {
-            DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 8.0f, COLOR_UI_AMBER);
+            DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 8.0f, Config::COLOR_UI_AMBER);
         }
     }
 
     Vector2 turretPos = { engine.centerApexPegPos.x, engine.centerApexPegPos.y - 100.0f };
     DrawRectangle(turretPos.x - 30, turretPos.y, 60, 35, { 20, 32, 48, 255 });
-    DrawRectangleLines(turretPos.x - 30, turretPos.y, 60, 35, COLOR_GRID_LINE);
+    DrawRectangleLines(turretPos.x - 30, turretPos.y, 60, 35, Config::COLOR_GRID_LINE);
     
-    Color muzzleFlashColor = (engine.turretBarrelFlash > 0.0f) ? COLOR_UI_GREEN : COLOR_BASKET;
+    Color muzzleFlashColor = (engine.turretBarrelFlash > 0.0f) ? Config::COLOR_UI_GREEN : Config::COLOR_BASKET;
     DrawRectangle(turretPos.x - 10, turretPos.y + 35, 20, 12, muzzleFlashColor);
-    DrawRectangleLines(turretPos.x - 10, turretPos.y + 35, 20, 12, COLOR_GRID_LINE);
+    DrawRectangleLines(turretPos.x - 10, turretPos.y + 35, 20, 12, Config::COLOR_GRID_LINE);
 
     std::string countStr = "RESERVE: " + std::to_string(engine.remainingBalls);
-    DrawText(countStr.c_str(), turretPos.x - (MeasureText(countStr.c_str(), 11)/2), turretPos.y + 11, 11, engine.remainingBalls > 0 ? COLOR_PROBE : COLOR_UI_AMBER);
+    DrawText(countStr.c_str(), turretPos.x - (MeasureText(countStr.c_str(), 11)/2), turretPos.y + 11, 11, engine.remainingBalls > 0 ? Config::COLOR_PROBE : Config::COLOR_UI_AMBER);
 
     for (const auto& p : engine.activeProbes) {
         DrawCircleV(p.position, p.radius, WHITE);
@@ -436,11 +368,11 @@ void UpdateDrawFrame(void) {
         Vector2 boxPos = { p.position.x - (boxW / 2.0f), p.position.y - p.radius - 22.0f };
         
         DrawRectangle(boxPos.x, boxPos.y, boxW, boxH, { 6, 12, 22, 210 });
-        DrawRectangleLines(boxPos.x, boxPos.y, boxW, boxH, COLOR_UI_GREEN);
-        DrawLine(p.position.x, boxPos.y + boxH, p.position.x, p.position.y - p.radius, COLOR_UI_GREEN);
+        DrawRectangleLines(boxPos.x, boxPos.y, boxW, boxH, Config::COLOR_UI_GREEN);
+        DrawLine(p.position.x, boxPos.y + boxH, p.position.x, p.position.y - p.radius, Config::COLOR_UI_GREEN);
         
         std::string currentScoreFormatted = FormatByteSize(p.rawPayloadBytes);
-        DrawText(currentScoreFormatted.c_str(), boxPos.x + (boxW - MeasureText(currentScoreFormatted.c_str(), 9))/2, boxPos.y + 3, 9, COLOR_PROBE);
+        DrawText(currentScoreFormatted.c_str(), boxPos.x + (boxW - MeasureText(currentScoreFormatted.c_str(), 9))/2, boxPos.y + 3, 9, Config::COLOR_PROBE);
     }
 
     for (const auto& cp : engine.particles) {
@@ -452,27 +384,27 @@ void UpdateDrawFrame(void) {
     }
 
     std::string coreTelemetry = "FLIGHT CONCURRENT ARCH: " + std::to_string(engine.activeProbes.size()) + " UNITS  ||  " + engine.calculationLog;
-    DrawText(coreTelemetry.c_str(), 400 - (MeasureText(coreTelemetry.c_str(), 13) / 2), 652, 13, COLOR_PROBE);
+    DrawText(coreTelemetry.c_str(), 400 - (MeasureText(coreTelemetry.c_str(), 13) / 2), 652, 13, Config::COLOR_PROBE);
 
     std::string bottomTip = "SYS ENG: [CLICK PIN] CHANGE MODIFIERS // [SPACEBAR] INJECT LOAD PACKETS";
-    DrawText(bottomTip.c_str(), 400 - (MeasureText(bottomTip.c_str(), 11) / 2), 685, 11, COLOR_GRID_LINE);
+    DrawText(bottomTip.c_str(), 400 - (MeasureText(bottomTip.c_str(), 11) / 2), 685, 11, Config::COLOR_GRID_LINE);
 
     float scoreBlockY = 455.0f;
     bool targetMet = (engine.globalDataHackedBytes >= TARGET_QUOTA_BYTES);
     
     std::string quotaString = "TARGET QUOTA: " + FormatByteSize(TARGET_QUOTA_BYTES);
-    DrawText(quotaString.c_str(), 835, scoreBlockY, 13, targetMet ? COLOR_UI_GREEN : COLOR_UI_AMBER);
+    DrawText(quotaString.c_str(), 835, scoreBlockY, 13, targetMet ? Config::COLOR_UI_GREEN : Config::COLOR_UI_AMBER);
 
     DrawText("DATA HACKED PROGRESSION TIER:", 835, scoreBlockY + 24, 12, { 130, 160, 180, 255 });
     std::string dataProgressText = FormatByteSize(engine.globalDataHackedBytes) + " / " + FormatByteSize(TARGET_QUOTA_BYTES);
-    DrawText(dataProgressText.c_str(), 835, scoreBlockY + 40, 24, targetMet ? COLOR_UI_GREEN : WHITE);
+    DrawText(dataProgressText.c_str(), 835, scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
 
     float walletY = 565.0f;
     DrawRectangle(830, walletY, 420, 65, { 16, 22, 12, 240 });
-    DrawRectangleLines(830, walletY, 420, 65, COLOR_SHARD_BORDER);
-    DrawText("ACCOUNT STANDALONE BALANCE LEDGER (FROZEN):", 845, walletY + 10, 11, COLOR_NODE);
+    DrawRectangleLines(830, walletY, 420, 65, Config::COLOR_SHARD_BORDER);
+    DrawText("ACCOUNT STANDALONE BALANCE LEDGER (FROZEN):", 845, walletY + 10, 11, Config::COLOR_NODE);
     std::string walletStr = "CREDITS: ฿ " + std::to_string(STARTING_CREDITS);
-    DrawText(walletStr.c_str(), 845, walletY + 26, 22, COLOR_UI_GREEN);
+    DrawText(walletStr.c_str(), 845, walletY + 26, 22, Config::COLOR_UI_GREEN);
 
     EndDrawing();
 }

@@ -1,0 +1,115 @@
+#pragma once
+#include "raylib.h"
+#include <string>
+#include <vector>
+
+namespace Config {
+    constexpr int WINDOW_WIDTH = 1280;
+    constexpr int WINDOW_HEIGHT = 720;
+
+    const Color COLOR_BG = { 4, 8, 12, 255 };
+    const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
+    const Color COLOR_NODE = { 0, 255, 180, 255 };
+    const Color COLOR_PROBE = { 0, 240, 255, 255 };     
+    const Color COLOR_UI_GREEN = { 150, 255, 50, 255 };
+    const Color COLOR_UI_AMBER = { 255, 130, 0, 255 };
+    const Color COLOR_BASKET = { 12, 32, 42, 255 };
+    const Color COLOR_SHARD_BORDER = { 30, 50, 70, 255 };
+}
+
+namespace Gamestates{
+
+}
+
+namespace Resources{
+    inline Sound hoversound;
+    inline Sound winsound;
+    inline Sound movesound;
+}
+
+struct smartbool { //from my other project
+    enum State {
+        False,
+        NewTrue,
+        True
+    };
+
+    State state = False;
+
+    void operator=(bool value) {this->set(value);}
+    operator bool() const {return state != False; }
+    bool is_new_true() const { return state == NewTrue; }
+    
+    void set(bool value) {
+        if (value) {
+            if (state == False) state = NewTrue;
+        } else {
+            state = False;
+        }
+    }
+    void update() {
+        if (state == NewTrue) {
+            state = True;
+        }
+    }
+};
+
+enum ModifierType { MOD_NONE = 0, MOD_BOOST, MOD_GLITCH };
+
+struct Node {
+    Vector2 position;
+    float baseRadius;
+    float currentRadius;
+    float pulseAnimTimer;
+    ModifierType modifier;
+};
+
+struct Basket {
+    Rectangle bounds;
+    std::string name;
+    float multiplier;
+}; 
+
+struct DaemonSlot {
+    float x, y, width, height;
+    std::string name;
+    std::string status;
+    std::string description;
+    Color accentColor;
+    bool activeGlitch;
+    int fillPct;
+};
+
+struct Probe {
+    int id;               
+    Vector2 position;
+    Vector2 velocity;
+    float radius;
+    int hitCount;         
+    double rawPayloadBytes;
+    float bufferRate;     
+    int lastHitNodeIndex; 
+};
+
+struct CashoutParticle {
+    Vector2 position;
+    std::string text;
+    float lifetime;
+    Color color;
+};
+
+struct GameEngine {
+    std::vector<Probe> activeProbes;
+    std::vector<Node> nodes;
+    std::vector<Basket> baskets;
+    std::vector<DaemonSlot> daemons;
+    std::vector<CashoutParticle> particles;
+    Vector2 centerApexPegPos; 
+
+    int remainingBalls;
+    double globalDataHackedBytes;
+    const int latencyCap = 15;
+
+    std::string calculationLog;
+    float turretBarrelFlash;
+};
