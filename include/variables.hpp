@@ -4,9 +4,11 @@
 #include <vector>
 
 namespace Config {
-    constexpr int WINDOW_WIDTH = 1280;
-    constexpr int WINDOW_HEIGHT = 720;
+    constexpr int SCREEN_WIDTH = 1280;
+    constexpr int SCREEN_HEIGHT = 720;
+    constexpr float GRAVITY = 1200.0f;        
 
+    constexpr float GAME_SPEED = 0.40f;      
     const Color COLOR_BG = { 4, 8, 12, 255 };
     const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
     const Color COLOR_NODE = { 0, 255, 180, 255 };
@@ -54,7 +56,7 @@ struct smartbool { //from my other project
     }
 };
 
-enum ModifierType { MOD_NONE = 0, MOD_BOOST, MOD_GLITCH };
+enum ModifierType { MOD_NONE = 0, MOD_BOOST, MOD_GLITCH , MOD_CLONE};
 
 struct Node {
     Vector2 position;

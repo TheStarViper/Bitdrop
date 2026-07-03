@@ -10,11 +10,7 @@
     #include <emscripten.h>
 #endif
 
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
-const float GRAVITY = 1200.0f;        
-
-const float GAME_SPEED = 0.40f;         
+   
 const int MAX_LAUNCH_CAPACITY = 45;     
 const int STARTING_CREDITS = 85000;
 
@@ -157,15 +153,19 @@ void InjectProbeFromTurret() {
 }
 
 void UpdatePhysics(float dt) {
-    float scaledDt = dt * GAME_SPEED;
+    
+    std::vector<Probe> clonesToSpawn;
+    float scaledDt = dt * Config::GAME_SPEED;
 
     if (engine.turretBarrelFlash > 0.0f) engine.turretBarrelFlash -= scaledDt;
 
     for (auto& node : engine.nodes) {
         if (node.pulseAnimTimer > 0.0f) {
-            node.pulseAnimTimer -= scaledDt * 5.0f;
-            node.currentRadius = node.baseRadius + (sinf(node.pulseAnimTimer * 3.14f) * 5.0f);
+            node.pulseAnimTimer -= dt * 6.0f;
+        
+            node.currentRadius = node.baseRadius + (sinf(node.pulseAnimTimer * 3.14159f) * 4.0f);
         } else {
+            node.pulseAnimTimer = 0.0f;
             node.currentRadius = node.baseRadius;
         }
     }
@@ -216,7 +216,7 @@ void UpdatePhysics(float dt) {
     for (size_t i = 0; i < engine.activeProbes.size(); i++) {
         Probe& p = engine.activeProbes[i];
         
-        p.velocity.y += GRAVITY * scaledDt;
+        p.velocity.y += Config::GRAVITY * scaledDt;
         p.position.x += p.velocity.x * scaledDt;
         p.position.y += p.velocity.y * scaledDt;
 
@@ -238,6 +238,7 @@ void UpdatePhysics(float dt) {
             float distance = std::sqrt(distX * distX + distY * distY);
             float minDist = p.radius + node.baseRadius;
 
+
             if (distance < minDist) {
                 Vector2 normal = { distX / distance, distY / distance };
 
@@ -255,17 +256,34 @@ void UpdatePhysics(float dt) {
 
                 if ((int)nIdx != p.lastHitNodeIndex) {
                     p.lastHitNodeIndex = (int)nIdx; 
-                    node.pulseAnimTimer = 1.0f; 
+                    node.pulseAnimTimer = 1.0f;
                     
                     p.hitCount++;
                     
                     double calculatedByteBump = 1024.0;
-                    
                     if (node.modifier == MOD_BOOST) calculatedByteBump *= 2.5;
                     else if (node.modifier == MOD_GLITCH) calculatedByteBump *= ((float)GetRandomValue(5, 50) * 0.2f);
-
+                    
                     p.rawPayloadBytes += calculatedByteBump;
                     p.bufferRate += (node.modifier == MOD_GLITCH ? 0.35f : 0.12f);
+
+                    if (node.modifier == MOD_CLONE) {
+                        float pushOffset = p.radius + node.baseRadius + 4.0f; 
+                        float speedSnap = fabsf(p.velocity.x) > 10.0f ? fabsf(p.velocity.x) : 80.0f;
+
+                        Probe cloneL = p;
+                        cloneL.id = p.id * 100 + GetRandomValue(1, 99);
+                        cloneL.position.x = node.position.x - pushOffset;
+                        cloneL.velocity.x = -speedSnap;
+                        cloneL.lastHitNodeIndex = (int)nIdx;
+
+                        p.position.x = node.position.x + pushOffset;
+                        p.velocity.x = speedSnap;
+                        
+                        clonesToSpawn.push_back(cloneL);
+                        
+                        engine.calculationLog = "THREAD SPLIT: DUAL TRAJECTORY CLONE INSTANTIATED";
+                    }
                 }
             }
         }
@@ -273,10 +291,8 @@ void UpdatePhysics(float dt) {
         bool absorbed = false;
         for (const auto& basket : engine.baskets) {
             if (CheckCollisionCircleRec(p.position, p.radius, basket.bounds)) {
-                double compiledBallBytes = p.rawPayloadBytes * std::pow(p.bufferRate, (1.0f + ((float)p.hitCount / (float)engine.latencyCap)));
-                if (p.hitCount == 0) compiledBallBytes = 0.0;
-
-                double localizedFinalBytesYield = compiledBallBytes * basket.multiplier;
+                double localizedFinalBytesYield = p.rawPayloadBytes * basket.multiplier;
+                
                 engine.globalDataHackedBytes += localizedFinalBytesYield;
 
                 CashoutParticle cp;
@@ -301,18 +317,23 @@ void UpdatePhysics(float dt) {
             i--;
         }
     }
+    if (!clonesToSpawn.empty()) {
+        engine.activeProbes.insert(engine.activeProbes.end(), clonesToSpawn.begin(), clonesToSpawn.end());
+    }
 }
 
 void UpdateDrawFrame(void) {
     Vector2 currentMousePos = GetMousePosition();
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+    Vector2 currentMousePos = GetMousePosition();
         for (auto& node : engine.nodes) {
-            if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 12.0f)) {
-                node.modifier = (ModifierType)((int)node.modifier + 1);
-                if (node.modifier > MOD_GLITCH) node.modifier = MOD_NONE;
-                node.pulseAnimTimer = 1.0f;
-                engine.calculationLog = "MODIFIER ASSIGNED TO OVERHEAD OBJECT MATRIX POSITION";
+            if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
+                int nextState = (int)node.modifier + 1;
+                node.modifier = (nextState > (int)MOD_CLONE) ? MOD_NONE : (ModifierType)nextState;
+                node.pulseAnimTimer = 1.0f; 
+                
+                engine.calculationLog = "PEG ARCHITECTURE RETUNED: EASING PARAMETERS GENERATED";
                 break;
             }
         }
@@ -338,13 +359,14 @@ void UpdateDrawFrame(void) {
         
         if (node.modifier == MOD_BOOST) basePinColor = Config::COLOR_UI_GREEN;
         else if (node.modifier == MOD_GLITCH) basePinColor = { 255, 50, 140, 255 };
-        
+        else if (node.modifier == MOD_CLONE) basePinColor = { 200, 50, 255, 255 }; 
+
         if (node.pulseAnimTimer > 0.0f && node.modifier == MOD_NONE) basePinColor = Config::COLOR_PROBE;
 
         DrawCircleV(node.position, node.currentRadius, basePinColor);
 
-        if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 12.0f)) {
-            DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 8.0f, Config::COLOR_UI_AMBER);
+        if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
+            DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 12.0f, Config::COLOR_UI_AMBER);
         }
     }
 
@@ -410,9 +432,8 @@ void UpdateDrawFrame(void) {
 }
 
 int main() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "BITDROP");
+    InitWindow(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, "BITDROP");
     InitGame();
-
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
 #else
@@ -421,7 +442,6 @@ int main() {
         UpdateDrawFrame();
     }
 #endif
-
     CloseWindow();
     return 0;
 }
