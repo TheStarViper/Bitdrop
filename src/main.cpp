@@ -5,6 +5,7 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include "daemons.hpp"
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
@@ -35,29 +36,36 @@ std::string FormatByteSize(double bytes) {
 
 GameEngine engine;
 
-void DrawCyberpunkSlot(const DaemonSlot& d, Vector2 mousePos) {
+
+void DrawCyberpunkSlot(const Daemon& d, Vector2 mousePos, bool isSelected) {
     bool isHovered = CheckCollisionPointRec(mousePos, { d.x, d.y, d.width, d.height });
+
     Color currentBg = isHovered ? Color{ 16, 26, 42, 255 } : Color{ 10, 16, 26, 240 };
+    Color borderColor = isSelected ? Config::COLOR_UI_AMBER : (isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
     
     DrawRectangle(d.x, d.y, d.width, d.height, currentBg);
-    DrawRectangleLinesEx({ d.x, d.y, d.width, d.height }, 1.0f, isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
-    DrawLineEx({ d.x, d.y }, { d.x + 20, d.y }, 2.5f, d.accentColor);
-    DrawLineEx({ d.x, d.y }, { d.x, d.y + 20 }, 2.5f, d.accentColor);
-    DrawLineEx({ d.x + d.width - 20, d.y + d.height }, { d.x + d.width, d.height + d.y }, 2.5f, d.accentColor);
+    DrawRectangleLinesEx({ d.x, d.y, d.width, d.height }, isSelected ? 1.5f : 1.0f, borderColor);
     
-    if (d.activeGlitch) {
+    DrawLineEx({ d.x, d.y }, { d.x + 20, d.y }, 2.5f, d.GetColor());
+    DrawLineEx({ d.x, d.y }, { d.x, d.y + 20 }, 2.5f, d.GetColor());
+    DrawLineEx({ d.x + d.width - 20, d.y + d.height }, { d.x + d.width, d.height + d.y }, 2.5f, d.GetColor());
+    
+    if (d.IsGlitched()) {
         DrawRectangle(d.x + 3, d.y + 3, 5, d.height - 6, Config::COLOR_UI_AMBER);
         DrawText("LOG::OVERHEAT", d.x + 20, d.y + d.height - 18, 9, Config::COLOR_UI_AMBER);
     } else {
         DrawRectangle(d.x + 3, d.y + 3, 5, d.height - 6, Config::COLOR_GRID_LINE);
     }
 
-    DrawText(d.name.c_str(), d.x + 20, d.y + 16, 15, d.accentColor);
+    DrawText(d.GetName().c_str(), d.x + 20, d.y + 16, 15, d.GetColor());
     DrawText(d.status.c_str(), d.x + 20, d.y + 40, 11, { 110, 140, 160, 255 });
+
+    std::string lvlStr = "LVL " + std::to_string(d.GetLevel());
+    DrawText(lvlStr.c_str(), d.x + d.width - 150, d.y + 38, 11, Config::COLOR_PROBE);
 
     float barW = 70.0f;
     DrawRectangle(d.x + d.width - 85, d.y + 20, barW, 7, { 20, 35, 45, 255 });
-    DrawRectangle(d.x + d.width - 85, d.y + 20, barW * (d.fillPct / 100.0f), 7, d.accentColor);
+    DrawRectangle(d.x + d.width - 85, d.y + 20, barW * (d.GetFillPct() / 100.0f), 7, d.GetColor());
 
     if (isHovered) {
         float boxW = 280.0f;
@@ -68,7 +76,30 @@ void DrawCyberpunkSlot(const DaemonSlot& d, Vector2 mousePos) {
         DrawRectangle(boxX, boxY, boxW, boxH, { 6, 12, 22, 250 });
         DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, Config::COLOR_UI_GREEN);
         DrawRectangle(boxX + 1, boxY + 1, 3, boxH - 2, Config::COLOR_UI_GREEN); 
-        DrawText(d.description.c_str(), boxX + 12, boxY + 18, 11, Config::COLOR_PROBE);
+        DrawText(d.GetDesc().c_str(), boxX + 12, boxY + 18, 11, Config::COLOR_PROBE);
+    }
+
+    if (isSelected) {
+        float bY = d.y + d.height - 32.0f;
+        Rectangle rUp = { d.x + d.width - 150, bY, 30, 22 };
+        Rectangle rDown = { d.x + d.width - 115, bY, 30, 22 };
+        Rectangle rSell = { d.x + d.width - 80, bY, 70, 22 };
+
+        DrawRectangleRec(rUp, CheckCollisionPointRec(mousePos, rUp) ? Config::COLOR_GRID_LINE : Color{20, 32, 42, 255});
+        DrawRectangleLinesEx(rUp, 1.0f, Config::COLOR_SHARD_BORDER);
+        DrawText("▲", rUp.x + 10, rUp.y + 5, 12, WHITE);
+
+        DrawRectangleRec(rDown, CheckCollisionPointRec(mousePos, rDown) ? Config::COLOR_GRID_LINE : Color{20, 32, 42, 255});
+        DrawRectangleLinesEx(rDown, 1.0f, Config::COLOR_SHARD_BORDER);
+        DrawText("▼", rDown.x + 10, rDown.y + 5, 12, WHITE);
+
+        int sellPreview = d.GetFillPct() * 250;
+        std::string sellText = "$" + std::to_string(sellPreview);
+
+        DrawRectangleRec(rSell, CheckCollisionPointRec(mousePos, rSell) ? Color{180, 40, 40, 255} : Color{45, 15, 20, 255});
+        DrawRectangleLinesEx(rSell, 1.0f, Config::COLOR_UI_AMBER);
+        DrawText("SELL", rSell.x + 6, rSell.y + 5, 11, Config::COLOR_UI_AMBER);
+        DrawText(sellText.c_str(), rSell.x + 36, rSell.y + 6, 10, WHITE);
     }
 }
 
@@ -77,7 +108,16 @@ void InitGame() {
     engine.remainingBalls = MAX_LAUNCH_CAPACITY;
     engine.turretBarrelFlash = 0.0f;
     engine.calculationLog = "CORE ARMED: DATA METERS ROUTED TO KB MINIMUMS";
+    engine.daemons.clear();
+    // /Daemon netDeck("NETRUNNER_DECK_01", "Increments balance nodes on automated clock rates.", Config::COLOR_PROBE);
+    // netDeck.SetFillPct(85);
+    // engine.daemons.push_back(netDeck);
 
+    // //Daemon overclocker("OVERCLOCK_BUFFER", "Forces gravity systems into critical overdrive.", Config::COLOR_UI_AMBER);
+    // overclocker.ToggleGlitch(true);
+    // overclocker.SetFillPct(100);
+
+    // engine.daemons.push_back(overclocker);
     int totalRows = 10;
     float startY = 145.0f;
     float spacingY = 48.0f; 
@@ -123,13 +163,20 @@ void InitGame() {
     float slotHeight = 76.0f;
     float slotSpacing = 10.0f;
     
+    
     engine.daemons = {
-        { 830.0f, slotYStart, 420.0f, slotHeight, "NETRUNNER_DECK_01", "SECURE // SYNCED", "Main data pipeline routing asset.", Config::COLOR_PROBE, false, 85 },
-        { 830.0f, slotYStart + (slotHeight + slotSpacing), 420.0f, slotHeight, "ICEBREAKER.EXE", "STANDBY RUNTIME", "Circumvents deep corporate firewall blocks.", Config::COLOR_UI_GREEN, false, 40 },
-        { 830.0f, slotYStart + 2*(slotHeight + slotSpacing), 420.0f, slotHeight, "OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "Maximizes drop kinetics at cost of thermal gain.", Config::COLOR_UI_AMBER, true, 100 },
-        { 830.0f, slotYStart + 3*(slotHeight + slotSpacing), 420.0f, slotHeight, "BLACK_WALL_GATE", "RESTRICTED THREAD", "Forbidden AI sub-routines loop injection.", Config::COLOR_BASKET, false, 15 },
-        { 830.0f, slotYStart + 4*(slotHeight + slotSpacing), 420.0f, slotHeight, "MALWARE_SINK.IO", "HONEYPOT ACTIVE", "Tracks localized bounce traffic errors.", Config::COLOR_GRID_LINE, false, 65 }
+        Daemon(830.0f, slotYStart, 420.0f, slotHeight, "NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE),
+        Daemon(830.0f, slotYStart + (slotHeight + slotSpacing), 420.0f, slotHeight, "ICEBREAKER", "STANDBY RUNTIME", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_GREEN),
+        Daemon(830.0f, slotYStart + 2*(slotHeight + slotSpacing), 420.0f, slotHeight, "OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER),
+        Daemon(830.0f, slotYStart + 3*(slotHeight + slotSpacing), 420.0f, slotHeight, "BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET),
+        Daemon(830.0f, slotYStart + 4*(slotHeight + slotSpacing), 420.0f, slotHeight, "MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS)
     };
+
+    engine.daemons[0].SetFillPct(85);
+    engine.daemons[1].SetFillPct(40);
+    engine.daemons[2].SetFillPct(100); engine.daemons[2].ToggleGlitch(true);
+    engine.daemons[3].SetFillPct(15);
+    engine.daemons[4].SetFillPct(65);
 }
 
 void InjectProbeFromTurret() {
@@ -142,7 +189,7 @@ void InjectProbeFromTurret() {
     p.id = MAX_LAUNCH_CAPACITY - engine.remainingBalls;
     float variance = (float)GetRandomValue(-12, 12);
     p.position = { engine.centerApexPegPos.x + variance, engine.centerApexPegPos.y - 80.0f };
-    p.velocity = { (float)GetRandomValue(-8, 8), 100.0f }; 
+    p.velocity = { (float)GetRandomValue(-8, 8), 100.0f };
     p.radius = 9.0f;
     p.hitCount = 0;
     p.rawPayloadBytes = 0.0;
@@ -159,7 +206,7 @@ void UpdatePhysics(float dt) {
 
     if (engine.turretBarrelFlash > 0.0f) engine.turretBarrelFlash -= scaledDt;
 
-    for (auto& node : engine.nodes) {
+    for (auto& node : engine.nodes){
         if (node.pulseAnimTimer > 0.0f) {
             node.pulseAnimTimer -= dt * 6.0f;
         
@@ -338,7 +385,7 @@ void UpdateDrawFrame(void) {
             }
         }
     }
-
+    
     if (IsKeyPressed(KEY_SPACE)) InjectProbeFromTurret();
     UpdatePhysics(GetFrameTime());
 
@@ -400,11 +447,28 @@ void UpdateDrawFrame(void) {
     for (const auto& cp : engine.particles) {
         DrawText(cp.text.c_str(), cp.position.x, cp.position.y, 13, cp.color);
     }
-
-    for (const auto& daemon : engine.daemons) {
-        DrawCyberpunkSlot(daemon, currentMousePos);
+    static int localSelectedDaemonIndex = -1;
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Vector2 mPos = GetMousePosition();
+        bool clickedCard = false;
+        
+        for (size_t i = 0; i < engine.daemons.size(); i++) {
+            auto& d = engine.daemons[i];
+            if (CheckCollisionPointRec(mPos, { d.x, d.y, d.width, d.height })) {
+                localSelectedDaemonIndex = (int)i;
+                clickedCard = true;
+                break;
+            }
+        }
+        if (!clickedCard) {
+            localSelectedDaemonIndex = -1;
+        }
     }
-
+    for (size_t i = 0; i < engine.daemons.size(); i++) {
+        bool isSelected = (localSelectedDaemonIndex == (int)i); 
+        DrawCyberpunkSlot(engine.daemons[i], currentMousePos, isSelected);
+    }
+    
     std::string coreTelemetry = "FLIGHT CONCURRENT ARCH: " + std::to_string(engine.activeProbes.size()) + " UNITS  ||  " + engine.calculationLog;
     DrawText(coreTelemetry.c_str(), 400 - (MeasureText(coreTelemetry.c_str(), 13) / 2), 652, 13, Config::COLOR_PROBE);
 
@@ -431,7 +495,7 @@ void UpdateDrawFrame(void) {
     EndDrawing();
 }
 
-int main() {
+int main() { 
     InitWindow(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, "BITDROP");
     InitGame();
 #if defined(PLATFORM_WEB)

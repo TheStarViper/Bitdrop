@@ -2,7 +2,7 @@
 #include "raylib.h"
 #include <string>
 #include <vector>
-
+#include "daemons.hpp"
 namespace Config {
     constexpr int SCREEN_WIDTH = 1280;
     constexpr int SCREEN_HEIGHT = 720;
@@ -17,6 +17,7 @@ namespace Config {
     const Color COLOR_UI_AMBER = { 255, 130, 0, 255 };
     const Color COLOR_BASKET = { 12, 32, 42, 255 };
     const Color COLOR_SHARD_BORDER = { 30, 50, 70, 255 };
+    const Color OTHER_COLOR_FOR_DAEMONS = { 250, 15, 82, 255 };
 }
 
 namespace Gamestates{
@@ -104,7 +105,7 @@ struct GameEngine {
     std::vector<Probe> activeProbes;
     std::vector<Node> nodes;
     std::vector<Basket> baskets;
-    std::vector<DaemonSlot> daemons;
+    std::vector<Daemon> daemons;
     std::vector<CashoutParticle> particles;
     Vector2 centerApexPegPos; 
 
