@@ -96,12 +96,7 @@ void InitGame() {
         Daemon(830.0f, slotYStart + 3*(slotHeight + slotSpacing), 420.0f, slotHeight, "BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET, 3),
         Daemon(830.0f, slotYStart + 4*(slotHeight + slotSpacing), 420.0f, slotHeight, "MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3)
     };
-
-    engine.daemons[0].SetFillPct(85);
-    engine.daemons[1].SetFillPct(40);
-    engine.daemons[2].SetFillPct(100); engine.daemons[2].SetOverclock(5);
-    engine.daemons[3].SetFillPct(15);
-    engine.daemons[4].SetFillPct(65);
+    engine.daemons[2].SetOverclock(5);
 }
 
 void InjectProbeFromTurret() {
@@ -388,6 +383,7 @@ void UpdateDrawFrame(void) {
             localSelectedDaemonIndex = -1;
         }
     }
+    
     for (size_t i = 0; i < engine.daemons.size(); i++) {
         bool isSelected = (localSelectedDaemonIndex == (int)i);
         engine.daemons[i].UpdateExpansion(scaledDt, isSelected);

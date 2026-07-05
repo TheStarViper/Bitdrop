@@ -3,7 +3,7 @@
 #include "raylib.h"
 #include <string>
 #include "variables.hpp"
-
+#include "easing_functions.hpp"
 
 class Daemon {
 private:
@@ -17,11 +17,15 @@ private:
     Color accentColor;
     int overclocked;
     float expansionTimer = 0.0f;
+    
 
 public:
     std::function<void(class GameEngine&, float)> systemPatch;
     float x, y, width, height;
     std::string status;
+    int slot;
+
+    
     Daemon(float posX, 
            float posY, 
            float w, 
@@ -67,15 +71,15 @@ public:
 
     void UpdateExpansion(float dt, bool isSelected) {
         if (isSelected) {
-            expansionTimer += dt * 5.0f;
+            expansionTimer += dt * 8.0f;
             if (expansionTimer > 1.0f) expansionTimer = 1.0f;
         } else {
-            expansionTimer -= dt * 5.0f;
+            expansionTimer -= dt * 8.0f;
             if (expansionTimer < 0.0f) expansionTimer = 0.0f;
         }
     }
 
-    float GetExpansion() const { return expansionTimer; }
+    float GetExpansion() const { return Easings::EaseInOutQuart(expansionTimer); }
     std::string GetName() const { return name; }
     std::string GetDesc() const { return description; }
     int GetLevel() const { return level; }
@@ -86,6 +90,7 @@ public:
     bool IsOverclocked() const { return overclocked > 0; }
     void SetOverclock(int overclocklvl) { overclocked = overclocklvl; } //debugging
     int getoverclocklvl () const { return overclocked; }
+    //me realising you can just use variables instead of a function to return them in a class whoopsies but i diont feel like changing it now
 };
 
 

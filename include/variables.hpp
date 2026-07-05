@@ -23,6 +23,7 @@ namespace Config {
     const Color COLOR_OVERCLOCKED = { 117, 1, 137, 255 };
 }
 
+
 namespace Gamestates{
     enum State {
         MainMenu,
@@ -110,13 +111,18 @@ struct CashoutParticle {
     Color color;
 };
 
+struct DaemonsDisplayInfo {
+    std::vector<Daemon> activedaemon;
+    int page;
+};
+
 struct GameEngine {
     std::vector<Probe> activeProbes;
     std::vector<Node> nodes;
     std::vector<Basket> baskets;
     std::vector<Daemon> daemons;
     std::vector<CashoutParticle> particles;
-    Vector2 centerApexPegPos; 
+    Vector2 centerApexPegPos;
 
     int remainingBalls;
     double globalDataHackedBytes;
