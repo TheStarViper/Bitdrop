@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include "daemons.hpp"
+
+class Daemon;
 namespace Config {
     constexpr int SCREEN_WIDTH = 1280;
     constexpr int SCREEN_HEIGHT = 720;
@@ -18,10 +20,17 @@ namespace Config {
     const Color COLOR_BASKET = { 12, 32, 42, 255 };
     const Color COLOR_SHARD_BORDER = { 30, 50, 70, 255 };
     const Color OTHER_COLOR_FOR_DAEMONS = { 250, 15, 82, 255 };
+    const Color COLOR_OVERCLOCKED = { 117, 1, 137, 255 };
 }
 
 namespace Gamestates{
-
+    enum State {
+        MainMenu,
+        GAME,
+        PUZZLES,
+        SETTINGS,
+        SHOP
+    };
 }
 
 namespace Resources{

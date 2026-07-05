@@ -1,0 +1,111 @@
+#include "daemons.hpp"
+#include "raylib.h"
+#include "variables.hpp"
+#include <cmath>
+
+void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected) {
+    bool isHovered = CheckCollisionPointRec(mousePos, { d.x, d.y, d.width, d.height });
+
+    Color currentBg = isHovered ? Color{ 16, 26, 42, 255 } : Color{ 10, 16, 26, 240 };
+    Color borderColor = isSelected ? Config::COLOR_UI_AMBER : (isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
+    
+    Color levelcolor = (d.IsOverclocked()) ? Config::COLOR_OVERCLOCKED : d.GetColor();
+
+    DrawRectangle(d.x, d.y, d.width, d.height, currentBg);
+    DrawRectangleLinesEx({ d.x, d.y, d.width, d.height }, isSelected ? 1.5f : 1.0f, borderColor);
+    
+    DrawLineEx({ d.x, d.y }, { d.x + 20, d.y }, 2.5f, d.GetColor());
+    DrawLineEx({ d.x, d.y }, { d.x, d.y + 20 }, 2.5f, d.GetColor());
+    DrawLineEx({ d.x + d.width - 20, d.y + d.height }, { d.x + d.width, d.height + d.y }, 2.5f, d.GetColor());
+    
+    
+    //level bar
+    const int level_bar_x = d.x + d.width - 85;
+    const int level_bar_y = d.y + 20;
+
+    float barW = 70.0f;
+    DrawRectangle(level_bar_x, level_bar_y, barW, 7, { 20, 35, 45, 255 });
+    DrawRectangle(level_bar_x, level_bar_y, barW * (d.GetLevel() / (float)d.getmaxlevel()), 7, levelcolor);
+
+    //overclocked indicator
+    if (d.IsOverclocked()) {
+        if (d.getoverclocklvl()>=2){
+            std::string lvlnumstr = std::to_string(d.getoverclocklvl())+"x";
+            DrawText(lvlnumstr.c_str(),d.x+ d.width - 190, level_bar_y-1, 9, Config::COLOR_OVERCLOCKED);
+        }
+        DrawText("OVERCLOCKED",d.x+ d.width - 172, level_bar_y-1, 9, Config::COLOR_OVERCLOCKED);
+    } else {
+        std::string lvlStr = "LVL " + std::to_string(d.GetLevel());
+        DrawText(lvlStr.c_str(), d.x + d.width - 125, level_bar_y-2, 11, Config::COLOR_PROBE);
+    }
+    DrawRectangle(d.x + 3, d.y + 3, 5, d.height - 6, levelcolor);
+
+
+    //titles and tech gibberish
+    DrawText(d.GetName().c_str(), d.x + 20, d.y + 16, 15, d.GetColor());
+    DrawText(d.status.c_str(), d.x + 20, d.y + 40, 11, { 110, 140, 160, 255 });
+
+
+    if (isHovered) {
+        float boxW = 280.0f;
+        float boxH = 50.0f;
+        float boxX = d.x - boxW - 10.0f; 
+        float boxY = d.y + (d.height - boxH) / 2.0f;
+
+        DrawRectangle(boxX, boxY, boxW, boxH, { 6, 12, 22, 250 });
+        DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, Config::COLOR_UI_GREEN);
+        DrawRectangle(boxX + 1, boxY + 1, 3, boxH - 2, Config::COLOR_UI_GREEN); 
+        DrawText(d.GetDesc().c_str(), boxX + 12, boxY + 18, 11, Config::COLOR_PROBE);
+    }
+
+    float expansion = d.GetExpansion();
+
+    if (expansion > 0.01f) {
+        float easeProgress = 1.0f - powf(1.0f - expansion, 3.0f);
+        
+        unsigned char alpha = (unsigned char)(easeProgress * 255);
+        Color textCol = { 255, 255, 255, alpha };
+        Color amberCol = { Config::COLOR_UI_AMBER.r, Config::COLOR_UI_AMBER.g, Config::COLOR_UI_AMBER.b, alpha };
+        Color borderCol = { Config::COLOR_SHARD_BORDER.r, Config::COLOR_SHARD_BORDER.g, Config::COLOR_SHARD_BORDER.b, alpha };
+
+        float slideOffset = (1.0f - easeProgress) * 15.0f;
+        float bY = (d.y + d.height - 32.0f) + slideOffset;
+        
+        Rectangle rUp = { d.x + d.width - 150, bY, 30, 22 };
+        Rectangle rDown = { d.x + d.width - 115, bY, 30, 22 };
+        Rectangle rSell = { d.x + d.width - 80, bY, 70, 22 };
+
+        Vector2 mouse = GetMousePosition();
+
+        Color upBg = CheckCollisionPointRec(mouse, rUp) ? Config::COLOR_GRID_LINE : Color{20, 32, 42, 255};
+        upBg.a = alpha;
+        DrawRectangleRec(rUp, upBg);
+        DrawRectangleLinesEx(rUp, 1.0f, borderCol);
+        DrawText("▲", rUp.x + 10, rUp.y + 5, 12, textCol);
+
+        Color downBg = CheckCollisionPointRec(mouse, rDown) ? Config::COLOR_GRID_LINE : Color{20, 32, 42, 255};
+        downBg.a = alpha;
+        DrawRectangleRec(rDown, downBg);
+        DrawRectangleLinesEx(rDown, 1.0f, borderCol);
+        DrawText("▼", rDown.x + 10, rDown.y + 5, 12, textCol);
+
+        int sellPreview = d.GetFillPct() * 250;
+        std::string sellText = "$" + std::to_string(sellPreview);
+
+        Color sellBg = CheckCollisionPointRec(mouse, rSell) ? Color{180, 40, 40, 255} : Color{45, 15, 20, 255};
+        sellBg.a = alpha;
+        DrawRectangleRec(rSell, sellBg);
+        DrawRectangleLinesEx(rSell, 1.0f, amberCol);
+        DrawText("SELL", rSell.x + 6, rSell.y + 5, 11, amberCol);
+        DrawText(sellText.c_str(), rSell.x + 36, rSell.y + 6, 10, textCol);
+    }
+}
+
+
+//overclocking requires overclocking shard 1x then 2x then 3x and so on
+//daemon ideas:
+// "Mitosis" - score is no longer split between daughter probes
+// "Mesh Network" - score is multiplied by 1.5x for each probe in play instead of 1.2x
+// "Loyalty Points" - score is multiplied by 2x every 5 hits
+// bouncy
+// somethin else
