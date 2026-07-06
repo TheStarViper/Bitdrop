@@ -34,9 +34,6 @@ std::string FormatByteSize(double bytes) {
     return stream.str();
 }
 
-GameEngine engine;
-
-
 void InitGame() {
     engine.globalDataHackedBytes = 0.0;
     engine.remainingBalls = MAX_LAUNCH_CAPACITY;
@@ -71,32 +68,24 @@ void InitGame() {
     float basketY = 600.0f; 
     float basketW = spacingX - 8.0f; 
 
+    const std::vector<float> basketmults = { 1.0f, 1.5f, 2.0f, 3.0f, 4.0f, 5.0f };
+
     for (int i = 0; i < finalRowCols + 1; ++i) {
         Basket b;
         float bx = (finalRowStartX - (spacingX / 2.0f)) + (i * spacingX) - (basketW / 2.0f);
         b.bounds = { bx, basketY, basketW, 20.0f };
         
-        int factor = (i == 0 || i == finalRowCols) ? 1 : (i % 2 == 0) ? 2 : 4;
-        if (i == finalRowCols / 2) factor = 8; 
+        int centerIndex = finalRowCols / 2;
+        int distanceFromCenter = std::abs(i - centerIndex);
+
+        size_t multiplierIndex = std::min(static_cast<size_t>(distanceFromCenter), basketmults.size() - 1);
         
         b.name = "PORT_" + std::to_string(i + 1);
-        b.multiplier = factor * 0.5f;
+        b.multiplier = basketmults[multiplierIndex];
         engine.baskets.push_back(b);
     }
 
-    float slotYStart = 15.0f;
-    float slotHeight = 76.0f;
-    float slotSpacing = 10.0f;
-    
-    
-    engine.daemons = {
-        Daemon(830.0f, slotYStart, 420.0f, slotHeight, "NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3),
-        Daemon(830.0f, slotYStart + (slotHeight + slotSpacing), 420.0f, slotHeight, "ICEBREAKER", "STANDBY RUNTIME", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_GREEN, 3),
-        Daemon(830.0f, slotYStart + 2*(slotHeight + slotSpacing), 420.0f, slotHeight, "OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER, 3),
-        Daemon(830.0f, slotYStart + 3*(slotHeight + slotSpacing), 420.0f, slotHeight, "BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET, 3),
-        Daemon(830.0f, slotYStart + 4*(slotHeight + slotSpacing), 420.0f, slotHeight, "MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3)
-    };
-    engine.daemons[2].SetOverclock(5);
+    initdaemons();
 }
 
 void InjectProbeFromTurret() {
@@ -365,35 +354,8 @@ void UpdateDrawFrame(void) {
     for (const auto& cp : engine.particles) {
         DrawText(cp.text.c_str(), cp.position.x, cp.position.y, 13, cp.color);
     }
-    static int localSelectedDaemonIndex = -1;
-    float scaledDt = GetFrameTime() * Config::GAME_SPEED;
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        Vector2 mPos = GetMousePosition();
-        bool clickedCard = false;
-        
-        for (size_t i = 0; i < engine.daemons.size(); i++) {
-            auto& d = engine.daemons[i];
-            if (CheckCollisionPointRec(mPos, { d.x, d.y, d.width, d.height })) {
-                localSelectedDaemonIndex = (int)i;
-                clickedCard = true;
-                break;
-            }
-        }
-        if (!clickedCard) {
-            localSelectedDaemonIndex = -1;
-        }
-    }
-    
-    for (size_t i = 0; i < engine.daemons.size(); i++) {
-        bool isSelected = (localSelectedDaemonIndex == (int)i);
-        engine.daemons[i].UpdateExpansion(scaledDt, isSelected);
-        engine.daemons[i].ExecuteRoutine(engine, scaledDt);
-    }
-    for (size_t i = 0; i < engine.daemons.size(); i++) {
-        bool isSelected = (localSelectedDaemonIndex == (int)i); 
-        DrawCyberpunkDaemonSlot(engine.daemons[i], currentMousePos, isSelected);
-    }
-    
+    PrepDrawCyberpunkDaemonSlots();
+
     std::string coreTelemetry = "FLIGHT CONCURRENT ARCH: " + std::to_string(engine.activeProbes.size()) + " UNITS  ||  " + engine.calculationLog;
     DrawText(coreTelemetry.c_str(), 400 - (MeasureText(coreTelemetry.c_str(), 13) / 2), 652, 13, Config::COLOR_PROBE);
 

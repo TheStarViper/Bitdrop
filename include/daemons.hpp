@@ -17,28 +17,27 @@ private:
     Color accentColor;
     int overclocked;
     float expansionTimer = 0.0f;
-    
+    float slotYStart = 15.0f;
+    float slotSpacing = 10.0f;
 
 public:
     std::function<void(class GameEngine&, float)> systemPatch;
-    float x, y, width, height;
+    float x = 830.0f;
+    float tempy;
+    float y;
+    float width = 420.0f;
+    float height = 76.0f;
     std::string status;
     int slot;
 
-    
-    Daemon(float posX, 
-           float posY, 
-           float w, 
-           float h, 
+    Daemon(int slott, 
            std::string daemonName, 
            std::string stat, 
            std::string desc, 
            Color identityColor,
            int maxlvl) {
-        x = posX;
-        y = posY;
-        width = w;
-        height = h;
+        slot = slott;
+        y = slotYStart + (slot - 1) * (height + slotSpacing);
         name = daemonName;
         status = stat;
         description = desc;
@@ -93,5 +92,6 @@ public:
     //me realising you can just use variables instead of a function to return them in a class whoopsies but i diont feel like changing it now
 };
 
-
+void PrepDrawCyberpunkDaemonSlots();
 void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected);
+void initdaemons();

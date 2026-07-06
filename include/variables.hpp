@@ -112,7 +112,7 @@ struct CashoutParticle {
 };
 
 struct DaemonsDisplayInfo {
-    std::vector<Daemon> activedaemon;
+    std::vector<Daemon> daemons;
     int page;
 };
 
@@ -131,3 +131,6 @@ struct GameEngine {
     std::string calculationLog;
     float turretBarrelFlash;
 };
+
+inline DaemonsDisplayInfo activedaemoninfo;
+inline GameEngine engine;
