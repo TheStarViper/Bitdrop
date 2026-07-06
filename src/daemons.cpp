@@ -2,8 +2,22 @@
 #include "raylib.h"
 #include "variables.hpp"
 #include <cmath>
+#include <utility>
+
 
 void PrepDrawCyberpunkDaemonSlots(){
+    static bool isInitialized = false;
+    if (!isInitialized) {
+        activedaemoninfo.daemons = {
+            Daemon("NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3, 1),
+            Daemon("NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_SHARD_BORDER, 3, 2),
+            Daemon("NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_GREEN, 3, 3),
+            Daemon("NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_OVERCLOCKED, 3, 4),
+            Daemon("NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER, 3, 5)
+        };
+        isInitialized = true;
+    }
+
     static int localSelectedDaemonIndex = -1;
     float scaledDt = GetFrameTime() * Config::GAME_SPEED;
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -25,24 +39,15 @@ void PrepDrawCyberpunkDaemonSlots(){
     
     for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
         bool isSelected = (localSelectedDaemonIndex == (int)i);
-        activedaemoninfo.daemons[i].UpdateExpansion(scaledDt, isSelected);
         activedaemoninfo.daemons[i].ExecuteRoutine(engine, scaledDt);
+        activedaemoninfo.daemons[i].UpdateExpansion(scaledDt, isSelected);
+        DrawCyberpunkDaemonSlot(activedaemoninfo.daemons[i], GetMousePosition(), isSelected, (int)i,&localSelectedDaemonIndex);
     }
-    activedaemoninfo.daemons = {Daemon(1, "NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3),
-                                Daemon(2, "NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3),
-                                Daemon(3, "NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3),
-                                Daemon(4, "NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3),
-                                Daemon(5, "NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3)};
-    TraceLog(LOG_INFO,"1");
-    for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
-        DrawCyberpunkDaemonSlot(activedaemoninfo.daemons[i], GetMousePosition(), false);
-        TraceLog(LOG_INFO,"2");
-    }
+    
 }
 
-void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected) {
+void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex) {
     bool isHovered = CheckCollisionPointRec(mousePos, { d.x, d.y, d.width, d.height });
-    TraceLog(LOG_INFO,std::to_string(d.y).c_str());
     Color currentBg = isHovered ? Color{ 16, 26, 42, 255 } : Color{ 10, 16, 26, 240 };
     Color borderColor = isSelected ? Config::COLOR_UI_AMBER : (isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
     
@@ -96,7 +101,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected)
     }
 
     float expansion = d.GetExpansion();
-
+    
     if (expansion > 0.01f) {
         float easeProgress = 1.0f - powf(1.0f - expansion, 3.0f);
         
@@ -128,28 +133,50 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected)
 
         int sellPreview = d.GetFillPct() * 250;
         std::string sellText = "$" + std::to_string(sellPreview);
-
+        
         Color sellBg = CheckCollisionPointRec(mouse, rSell) ? Color{180, 40, 40, 255} : Color{45, 15, 20, 255};
         sellBg.a = alpha;
         DrawRectangleRec(rSell, sellBg);
         DrawRectangleLinesEx(rSell, 1.0f, amberCol);
         DrawText("SELL", rSell.x + 6, rSell.y + 5, 11, amberCol);
         DrawText(sellText.c_str(), rSell.x + 36, rSell.y + 6, 10, textCol);
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+            if (CheckCollisionPointRec(mouse, rUp)) {
+                //next
+            } else if (CheckCollisionPointRec(mouse, rDown)) {
+                //next
+            } else if (CheckCollisionPointRec(mouse, rSell)) {
+                if (daemonidx < activedaemoninfo.daemons.size()) {
+                    int cached_slot = d.slot;
+                    std::swap(activedaemoninfo.daemons[daemonidx], activedaemoninfo.daemons.back());
+                    activedaemoninfo.daemons.pop_back();
+                    *selectedDaemonIndex = -1;
+                    for (size_t i = 0; i < activedaemoninfo.daemons.size(); ++i) {
+                        if (activedaemoninfo.daemons[i].slot > cached_slot) {
+                            activedaemoninfo.daemons[i].slot--;
+                            activedaemoninfo.daemons[i].updateYPosition();
+                        }
+                    }
+                }
+            }
+        }
     }
 }
-
 void initdaemons(){
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
     engine.daemons = {
-        Daemon(1, "NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3),
-        Daemon(2, "ICEBREAKER", "STANDBY RUNTIME", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_GREEN, 3),
-        Daemon(3, "OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER, 3),
-        Daemon(4, "BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET, 3),
-        Daemon(5, "MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3)
+        Daemon("NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3),
+        Daemon("ICEBREAKER", "STANDBY RUNTIME", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_GREEN, 3),
+        Daemon("OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER, 3),
+        Daemon("BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET, 3),
+        Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3)
     };
 }
 //overclocking requires overclocking shard 1x then 2x then 3x and so on
+//empty slots
+//locked slots
 //daemon ideas:
 // "Mitosis" - score is no longer split between daughter probes
 // "Mesh Network" - score is multiplied by 1.5x for each probe in play instead of 1.2x

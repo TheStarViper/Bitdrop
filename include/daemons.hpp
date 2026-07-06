@@ -30,14 +30,14 @@ public:
     std::string status;
     int slot;
 
-    Daemon(int slott, 
-           std::string daemonName, 
+    Daemon(std::string daemonName, 
            std::string stat, 
            std::string desc, 
            Color identityColor,
-           int maxlvl) {
+           int maxlvl,
+           int slott = -1) {
         slot = slott;
-        y = slotYStart + (slot - 1) * (height + slotSpacing);
+        y = slotYStart + ((slot - 1) % 5) * (height + slotSpacing);
         name = daemonName;
         status = stat;
         description = desc;
@@ -78,7 +78,11 @@ public:
         }
     }
 
+    void updateYPosition() {
+        y = slotYStart + ((slot - 1) % 5) * (height + slotSpacing);
+    }
     float GetExpansion() const { return Easings::EaseInOutQuart(expansionTimer); }
+    //float GetExpansion() const { return expansionTimer; }
     std::string GetName() const { return name; }
     std::string GetDesc() const { return description; }
     int GetLevel() const { return level; }
@@ -93,5 +97,5 @@ public:
 };
 
 void PrepDrawCyberpunkDaemonSlots();
-void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected);
+void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
 void initdaemons();
