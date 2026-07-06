@@ -141,28 +141,46 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         DrawText("SELL", rSell.x + 6, rSell.y + 5, 11, amberCol);
         DrawText(sellText.c_str(), rSell.x + 36, rSell.y + 6, 10, textCol);
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-            if (CheckCollisionPointRec(mouse, rUp)) {
-                //next
+        int targetSlot = -1;
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            if (CheckCollisionPointRec(mouse, rUp) && d.slot > 0) {
+                targetSlot = d.slot - 1;
             } else if (CheckCollisionPointRec(mouse, rDown)) {
-                //next
-            } else if (CheckCollisionPointRec(mouse, rSell)) {
-                if (daemonidx < activedaemoninfo.daemons.size()) {
-                    int cached_slot = d.slot;
-                    std::swap(activedaemoninfo.daemons[daemonidx], activedaemoninfo.daemons.back());
-                    activedaemoninfo.daemons.pop_back();
-                    *selectedDaemonIndex = -1;
-                    for (size_t i = 0; i < activedaemoninfo.daemons.size(); ++i) {
-                        if (activedaemoninfo.daemons[i].slot > cached_slot) {
-                            activedaemoninfo.daemons[i].slot--;
-                            activedaemoninfo.daemons[i].updateYPosition();
-                        }
+                targetSlot = d.slot + 1;
+            } else if (CheckCollisionPointRec(mouse, rSell) && daemonidx < activedaemoninfo.daemons.size()) {
+                int cached_slot = d.slot;
+                std::swap(activedaemoninfo.daemons[daemonidx], activedaemoninfo.daemons.back());
+                activedaemoninfo.daemons.pop_back();
+                *selectedDaemonIndex = -1;
+                
+                for (auto& daemon : activedaemoninfo.daemons) {
+                    if (daemon.slot > cached_slot) {
+                        daemon.slot--;
+                        daemon.updateYPosition();
                     }
+                }
+            }
+        }
+
+        if (targetSlot != -1) {
+            for (size_t i = 0; i < activedaemoninfo.daemons.size(); ++i) {
+                if (activedaemoninfo.daemons[i].slot == targetSlot) {
+                    activedaemoninfo.daemons[i].slot = d.slot;
+                    activedaemoninfo.daemons[daemonidx].slot = targetSlot;
+
+                    activedaemoninfo.daemons[i].updateYPosition();
+                    activedaemoninfo.daemons[daemonidx].updateYPosition();
+
+                    std::swap(activedaemoninfo.daemons[daemonidx], activedaemoninfo.daemons[i]);
+                    *selectedDaemonIndex = (int)i;
+                    break;
                 }
             }
         }
     }
 }
+
 void initdaemons(){
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
