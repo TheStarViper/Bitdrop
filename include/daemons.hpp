@@ -18,8 +18,6 @@ private:
     
     int overclocked;
     float expansionTimer = 0.0f;
-    float slotYStart = 15.0f;
-    float slotSpacing = 10.0f;
     int sellval;
     DaemonAction actionCallback;
 
@@ -45,7 +43,7 @@ public:
            int slott = -1) {
         slot = slott;
         sellval = sellvals;
-        y = slotYStart + ((slot - 1) % 5) * (height + slotSpacing);
+        y = Config::Daemon_Y_Buffer + ((slot - 1) % 5) * (height + Config::Daemon_Slot_Spacing);
         name = daemonName;
         status = stat;
         description = desc;
@@ -76,7 +74,7 @@ public:
     }
 
     void updateYPosition() {
-        y = slotYStart + ((slot - 1) % 5) * (height + slotSpacing);
+        y = Config::Daemon_Y_Buffer + ((slot - 1) % 5) * (height + Config::Daemon_Slot_Spacing);
     }
 
     int getsellval() const {

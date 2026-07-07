@@ -243,8 +243,10 @@ void UpdatePhysics(float dt) {
         bool absorbed = false;
         for (const auto& basket : engine.baskets) {
             if (CheckCollisionCircleRec(p.position, p.radius, basket.bounds)) {
+                for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
+                    activedaemoninfo.daemons[i].TriggerAction();
+                }
                 int localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
-                
                 engine.globalDataHackedBytes += localizedFinalBytesYield;
 
                 CashoutParticle cp;

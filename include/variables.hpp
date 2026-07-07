@@ -9,7 +9,11 @@ namespace Config {
     constexpr int SCREEN_HEIGHT = 720;
     constexpr float GRAVITY = 1200.0f;        
 
-    constexpr float GAME_SPEED = 0.40f;      
+    constexpr float Daemon_Y_Buffer = 20.0f;
+    
+    constexpr float Daemon_Slot_Spacing = 10.0f;
+    constexpr float GAME_SPEED = 0.40f;
+
     const Color COLOR_BG = { 4, 8, 12, 255 };
     const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
     const Color COLOR_NODE = { 0, 255, 180, 255 };

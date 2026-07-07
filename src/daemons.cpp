@@ -46,7 +46,6 @@ void PrepDrawCyberpunkDaemonSlots(){
         activedaemoninfo.daemons[i].ExecuteRoutine(engine, scaledDt);
         activedaemoninfo.daemons[i].UpdateExpansion(scaledDt, isSelected);
         DrawCyberpunkDaemonSlot(activedaemoninfo.daemons[i], GetMousePosition(), isSelected, (int)i,&localSelectedDaemonIndex);
-        activedaemoninfo.daemons[i].TriggerAction();
     }
     
 }
@@ -211,6 +210,7 @@ void initdaemons(){
 void testdaemon(Daemon& self){
     TraceLog(LOG_INFO,"daemontest");
 }
+//animate scoring so it goes onto a belt and goes through the daemons
 //overclocking requires overclocking shard 1x then 2x then 3x and so on
 //empty slots
 //locked slots
