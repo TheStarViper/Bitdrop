@@ -87,6 +87,19 @@ void InitGame() {
     initdaemons();
 }
 
+int GetUniqueProbeId(GameEngine& eng) {
+    if (!eng.recycledProbeIds.empty()) {
+        int recycledId = eng.recycledProbeIds.back();
+        eng.recycledProbeIds.pop_back();
+        return recycledId;
+    }
+    return eng.nextProbeId++;
+}
+
+void RecycleProbeId(GameEngine& eng, int id) {
+    eng.recycledProbeIds.push_back(id);
+}
+
 void InjectProbeFromTurret() {
     if (engine.remainingBalls <= 0) return; 
 
@@ -94,7 +107,8 @@ void InjectProbeFromTurret() {
     engine.turretBarrelFlash = 0.12f;
 
     Probe p;
-    p.id = MAX_LAUNCH_CAPACITY - engine.remainingBalls;
+    p.id = GetUniqueProbeId(engine);
+    
     float variance = (float)GetRandomValue(-12, 12);
     p.position = { engine.centerApexPegPos.x + variance, engine.centerApexPegPos.y - 80.0f };
     p.velocity = { (float)GetRandomValue(-8, 8), 100.0f };
@@ -224,11 +238,10 @@ void UpdatePhysics(float dt) {
                         float speedSnap = fabsf(p.velocity.x) > 10.0f ? fabsf(p.velocity.x) : 80.0f;
 
                         Probe cloneL = p;
-                        cloneL.id = p.id * 100 + GetRandomValue(1, 99);
+                        cloneL.id = GetUniqueProbeId(engine);
                         cloneL.position.x = node.position.x - pushOffset;
                         cloneL.velocity.x = -speedSnap;
                         cloneL.lastHitNodeIndex = (int)nIdx;
-
                         p.position.x = node.position.x + pushOffset;
                         p.velocity.x = speedSnap;
                         
@@ -244,7 +257,9 @@ void UpdatePhysics(float dt) {
         for (const auto& basket : engine.baskets) {
             if (CheckCollisionCircleRec(p.position, p.radius, basket.bounds)) {
                 for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
-                    activedaemoninfo.daemons[i].TriggerAction();
+                    if (activedaemoninfo.daemons[i].triggertype==PASSIVE||BASKET){
+                        activedaemoninfo.daemons[i].TriggerAction(engine.activeProbes[i]);
+                    }
                 }
                 int localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
                 engine.globalDataHackedBytes += localizedFinalBytesYield;
@@ -257,6 +272,7 @@ void UpdatePhysics(float dt) {
                 engine.particles.push_back(cp);
 
                 engine.calculationLog = "DECRYPTED SECTOR LINK YIELDING " + FormatByteSize(localizedFinalBytesYield);
+                RecycleProbeId(engine, engine.activeProbes[i].id);
                 engine.activeProbes.erase(engine.activeProbes.begin() + i);
                 i--;
                 absorbed = true;

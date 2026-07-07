@@ -132,6 +132,8 @@ struct GameEngine {
 
     int remainingBalls;
     long long int globalDataHackedBytes;
+    int nextProbeId = 0;
+    std::vector<int> recycledProbeIds;
     const int latencyCap = 15;
 
     std::string calculationLog;

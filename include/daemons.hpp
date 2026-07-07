@@ -5,9 +5,10 @@
 #include "variables.hpp"
 #include "easing_functions.hpp"
 
+class Probe;
 class Daemon {
 public:
-    using DaemonAction = void(*)(Daemon&);
+    using DaemonAction = void(*)(Daemon&,Probe&);
 private:
     std::string name;
     std::string description;
@@ -81,9 +82,9 @@ public:
         return sellval + (10 * static_cast<int>(std::pow(overclocked, 3)));
     }
 
-    void TriggerAction() {
+    void TriggerAction(Probe& probe) {
         if (actionCallback != nullptr) {
-            actionCallback(*this);
+            actionCallback(*this,probe);
         }
     }
     
@@ -105,4 +106,4 @@ public:
 void PrepDrawCyberpunkDaemonSlots();
 void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
 void initdaemons();
-void testdaemon(Daemon& self);
+void testdaemon(Daemon& self, Probe& probe);

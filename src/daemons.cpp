@@ -3,7 +3,8 @@
 #include "variables.hpp"
 #include <cmath>
 #include <utility>
-
+#include <sstream>
+#include <ctime>
 
 void PrepDrawCyberpunkDaemonSlots(){
     static bool isInitialized = false;
@@ -94,14 +95,49 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
 
     if (isHovered) {
         float boxW = 280.0f;
-        float boxH = 50.0f;
+        float paddingX = 12.0f;
+        float paddingY = 14.0f;
+        
+        Font font = GetFontDefault();
+        float fontSize = 11.0f;
+        float spacing = 1.0f;
+        std::string text = d.GetDesc();
+        
+        float maxTextWidth = boxW - (paddingX * 2.0f);
+        std::vector<std::string> lines;
+        std::string currentLine = "";
+        std::string word = "";
+        std::stringstream ss(text);
+        
+        while (ss >> word) {
+            std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
+            Vector2 size = MeasureTextEx(font, testLine.c_str(), fontSize, spacing);
+            
+            if (size.x > maxTextWidth) {
+                if (!currentLine.empty()) lines.push_back(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+        if (!currentLine.empty()) lines.push_back(currentLine);
+        if (lines.empty()) lines.push_back("");
+        float textLineHeight = (font.baseSize > 0) ? font.baseSize * (fontSize / font.baseSize) : fontSize;
+        float totalTextHeight = (lines.size() * textLineHeight) + ((lines.size() - 1) * (textLineHeight * 0.5f)); 
+        float boxH = totalTextHeight + (paddingY * 2.0f);
+        
         float boxX = d.x - boxW - 10.0f; 
         float boxY = d.y + (d.height - boxH) / 2.0f;
 
         DrawRectangle(boxX, boxY, boxW, boxH, { 6, 12, 22, 250 });
         DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, Config::COLOR_UI_GREEN);
         DrawRectangle(boxX + 1, boxY + 1, 3, boxH - 2, Config::COLOR_UI_GREEN); 
-        DrawText(d.GetDesc().c_str(), boxX + 12, boxY + 18, 11, Config::COLOR_PROBE);
+
+        float currentY = boxY + paddingY;
+        for (const auto& line : lines) {
+            DrawTextEx(font, line.c_str(), { boxX + paddingX, currentY }, fontSize, spacing, Config::COLOR_PROBE);
+            currentY += textLineHeight * 1.5f; 
+        }
     }
 
     float expansion = d.GetExpansion();
@@ -199,17 +235,27 @@ void initdaemons(){
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
     engine.daemons = {
-        Daemon("NETRUNNER_DECK_01", "SECURE // SYNCED", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_PROBE, 3,932,PASSIVE,testdaemon),
+        Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "Daemon used for testing effects u should not get this in normal play", Config::COLOR_PROBE, 3,932,PASSIVE,testdaemon),
         Daemon("ICEBREAKER", "STANDBY RUNTIME", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_GREEN, 3,453,PASSIVE),
         Daemon("OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER, 3, 4323,PASSIVE),
         Daemon("BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET, 3, 543,PASSIVE),
         Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3, 123,PASSIVE)
-    };  
+    };
 }
 
-void testdaemon(Daemon& self){
-    TraceLog(LOG_INFO,"daemontest");
+void drawdaemonlinestoballs(float x1,float y1,float x2,float y2, Color color){
+    DrawLine(x1,y1,x2,y2,color);
 }
+
+void testdaemon(Daemon& self, Probe& probe){
+    TraceLog(LOG_INFO, "daemontest");
+    std::string info = std::to_string(probe.position.x);
+    TraceLog(LOG_INFO, info.c_str());
+    int random_num = self.y + GetRandomValue(1, 67); 
+    drawdaemonlinestoballs(probe.position.x, probe.position.y, self.x, random_num, self.GetColor());
+}
+
+
 //animate scoring so it goes onto a belt and goes through the daemons
 //overclocking requires overclocking shard 1x then 2x then 3x and so on
 //empty slots
