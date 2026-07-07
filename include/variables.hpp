@@ -132,5 +132,10 @@ struct GameEngine {
     float turretBarrelFlash;
 };
 
+struct GameState{
+    int balance;
+};
+
 inline DaemonsDisplayInfo activedaemoninfo;
 inline GameEngine engine;
+inline GameState gamestate;

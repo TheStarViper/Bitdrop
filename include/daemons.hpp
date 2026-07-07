@@ -11,14 +11,13 @@ private:
     std::string description;
     int level;
     int max_level;
-    int experience;
-    int maxExperience;
     int fillPct;
     Color accentColor;
     int overclocked;
     float expansionTimer = 0.0f;
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
+    int sellval;
 
 public:
     std::function<void(class GameEngine&, float)> systemPatch;
@@ -35,8 +34,10 @@ public:
            std::string desc, 
            Color identityColor,
            int maxlvl,
-           int slott = -1) {
+           int slott = -1,
+           int sellvals = 0) {
         slot = slott;
+        sellval = sellvals;
         y = slotYStart + ((slot - 1) % 5) * (height + slotSpacing);
         name = daemonName;
         status = stat;
@@ -44,22 +45,9 @@ public:
         accentColor = identityColor;
         level = 1;
         max_level = maxlvl;
-        experience = 0;
-        maxExperience = 100;
         fillPct = 0;
         overclocked = 0;
         systemPatch = nullptr;
-    }
-
-    void GainXP(int amount) {
-        if (name == "EMPTY_SLOT_DECK") return;
-        experience += amount;
-        if (experience >= maxExperience) {
-            level++;
-            experience -= maxExperience;
-            maxExperience = (int)(maxExperience * 1.5f); 
-            fillPct = 0;
-        }
     }
 
     void ExecuteRoutine(class GameEngine& eng, float dt) {
@@ -81,8 +69,12 @@ public:
     void updateYPosition() {
         y = slotYStart + ((slot - 1) % 5) * (height + slotSpacing);
     }
+
+    int getsellval() const {
+        return sellval + (10 * static_cast<int>(std::pow(overclocked, 3)));
+    }
     float GetExpansion() const { return Easings::EaseInOutQuart(expansionTimer); }
-    //float GetExpansion() const { return expansionTimer; }
+    //float GetExpansion() const { return expansionTimer; } //no easings just linear
     std::string GetName() const { return name; }
     std::string GetDesc() const { return description; }
     int GetLevel() const { return level; }

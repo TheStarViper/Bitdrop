@@ -13,7 +13,6 @@
 
    
 const int MAX_LAUNCH_CAPACITY = 45;     
-const int STARTING_CREDITS = 85000;
 
 const float KINETIC_RESTITUTION = 0.20f; 
 const float FRICTION_DAMPING = 0.95f;  
@@ -375,8 +374,8 @@ void UpdateDrawFrame(void) {
     float walletY = 565.0f;
     DrawRectangle(830, walletY, 420, 65, { 16, 22, 12, 240 });
     DrawRectangleLines(830, walletY, 420, 65, Config::COLOR_SHARD_BORDER);
-    DrawText("ACCOUNT STANDALONE BALANCE LEDGER (FROZEN):", 845, walletY + 10, 11, Config::COLOR_NODE);
-    std::string walletStr = "CREDITS: ฿ " + std::to_string(STARTING_CREDITS);
+    DrawText("ACCOUNT STANDALONE BALANCE LEDGER:", 845, walletY + 10, 11, Config::COLOR_NODE);
+    std::string walletStr = "CREDITS: $ " + std::to_string(gamestate.balance);
     DrawText(walletStr.c_str(), 845, walletY + 26, 22, Config::COLOR_UI_GREEN);
 
     EndDrawing();
