@@ -2,7 +2,6 @@
 #include "raylib.h"
 #include <string>
 #include <vector>
-#include "daemons.hpp"
 
 class Daemon;
 namespace Config {
@@ -68,6 +67,9 @@ struct smartbool { //from my other project
 };
 
 enum ModifierType { MOD_NONE = 0, MOD_BOOST, MOD_GLITCH , MOD_CLONE};
+enum DaemonTriggersType { PASSIVE, BASKET, PINS, COLLISION };
+#include "daemons.hpp"
+
 
 struct Node {
     Vector2 position;
@@ -125,7 +127,7 @@ struct GameEngine {
     Vector2 centerApexPegPos;
 
     int remainingBalls;
-    double globalDataHackedBytes;
+    long long int globalDataHackedBytes;
     const int latencyCap = 15;
 
     std::string calculationLog;

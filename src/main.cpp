@@ -17,14 +17,14 @@ const int MAX_LAUNCH_CAPACITY = 45;
 const float KINETIC_RESTITUTION = 0.20f; 
 const float FRICTION_DAMPING = 0.95f;  
 
-const double TARGET_QUOTA_BYTES = 52428800.0; 
+const long long int TARGET_QUOTA_BYTES = 524280; 
 
-std::string FormatByteSize(double bytes) {
+std::string FormatByteSize(int bytes) {
     if (bytes < 1024.0) return "0 KB";
-    const char* suffixes[] = { "KB", "MB", "GB", "TB" , "EB", "ZB", "YB", "RB", "QB"};
+    const char* suffixes[] = { "KB", "MB", "GB", "TB" , "PB", "EB", "ZB", "YB", "RB", "QB"};
     int i = 0;
     double size = bytes / 1024.0;
-    while (size >= 1024.0 && i < 8) {
+    while (size >= 1024.0 && i < 9) {
         size /= 1024.0;
         i++;
     }
@@ -100,7 +100,7 @@ void InjectProbeFromTurret() {
     p.velocity = { (float)GetRandomValue(-8, 8), 100.0f };
     p.radius = 9.0f;
     p.hitCount = 0;
-    p.rawPayloadBytes = 0.0;
+    p.rawPayloadBytes = 1024.0;
     p.bufferRate = 1.0f;
     p.lastHitNodeIndex = -1; 
 
@@ -215,12 +215,12 @@ void UpdatePhysics(float dt) {
                     double calculatedByteBump = 1024.0;
                     if (node.modifier == MOD_BOOST) calculatedByteBump *= 2.5;
                     else if (node.modifier == MOD_GLITCH) calculatedByteBump *= ((float)GetRandomValue(5, 50) * 0.2f);
-                    
+
                     p.rawPayloadBytes += calculatedByteBump;
                     p.bufferRate += (node.modifier == MOD_GLITCH ? 0.35f : 0.12f);
 
                     if (node.modifier == MOD_CLONE) {
-                        float pushOffset = p.radius + node.baseRadius + 4.0f; 
+                        float pushOffset = p.radius + node.baseRadius + 4.0f;
                         float speedSnap = fabsf(p.velocity.x) > 10.0f ? fabsf(p.velocity.x) : 80.0f;
 
                         Probe cloneL = p;
@@ -243,7 +243,7 @@ void UpdatePhysics(float dt) {
         bool absorbed = false;
         for (const auto& basket : engine.baskets) {
             if (CheckCollisionCircleRec(p.position, p.radius, basket.bounds)) {
-                double localizedFinalBytesYield = p.rawPayloadBytes * basket.multiplier;
+                int localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
                 
                 engine.globalDataHackedBytes += localizedFinalBytesYield;
 

@@ -6,6 +6,8 @@
 #include "easing_functions.hpp"
 
 class Daemon {
+public:
+    using DaemonAction = void(*)(Daemon&);
 private:
     std::string name;
     std::string description;
@@ -13,11 +15,13 @@ private:
     int max_level;
     int fillPct;
     Color accentColor;
+    
     int overclocked;
     float expansionTimer = 0.0f;
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
     int sellval;
+    DaemonAction actionCallback;
 
 public:
     std::function<void(class GameEngine&, float)> systemPatch;
@@ -28,14 +32,17 @@ public:
     float height = 76.0f;
     std::string status;
     int slot;
+    DaemonTriggersType triggertype;
 
     Daemon(std::string daemonName, 
            std::string stat, 
            std::string desc, 
            Color identityColor,
            int maxlvl,
-           int slott = -1,
-           int sellvals = 0) {
+           int sellvals = 0,
+           DaemonTriggersType trigger = PASSIVE,
+           DaemonAction action = nullptr,
+           int slott = -1) {
         slot = slott;
         sellval = sellvals;
         y = slotYStart + ((slot - 1) % 5) * (height + slotSpacing);
@@ -46,6 +53,8 @@ public:
         level = 1;
         max_level = maxlvl;
         fillPct = 0;
+        triggertype = trigger;
+        actionCallback = action;
         overclocked = 0;
         systemPatch = nullptr;
     }
@@ -73,6 +82,13 @@ public:
     int getsellval() const {
         return sellval + (10 * static_cast<int>(std::pow(overclocked, 3)));
     }
+
+    void TriggerAction() {
+        if (actionCallback != nullptr) {
+            actionCallback(*this);
+        }
+    }
+    
     float GetExpansion() const { return Easings::EaseInOutQuart(expansionTimer); }
     //float GetExpansion() const { return expansionTimer; } //no easings just linear
     std::string GetName() const { return name; }
@@ -91,3 +107,4 @@ public:
 void PrepDrawCyberpunkDaemonSlots();
 void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
 void initdaemons();
+void testdaemon(Daemon& self);
