@@ -110,6 +110,14 @@ struct Probe {
     int lastHitNodeIndex; 
 };
 
+struct FadeLine {
+    Vector2 start;
+    Vector2 end;
+    Color color;
+    float alpha;
+    float fadeSpeed;
+};
+
 struct CashoutParticle {
     Vector2 position;
     std::string text;
@@ -127,6 +135,7 @@ struct GameEngine {
     std::vector<Node> nodes;
     std::vector<Basket> baskets;
     std::vector<Daemon> daemons;
+    std::vector<FadeLine> fadingLines;
     std::vector<CashoutParticle> particles;
     Vector2 centerApexPegPos;
 

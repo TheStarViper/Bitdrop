@@ -243,16 +243,38 @@ void initdaemons(){
     };
 }
 
-void drawdaemonlinestoballs(float x1,float y1,float x2,float y2, Color color){
-    DrawLine(x1,y1,x2,y2,color);
+void ProcessLineFades(GameEngine& eng) {
+    float dt = GetFrameTime(); 
+    GameEngine* engPtr = &eng;
+
+    for (int i = engPtr->fadingLines.size() - 1; i >= 0; i--) {
+        engPtr->fadingLines[i].alpha -= engPtr->fadingLines[i].fadeSpeed * dt;
+
+        if (engPtr->fadingLines[i].alpha <= 0.0f) {
+            engPtr->fadingLines.erase(engPtr->fadingLines.begin() + i);
+        }
+    }
 }
 
-void testdaemon(Daemon& self, Probe& probe){
+void DrawFadingLines(const GameEngine& eng) {
+    for (const auto& line : eng.fadingLines) {
+        Color fadedColor = Fade(line.color, line.alpha);
+        DrawLineV(line.start, line.end, fadedColor); 
+    }
+}
+
+void testdaemon(Daemon& self, Probe& probe) {
     TraceLog(LOG_INFO, "daemontest");
-    std::string info = std::to_string(probe.position.x);
-    TraceLog(LOG_INFO, info.c_str());
-    int random_num = self.y + GetRandomValue(1, 67); 
-    drawdaemonlinestoballs(probe.position.x, probe.position.y, self.x, random_num, self.GetColor());
+    int random_num = self.y + GetRandomValue(1, 76); 
+    FadeLine line;
+    line.start = probe.position;
+    line.end = { (float)self.x, (float)random_num };
+    line.color = self.GetColor();
+    line.alpha = 1.0f;
+    line.fadeSpeed = 2.0f;
+    engine.fadingLines.push_back(line);
+
+    probe.rawPayloadBytes *=111;
 }
 
 

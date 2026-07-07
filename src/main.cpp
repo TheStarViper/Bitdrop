@@ -258,7 +258,7 @@ void UpdatePhysics(float dt) {
             if (CheckCollisionCircleRec(p.position, p.radius, basket.bounds)) {
                 for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
                     if (activedaemoninfo.daemons[i].triggertype==PASSIVE||BASKET){
-                        activedaemoninfo.daemons[i].TriggerAction(engine.activeProbes[i]);
+                        activedaemoninfo.daemons[i].TriggerAction(p);
                     }
                 }
                 int localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
@@ -312,10 +312,10 @@ void UpdateDrawFrame(void) {
     
     if (IsKeyPressed(KEY_SPACE)) InjectProbeFromTurret();
     UpdatePhysics(GetFrameTime());
+    ProcessLineFades(engine);
 
     BeginDrawing();
     ClearBackground(Config::COLOR_BG);
-
     DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
     DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
 
@@ -372,7 +372,7 @@ void UpdateDrawFrame(void) {
         DrawText(cp.text.c_str(), cp.position.x, cp.position.y, 13, cp.color);
     }
     PrepDrawCyberpunkDaemonSlots();
-
+    DrawFadingLines(engine);
     std::string coreTelemetry = "FLIGHT CONCURRENT ARCH: " + std::to_string(engine.activeProbes.size()) + " UNITS  ||  " + engine.calculationLog;
     DrawText(coreTelemetry.c_str(), 400 - (MeasureText(coreTelemetry.c_str(), 13) / 2), 652, 13, Config::COLOR_PROBE);
 
