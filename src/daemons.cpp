@@ -235,11 +235,11 @@ void initdaemons(){
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
     engine.daemons = {
-        Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "Daemon used for testing effects u should not get this in normal play", Config::COLOR_PROBE, 3,932,PASSIVE,testdaemon),
-        Daemon("ICEBREAKER", "STANDBY RUNTIME", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_GREEN, 3,453,PASSIVE),
-        Daemon("OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER, 3, 4323,PASSIVE),
-        Daemon("BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET, 3, 543,PASSIVE),
-        Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3, 123,PASSIVE)
+        Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "111x DATA", Config::COLOR_PROBE, 3,932,PASSIVE,testdaemon),
+        Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10kb per pin hit", Config::COLOR_UI_GREEN, 3,453,PINS,testdaemon2),
+        Daemon("OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER, 3, 4323,PASSIVE,testdaemon),
+        Daemon("BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET, 3, 543,PASSIVE,testdaemon),
+        Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3, 123,PASSIVE,testdaemon)
     };
 }
 
@@ -263,8 +263,7 @@ void DrawFadingLines(const GameEngine& eng) {
     }
 }
 
-void testdaemon(Daemon& self, Probe& probe) {
-    TraceLog(LOG_INFO, "daemontest");
+void addfadeline(Daemon& self, Probe& probe){
     int random_num = self.y + GetRandomValue(1, 76); 
     FadeLine line;
     line.start = probe.position;
@@ -273,10 +272,17 @@ void testdaemon(Daemon& self, Probe& probe) {
     line.alpha = 1.0f;
     line.fadeSpeed = 2.0f;
     engine.fadingLines.push_back(line);
-
-    probe.rawPayloadBytes *=111;
 }
 
+void testdaemon(Daemon& self, Probe& probe) {
+    addfadeline(self,probe);
+    probe.rawPayloadBytes *= 111;
+}
+
+void testdaemon2(Daemon& self, Probe& probe) {
+    addfadeline(self,probe);
+    probe.rawPayloadBytes +=10240;
+}
 
 //animate scoring so it goes onto a belt and goes through the daemons
 //overclocking requires overclocking shard 1x then 2x then 3x and so on

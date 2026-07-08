@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <sstream>
 #include "daemons.hpp"
+#include <algorithm>
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
@@ -19,7 +20,7 @@ const float FRICTION_DAMPING = 0.95f;
 
 const long long int TARGET_QUOTA_BYTES = 524280; 
 
-std::string FormatByteSize(int bytes) {
+std::string FormatByteSize(long long int bytes) {
     if (bytes < 1024.0) return "0 KB";
     const char* suffixes[] = { "KB", "MB", "GB", "TB" , "PB", "EB", "ZB", "YB", "RB", "QB"};
     int i = 0;
@@ -120,6 +121,7 @@ void InjectProbeFromTurret() {
 
     engine.activeProbes.push_back(p);
 }
+
 
 void UpdatePhysics(float dt) {
     
@@ -225,7 +227,11 @@ void UpdatePhysics(float dt) {
                     node.pulseAnimTimer = 1.0f;
                     
                     p.hitCount++;
-                    
+                    for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
+                        if (activedaemoninfo.daemons[i].triggertype == PINS){
+                            activedaemoninfo.daemons[i].TriggerAction(p);
+                        }
+                    }
                     double calculatedByteBump = 1024.0;
                     if (node.modifier == MOD_BOOST) calculatedByteBump *= 2.5;
                     else if (node.modifier == MOD_GLITCH) calculatedByteBump *= ((float)GetRandomValue(5, 50) * 0.2f);
@@ -253,15 +259,15 @@ void UpdatePhysics(float dt) {
             }
         }
 
-        bool absorbed = false;
+        bool absorbed = false; //DAEMON TRIGGER PASSIVE
         for (const auto& basket : engine.baskets) {
             if (CheckCollisionCircleRec(p.position, p.radius, basket.bounds)) {
                 for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
-                    if (activedaemoninfo.daemons[i].triggertype==PASSIVE||BASKET){
+                    if (activedaemoninfo.daemons[i].triggertype == PASSIVE || activedaemoninfo.daemons[i].triggertype == BASKET){
                         activedaemoninfo.daemons[i].TriggerAction(p);
                     }
                 }
-                int localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
+                long long int localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
                 engine.globalDataHackedBytes += localizedFinalBytesYield;
 
                 CashoutParticle cp;

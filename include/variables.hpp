@@ -12,7 +12,7 @@ namespace Config {
     constexpr float Daemon_Y_Buffer = 20.0f;
     
     constexpr float Daemon_Slot_Spacing = 10.0f;
-    constexpr float GAME_SPEED = 0.40f;
+    constexpr float GAME_SPEED = 0.30f;
 
     const Color COLOR_BG = { 4, 8, 12, 255 };
     const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
@@ -130,12 +130,19 @@ struct DaemonsDisplayInfo {
     int page;
 };
 
+struct PendingTrigger {
+    int daemonIndex;
+    Vector2 probePos;
+    int frameDelay;
+};
+
 struct GameEngine {
     std::vector<Probe> activeProbes;
     std::vector<Node> nodes;
     std::vector<Basket> baskets;
     std::vector<Daemon> daemons;
     std::vector<FadeLine> fadingLines;
+    std::vector<PendingTrigger> triggerQueue;
     std::vector<CashoutParticle> particles;
     Vector2 centerApexPegPos;
 
@@ -152,6 +159,7 @@ struct GameEngine {
 struct GameState{
     int balance;
 };
+
 
 inline DaemonsDisplayInfo activedaemoninfo;
 inline GameEngine engine;
