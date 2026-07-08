@@ -231,17 +231,6 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
     }
 }
 
-void initdaemons(){
-    float slotYStart = 15.0f;
-    float slotSpacing = 10.0f;
-    engine.daemons = {
-        Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "111x DATA", Config::COLOR_PROBE, 3,932,PASSIVE,testdaemon),
-        Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10kb per pin hit", Config::COLOR_UI_GREEN, 3,453,PINS,testdaemon2),
-        Daemon("OVERCLOCK_BUFFER", "CRITICAL OVERLOAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_UI_AMBER, 3, 4323,PASSIVE,testdaemon),
-        Daemon("BLACK_WALL_GATE", "RESTRICTED THREAD", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::COLOR_BASKET, 3, 543,PASSIVE,testdaemon),
-        Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3, 123,PASSIVE,testdaemon)
-    };
-}
 
 void ProcessLineFades(GameEngine& eng) {
     float dt = GetFrameTime(); 
@@ -274,6 +263,7 @@ void addfadeline(Daemon& self, Probe& probe){
     engine.fadingLines.push_back(line);
 }
 
+//Daemons
 void testdaemon(Daemon& self, Probe& probe) {
     addfadeline(self,probe);
     probe.rawPayloadBytes *= 111;
@@ -282,6 +272,38 @@ void testdaemon(Daemon& self, Probe& probe) {
 void testdaemon2(Daemon& self, Probe& probe) {
     addfadeline(self,probe);
     probe.rawPayloadBytes +=10240;
+    //probe.rawPayloadBytes *=1024342212312331212312312312321352342342354234234322113201232133122133123.0L; //testing large number
+}
+
+void loyalty_points(Daemon& self, Probe& probe){
+    static int counter = 0;
+    if (counter<=4){counter++;}
+    if (counter ==5){
+        addfadeline(self,probe);
+        probe.rawPayloadBytes *=2;
+        counter = 0;
+    }
+}
+
+void mesh_network(Daemon& self, Probe& probe){
+    // "Mesh Network" - score is multiplied by 1.5x for each probe in play instead of 1.2x
+    int multiplier = engine.activeProbes.size()-1;
+    if (multiplier>0){
+        addfadeline(self,probe);
+        probe.rawPayloadBytes *=std::pow(1.5, multiplier);
+    }
+}
+
+void initdaemons(){
+    float slotYStart = 15.0f;
+    float slotSpacing = 10.0f;
+    engine.daemons = {
+        Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "111x DATA", Config::COLOR_PROBE, 3,932,PASSIVE,testdaemon),
+        Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10kb per pin hit", Config::COLOR_UI_GREEN, 3,453,PINS,testdaemon2),
+        Daemon("Loyalty Points", "CRITICAL OVERLOAD", "2x points every 5 hits", Config::COLOR_UI_AMBER, 3, 4323,PINS,loyalty_points),
+        Daemon("Mesh Network", "SECURE // SYNCED", "1.5x score for each ball in play", Config::MAGENTA_DAEMON, 3, 543,PASSIVE,mesh_network),
+        Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3, 123,PASSIVE,loyalty_points)
+    };
 }
 
 //animate scoring so it goes onto a belt and goes through the daemons
@@ -290,8 +312,7 @@ void testdaemon2(Daemon& self, Probe& probe) {
 //locked slots
 //daemon ideas:
 // "Mitosis" - score is no longer split between daughter probes
-// "Mesh Network" - score is multiplied by 1.5x for each probe in play instead of 1.2x
-// "Loyalty Points" - score is multiplied by 2x every 5 hits
 // "einstein's cradle" - when two balls hit each other +20
+// "cold storage" - space bar sets bullet time and clicking a ball freezes it's position and drops another ball, if that ball collides into the frozen ball before scoring multiply both balls by 3x
 // bouncy
 // somethin else 

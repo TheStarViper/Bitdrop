@@ -7,30 +7,31 @@
 #include <sstream>
 #include "daemons.hpp"
 #include <algorithm>
+#include <iomanip>
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
 #endif
 
-   
-const int MAX_LAUNCH_CAPACITY = 45;     
+const int MAX_LAUNCH_CAPACITY = 10;
+const long double TARGET_QUOTA_BYTES = 524280; 
 
-const float KINETIC_RESTITUTION = 0.20f; 
-const float FRICTION_DAMPING = 0.95f;  
-
-const long long int TARGET_QUOTA_BYTES = 524280; 
-
-std::string FormatByteSize(long long int bytes) {
+std::string FormatByteSize(long double bytes) {
     if (bytes < 1024.0) return "0 KB";
-    const char* suffixes[] = { "KB", "MB", "GB", "TB" , "PB", "EB", "ZB", "YB", "RB", "QB"};
+    
+    const char* suffixes[] = { "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB" };
     int i = 0;
-    double size = bytes / 1024.0;
+    long double size = bytes / 1024.0;
     while (size >= 1024.0 && i < 9) {
         size /= 1024.0;
         i++;
     }
     std::stringstream stream;
-    stream << std::fixed << std::setprecision(2) << size << " " << suffixes[i];
+    if (i == 9 && size >= 1024.0) {
+        stream << std::scientific << std::setprecision(2) << size << " " << suffixes[i];
+    } else {
+        stream << std::fixed << std::setprecision(2) << size << " " << suffixes[i];
+    }
     return stream.str();
 }
 
@@ -40,17 +41,14 @@ void InitGame() {
     engine.turretBarrelFlash = 0.0f;
     engine.calculationLog = "CORE ARMED: DATA METERS ROUTED TO KB MINIMUMS";
     engine.daemons.clear();
-    int totalRows = 10;
     float startY = 145.0f;
-    float spacingY = 48.0f; 
-    float spacingX = 64.0f; 
 
-    for (int r = 0; r < totalRows; ++r) {
+    for (int r = 0; r < Config::numberofrowsofpegs; ++r) {
         int cols = 1 + r; 
-        float startX = 400.0f - ((cols - 1) * spacingX) / 2.0f;
+        float startX = 400.0f - ((cols - 1) * Config::PegspacingX) / 2.0f;
         for (int c = 0; c < cols; ++c) {
             Node n;
-            n.position = { startX + (c * spacingX), startY + (r * spacingY) };
+            n.position = { startX + (c * Config::PegspacingX), startY + (r * Config::PegspacingY) };
             n.baseRadius = 4.5f; 
             n.currentRadius = 4.5f;
             n.pulseAnimTimer = 0.0f;
@@ -62,26 +60,23 @@ void InitGame() {
             }
         }
     }
-
-    int finalRowCols = 10;
-    float finalRowStartX = 400.0f - ((finalRowCols - 1) * spacingX) / 2.0f;
+    
+    float finalRowStartX = 400.0f - (((Config::basketmults.size()-1)*2 - 1) * Config::PegspacingX) / 2.0f;
     float basketY = 600.0f; 
-    float basketW = spacingX - 8.0f; 
+    float basketW = Config::PegspacingX - 8.0f; 
 
-    const std::vector<float> basketmults = { 1.0f, 1.5f, 2.0f, 3.0f, 4.0f, 5.0f };
-
-    for (int i = 0; i < finalRowCols + 1; ++i) {
+    for (int i = 0; i < (Config::basketmults.size()-1)*2 + 1; ++i) {
         Basket b;
-        float bx = (finalRowStartX - (spacingX / 2.0f)) + (i * spacingX) - (basketW / 2.0f);
+        float bx = (finalRowStartX - (Config::PegspacingX / 2.0f)) + (i * Config::PegspacingX) - (basketW / 2.0f);
         b.bounds = { bx, basketY, basketW, 20.0f };
         
-        int centerIndex = finalRowCols / 2;
+        int centerIndex = (Config::basketmults.size()-1);
         int distanceFromCenter = std::abs(i - centerIndex);
 
-        size_t multiplierIndex = std::min(static_cast<size_t>(distanceFromCenter), basketmults.size() - 1);
+        size_t multiplierIndex = std::min(static_cast<size_t>(distanceFromCenter), Config::basketmults.size() - 1);
         
         b.name = "PORT_" + std::to_string(i + 1);
-        b.multiplier = basketmults[multiplierIndex];
+        b.multiplier = Config::basketmults[multiplierIndex];
         engine.baskets.push_back(b);
     }
 
@@ -175,10 +170,10 @@ void UpdatePhysics(float dt) {
                 float p = normal.x * kx + normal.y * ky;
 
                 if (p > 0) {
-                    p1.velocity.x -= p * normal.x * KINETIC_RESTITUTION;
-                    p1.velocity.y -= p * normal.y * KINETIC_RESTITUTION;
-                    p2.velocity.x += p * normal.x * KINETIC_RESTITUTION;
-                    p2.velocity.y += p * normal.y * KINETIC_RESTITUTION;
+                    p1.velocity.x -= p * normal.x * Config::PIN_BOUNCYNESS;
+                    p1.velocity.y -= p * normal.y * Config::PIN_BOUNCYNESS;
+                    p2.velocity.x += p * normal.x * Config::PIN_BOUNCYNESS;
+                    p2.velocity.y += p * normal.y * Config::PIN_BOUNCYNESS;
                 }
             }
         }
@@ -191,15 +186,15 @@ void UpdatePhysics(float dt) {
         p.position.x += p.velocity.x * scaledDt;
         p.position.y += p.velocity.y * scaledDt;
 
-        p.velocity.x *= std::pow(FRICTION_DAMPING, scaledDt * 60.0f); 
+        p.velocity.x *= std::pow(Config::FRICTION_DAMPING, scaledDt * 60.0f); 
 
         if (p.position.x - p.radius < 10.0f) {
             p.position.x = 10.0f + p.radius;
-            p.velocity.x *= -KINETIC_RESTITUTION;
+            p.velocity.x *= -Config::PIN_BOUNCYNESS;
         }
         if (p.position.x + p.radius > 790.0f) {
             p.position.x = 790.0f - p.radius;
-            p.velocity.x *= -KINETIC_RESTITUTION;
+            p.velocity.x *= -Config::PIN_BOUNCYNESS;
         }
 
         for (size_t nIdx = 0; nIdx < engine.nodes.size(); nIdx++) {
@@ -219,8 +214,8 @@ void UpdatePhysics(float dt) {
                 p.position.x += normal.x * overlap;
                 p.position.y += normal.y * overlap;
                 float dot = p.velocity.x * normal.x + p.velocity.y * normal.y;
-                p.velocity.x -= (1.0f + KINETIC_RESTITUTION) * dot * normal.x;
-                p.velocity.y -= (1.0f + KINETIC_RESTITUTION) * dot * normal.y;
+                p.velocity.x -= (1.0f + Config::PIN_BOUNCYNESS) * dot * normal.x;
+                p.velocity.y -= (1.0f + Config::PIN_BOUNCYNESS) * dot * normal.y;
                 p.velocity.x += (float)GetRandomValue(-10, 10) * 0.25f;
                 if ((int)nIdx != p.lastHitNodeIndex) {
                     p.lastHitNodeIndex = (int)nIdx; 
@@ -232,7 +227,7 @@ void UpdatePhysics(float dt) {
                             activedaemoninfo.daemons[i].TriggerAction(p);
                         }
                     }
-                    double calculatedByteBump = 1024.0;
+                    long double calculatedByteBump = 1024.0;
                     if (node.modifier == MOD_BOOST) calculatedByteBump *= 2.5;
                     else if (node.modifier == MOD_GLITCH) calculatedByteBump *= ((float)GetRandomValue(5, 50) * 0.2f);
 
@@ -267,7 +262,7 @@ void UpdatePhysics(float dt) {
                         activedaemoninfo.daemons[i].TriggerAction(p);
                     }
                 }
-                long long int localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
+                long double localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
                 engine.globalDataHackedBytes += localizedFinalBytesYield;
 
                 CashoutParticle cp;
@@ -362,7 +357,7 @@ void UpdateDrawFrame(void) {
         DrawCircleV(p.position, p.radius, WHITE);
         DrawCircleLines(p.position.x, p.position.y, p.radius + 1.0f, LIGHTGRAY);
         
-        float boxW = 54.0f;
+        float boxW = 65.0f;
         float boxH = 15.0f;
         Vector2 boxPos = { p.position.x - (boxW / 2.0f), p.position.y - p.radius - 22.0f };
         

@@ -106,7 +106,5 @@ public:
 void PrepDrawCyberpunkDaemonSlots();
 void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
 void initdaemons();
-void testdaemon(Daemon& self, Probe& probe);
-void testdaemon2(Daemon& self, Probe& probe);
 void ProcessLineFades(GameEngine& eng);
 void DrawFadingLines(const GameEngine& eng);

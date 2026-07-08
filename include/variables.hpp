@@ -8,12 +8,21 @@ namespace Config {
     constexpr int SCREEN_WIDTH = 1280;
     constexpr int SCREEN_HEIGHT = 720;
     constexpr float GRAVITY = 1200.0f;        
-
+    constexpr float FRICTION_DAMPING = 0.95f;
     constexpr float Daemon_Y_Buffer = 20.0f;
-    
     constexpr float Daemon_Slot_Spacing = 10.0f;
-    constexpr float GAME_SPEED = 0.30f;
 
+    
+    constexpr int numberofrowsofpegs = 10;
+    constexpr float PegspacingY = 48.0f; 
+    constexpr float PegspacingX = 64.0f; 
+
+    inline std::vector<float> basketmults = { 1.0f, 1.5f, 2.0f, 3.0f, 4.0f, 5.0f};
+
+    inline float GAME_SPEED = 0.30f;
+    inline float PIN_BOUNCYNESS = 0.20f; 
+
+    //colors
     const Color COLOR_BG = { 4, 8, 12, 255 };
     const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
     const Color COLOR_NODE = { 0, 255, 180, 255 };
@@ -22,6 +31,7 @@ namespace Config {
     const Color COLOR_UI_AMBER = { 255, 130, 0, 255 };
     const Color COLOR_BASKET = { 12, 32, 42, 255 };
     const Color COLOR_SHARD_BORDER = { 30, 50, 70, 255 };
+    const Color MAGENTA_DAEMON = { 198, 52, 249, 255};
     const Color OTHER_COLOR_FOR_DAEMONS = { 250, 15, 82, 255 };
     const Color COLOR_OVERCLOCKED = { 117, 1, 137, 255 };
 }
@@ -105,7 +115,7 @@ struct Probe {
     Vector2 velocity;
     float radius;
     int hitCount;         
-    double rawPayloadBytes;
+    long double rawPayloadBytes;
     float bufferRate;     
     int lastHitNodeIndex; 
 };
@@ -147,7 +157,7 @@ struct GameEngine {
     Vector2 centerApexPegPos;
 
     int remainingBalls;
-    long long int globalDataHackedBytes;
+    long double globalDataHackedBytes;
     int nextProbeId = 0;
     std::vector<int> recycledProbeIds;
     const int latencyCap = 15;
