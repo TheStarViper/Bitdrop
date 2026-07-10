@@ -34,18 +34,20 @@ namespace Config {
     const Color MAGENTA_DAEMON = { 198, 52, 249, 255};
     const Color OTHER_COLOR_FOR_DAEMONS = { 250, 15, 82, 255 };
     const Color COLOR_OVERCLOCKED = { 117, 1, 137, 255 };
+
+    //shop
+    Color colorBg        = { 4, 2, 8, 255 };
+    Color colorButtonBg  = { 24, 24, 24, 255 };
+    Color colorRedAlert  = { 220, 40, 40, 255 };
 }
 
-
-namespace Gamestates{
-    enum State {
+enum State {
         MainMenu,
         GAME,
         PUZZLES,
         SETTINGS,
         SHOP
     };
-}
 
 namespace Resources{
     inline Sound hoversound;
@@ -168,6 +170,7 @@ struct GameEngine {
 
 struct GameState{
     int balance;
+    State gamestate = SHOP;
 };
 
 

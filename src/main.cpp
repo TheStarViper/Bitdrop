@@ -8,6 +8,7 @@
 #include "daemons.hpp"
 #include <algorithm>
 #include <iomanip>
+#include "shop.hpp"
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
@@ -17,8 +18,7 @@ const int MAX_LAUNCH_CAPACITY = 10;
 const long double TARGET_QUOTA_BYTES = 524280; 
 
 std::string FormatByteSize(long double bytes) {
-    if (bytes < 1024.0) return "0 KB";
-    
+    if (bytes < 1024.0) return std::to_string(bytes)+" B";
     const char* suffixes[] = { "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB" };
     int i = 0;
     long double size = bytes / 1024.0;
@@ -296,101 +296,106 @@ void UpdatePhysics(float dt) {
 
 void UpdateDrawFrame(void) {
     Vector2 currentMousePos = GetMousePosition();
-
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-    Vector2 currentMousePos = GetMousePosition();
-        for (auto& node : engine.nodes) {
-            if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
-                int nextState = (int)node.modifier + 1;
-                node.modifier = (nextState > (int)MOD_CLONE) ? MOD_NONE : (ModifierType)nextState;
-                node.pulseAnimTimer = 1.0f; 
-                
-                engine.calculationLog = "EASING PARAMETERS GENERATED";
-                break;
+    if (gamestate.gamestate==GAME){
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Vector2 currentMousePos = GetMousePosition();
+            for (auto& node : engine.nodes) {
+                if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
+                    int nextState = (int)node.modifier + 1;
+                    node.modifier = (nextState > (int)MOD_CLONE) ? MOD_NONE : (ModifierType)nextState;
+                    node.pulseAnimTimer = 1.0f; 
+                    
+                    engine.calculationLog = "EASING PARAMETERS GENERATED";
+                    break;
+                }
             }
         }
+        if (IsKeyPressed(KEY_SPACE)) InjectProbeFromTurret();
+        UpdatePhysics(GetFrameTime());
+        ProcessLineFades(engine);
     }
-    
-    if (IsKeyPressed(KEY_SPACE)) InjectProbeFromTurret();
-    UpdatePhysics(GetFrameTime());
-    ProcessLineFades(engine);
 
     BeginDrawing();
     ClearBackground(Config::COLOR_BG);
-    DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
-    DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
-
-    for (const auto& basket : engine.baskets) {
-        DrawRectangleRec(basket.bounds, Config::COLOR_BASKET);
-        DrawRectangleLinesEx(basket.bounds, 1.0f, Config::COLOR_GRID_LINE);
-        std::string txt = std::to_string(basket.multiplier).substr(0, 3) + "x";
-        DrawText(txt.c_str(), basket.bounds.x + ((basket.bounds.width - MeasureText(txt.c_str(), 10)) / 2), basket.bounds.y + 5, 10, Config::COLOR_UI_AMBER);
-    }
-    for (const auto& node : engine.nodes) {
-        Color basePinColor = Config::COLOR_NODE;
+    if (gamestate.gamestate==GAME){
+        DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
+        DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
         
-        if (node.modifier == MOD_BOOST) basePinColor = Config::COLOR_UI_GREEN;
-        else if (node.modifier == MOD_GLITCH) basePinColor = { 255, 50, 140, 255 };
-        else if (node.modifier == MOD_CLONE) basePinColor = { 200, 50, 255, 255 }; 
-
-        if (node.pulseAnimTimer > 0.0f && node.modifier == MOD_NONE) basePinColor = Config::COLOR_PROBE;
-
-        DrawCircleV(node.position, node.currentRadius, basePinColor);
-
-        if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
-            DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 12.0f, Config::COLOR_UI_AMBER);
+        for (const auto& basket : engine.baskets) {
+            DrawRectangleRec(basket.bounds, Config::COLOR_BASKET);
+            DrawRectangleLinesEx(basket.bounds, 1.0f, Config::COLOR_GRID_LINE);
+            std::string txt = std::to_string(basket.multiplier).substr(0, 3) + "x";
+            DrawText(txt.c_str(), basket.bounds.x + ((basket.bounds.width - MeasureText(txt.c_str(), 10)) / 2), basket.bounds.y + 5, 10, Config::COLOR_UI_AMBER);
         }
+        for (const auto& node : engine.nodes) { 
+            Color basePinColor = Config::COLOR_NODE;
+            if (node.modifier == MOD_BOOST) basePinColor = Config::COLOR_UI_GREEN;
+            else if (node.modifier == MOD_GLITCH) basePinColor = { 255, 50, 140, 255 };
+            else if (node.modifier == MOD_CLONE) basePinColor = { 200, 50, 255, 255 }; 
+
+            if (node.pulseAnimTimer > 0.0f && node.modifier == MOD_NONE) basePinColor = Config::COLOR_PROBE;
+
+            DrawCircleV(node.position, node.currentRadius, basePinColor);
+
+            if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius  + 24.0f)) {
+                DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 12.0f, Config::COLOR_UI_AMBER);
+            }
+        }
+
+        Vector2 turretPos = { engine.centerApexPegPos.x, engine.centerApexPegPos.y - 100.0f };
+        DrawRectangle(turretPos.x - 30, turretPos.y, 60, 35, { 20, 32, 48, 255 });
+        DrawRectangleLines(turretPos.x - 30, turretPos.y, 60, 35, Config::COLOR_GRID_LINE);
+        
+        Color muzzleFlashColor = (engine.turretBarrelFlash > 0.0f) ? Config::COLOR_UI_GREEN : Config::COLOR_BASKET;
+        DrawRectangle(turretPos.x - 10, turretPos.y + 35, 20, 12, muzzleFlashColor);
+        DrawRectangleLines(turretPos.x - 10, turretPos.y + 35, 20, 12, Config::COLOR_GRID_LINE);
+
+        std::string countStr = "RESERVE: " + std::to_string(engine.remainingBalls);
+        DrawText(countStr.c_str(), turretPos.x - (MeasureText(countStr.c_str(), 11)/2), turretPos.y + 11, 11, engine.remainingBalls > 0 ? Config::COLOR_PROBE : Config::COLOR_UI_AMBER);
+
+        for (const auto& p : engine.activeProbes) {
+            DrawCircleV(p.position, p.radius, WHITE);
+            DrawCircleLines(p.position.x, p.position.y, p.radius + 1.0f, LIGHTGRAY);
+            
+            float boxW = 65.0f;
+            float boxH = 15.0f;
+            Vector2 boxPos = { p.position.x - (boxW / 2.0f), p.position.y - p.radius - 22.0f };
+            
+            DrawRectangle(boxPos.x, boxPos.y, boxW, boxH, { 6, 12, 22, 210 });
+            DrawRectangleLines(boxPos.x, boxPos.y, boxW, boxH, Config::COLOR_UI_GREEN);
+            DrawLine(p.position.x, boxPos.y + boxH, p.position.x, p.position.y - p.radius, Config::COLOR_UI_GREEN);
+            
+            std::string currentScoreFormatted = FormatByteSize(p.rawPayloadBytes);
+            DrawText(currentScoreFormatted.c_str(), boxPos.x + (boxW - MeasureText(currentScoreFormatted.c_str(), 9))/2, boxPos.y + 3, 9, Config::COLOR_PROBE);
+        }
+
+        for (const auto& cp : engine.particles) {
+            DrawText(cp.text.c_str(), cp.position.x, cp.position.y, 13, cp.color);
+        }
+
+        std::string coreTelemetry = "FLIGHT CONCURRENT ARCH: " + std::to_string(engine.activeProbes.size()) + " UNITS  ||  " + engine.calculationLog;
+        DrawText(coreTelemetry.c_str(), 400 - (MeasureText(coreTelemetry.c_str(), 13) / 2), 652, 13, Config::COLOR_PROBE);
+
+        std::string bottomTip = "SYS ENG: [CLICK PIN] CHANGE MODIFIERS // [SPACEBAR] INJECT LOAD PACKETS";
+        DrawText(bottomTip.c_str(), 400 - (MeasureText(bottomTip.c_str(), 11) / 2), 685, 11, Config::COLOR_GRID_LINE);
+        
+        float scoreBlockY = 455.0f;
+        bool targetMet = (engine.globalDataHackedBytes >= TARGET_QUOTA_BYTES);
+        std::string quotaString = "TARGET QUOTA: " + FormatByteSize(TARGET_QUOTA_BYTES);
+        DrawText(quotaString.c_str(), 835, scoreBlockY, 13, targetMet ? Config::COLOR_UI_GREEN : Config::COLOR_UI_AMBER);
+
+        DrawText("DATA HACKED PROGRESSION TIER:", 835, scoreBlockY + 24, 12, { 130, 160, 180, 255 });
+        std::string dataProgressText = FormatByteSize(engine.globalDataHackedBytes) + " / " + FormatByteSize(TARGET_QUOTA_BYTES);
+        DrawText(dataProgressText.c_str(), 835, scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
+
     }
-
-    Vector2 turretPos = { engine.centerApexPegPos.x, engine.centerApexPegPos.y - 100.0f };
-    DrawRectangle(turretPos.x - 30, turretPos.y, 60, 35, { 20, 32, 48, 255 });
-    DrawRectangleLines(turretPos.x - 30, turretPos.y, 60, 35, Config::COLOR_GRID_LINE);
-    
-    Color muzzleFlashColor = (engine.turretBarrelFlash > 0.0f) ? Config::COLOR_UI_GREEN : Config::COLOR_BASKET;
-    DrawRectangle(turretPos.x - 10, turretPos.y + 35, 20, 12, muzzleFlashColor);
-    DrawRectangleLines(turretPos.x - 10, turretPos.y + 35, 20, 12, Config::COLOR_GRID_LINE);
-
-    std::string countStr = "RESERVE: " + std::to_string(engine.remainingBalls);
-    DrawText(countStr.c_str(), turretPos.x - (MeasureText(countStr.c_str(), 11)/2), turretPos.y + 11, 11, engine.remainingBalls > 0 ? Config::COLOR_PROBE : Config::COLOR_UI_AMBER);
-
-    for (const auto& p : engine.activeProbes) {
-        DrawCircleV(p.position, p.radius, WHITE);
-        DrawCircleLines(p.position.x, p.position.y, p.radius + 1.0f, LIGHTGRAY);
-        
-        float boxW = 65.0f;
-        float boxH = 15.0f;
-        Vector2 boxPos = { p.position.x - (boxW / 2.0f), p.position.y - p.radius - 22.0f };
-        
-        DrawRectangle(boxPos.x, boxPos.y, boxW, boxH, { 6, 12, 22, 210 });
-        DrawRectangleLines(boxPos.x, boxPos.y, boxW, boxH, Config::COLOR_UI_GREEN);
-        DrawLine(p.position.x, boxPos.y + boxH, p.position.x, p.position.y - p.radius, Config::COLOR_UI_GREEN);
-        
-        std::string currentScoreFormatted = FormatByteSize(p.rawPayloadBytes);
-        DrawText(currentScoreFormatted.c_str(), boxPos.x + (boxW - MeasureText(currentScoreFormatted.c_str(), 9))/2, boxPos.y + 3, 9, Config::COLOR_PROBE);
-    }
-
-    for (const auto& cp : engine.particles) {
-        DrawText(cp.text.c_str(), cp.position.x, cp.position.y, 13, cp.color);
+    if (gamestate.gamestate==SHOP){
+        drawshop();
     }
     PrepDrawCyberpunkDaemonSlots();
     DrawFadingLines(engine);
-    std::string coreTelemetry = "FLIGHT CONCURRENT ARCH: " + std::to_string(engine.activeProbes.size()) + " UNITS  ||  " + engine.calculationLog;
-    DrawText(coreTelemetry.c_str(), 400 - (MeasureText(coreTelemetry.c_str(), 13) / 2), 652, 13, Config::COLOR_PROBE);
 
-    std::string bottomTip = "SYS ENG: [CLICK PIN] CHANGE MODIFIERS // [SPACEBAR] INJECT LOAD PACKETS";
-    DrawText(bottomTip.c_str(), 400 - (MeasureText(bottomTip.c_str(), 11) / 2), 685, 11, Config::COLOR_GRID_LINE);
-
-    float scoreBlockY = 455.0f;
-    bool targetMet = (engine.globalDataHackedBytes >= TARGET_QUOTA_BYTES);
-    
-    std::string quotaString = "TARGET QUOTA: " + FormatByteSize(TARGET_QUOTA_BYTES);
-    DrawText(quotaString.c_str(), 835, scoreBlockY, 13, targetMet ? Config::COLOR_UI_GREEN : Config::COLOR_UI_AMBER);
-
-    DrawText("DATA HACKED PROGRESSION TIER:", 835, scoreBlockY + 24, 12, { 130, 160, 180, 255 });
-    std::string dataProgressText = FormatByteSize(engine.globalDataHackedBytes) + " / " + FormatByteSize(TARGET_QUOTA_BYTES);
-    DrawText(dataProgressText.c_str(), 835, scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
-
-    float walletY = 565.0f;
+    float walletY = gamestate.gamestate==GAME ? 565.0f : 450.0f;
     DrawRectangle(830, walletY, 420, 65, { 16, 22, 12, 240 });
     DrawRectangleLines(830, walletY, 420, 65, Config::COLOR_SHARD_BORDER);
     DrawText("ACCOUNT STANDALONE BALANCE LEDGER:", 845, walletY + 10, 11, Config::COLOR_NODE);
