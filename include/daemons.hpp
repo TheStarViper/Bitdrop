@@ -4,6 +4,7 @@
 #include <string>
 #include "variables.hpp"
 #include "easing_functions.hpp"
+#include "shop.hpp"
 
 class Probe;
 class Daemon {
@@ -16,7 +17,6 @@ private:
     int max_level;
     int fillPct;
     Color accentColor;
-    
     int overclocked;
     float expansionTimer = 0.0f;
     int sellval;
@@ -31,6 +31,8 @@ public:
     float height = 76.0f;
     std::string status;
     int slot;
+    int price;
+    const IconGrid* iconMatrix;
     DaemonTriggersType triggertype;
 
     Daemon(std::string daemonName, 
@@ -38,16 +40,18 @@ public:
            std::string desc, 
            Color identityColor,
            int maxlvl,
-           int sellvals = 0,
+           int itemCost,
+           const IconGrid* icon,
            DaemonTriggersType trigger = PASSIVE,
            DaemonAction action = nullptr,
+           int sellvals = 0,
            int slott = -1) {
         slot = slott;
         sellval = sellvals;
         y = Config::Daemon_Y_Buffer + ((slot - 1) % 5) * (height + Config::Daemon_Slot_Spacing);
         name = daemonName;
         status = stat;
-        description = desc;
+        price = itemCost;
         accentColor = identityColor;
         level = 1;
         max_level = maxlvl;
@@ -79,7 +83,7 @@ public:
     }
 
     int getsellval() const {
-        return sellval + (10 * static_cast<int>(std::pow(overclocked, 3)));
+        return price/2 + (10 * static_cast<int>(std::pow(overclocked, 3)));
     }
 
     void TriggerAction(Probe& probe) {

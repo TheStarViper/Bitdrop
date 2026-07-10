@@ -3,17 +3,6 @@
 
 typedef bool IconGrid[16][16];
 
-typedef struct ShopItem {
-    const char* name;
-    const char* description;
-    const char* level;
-    int cost;
-    bool canAfford;
-    Color themeColor;
-    const IconGrid* iconMatrix;
-} ShopItem;
-
-
 
 const IconGrid ICON_CPU_CORE = {
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -71,6 +60,6 @@ const IconGrid ICON_CROSSHAIR = {
     {0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0},
     {0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0}
 };
-
-void DrawShopItem(Vector2 pos, ShopItem item);
+#include "daemons.hpp"
+void DrawShopItem(Vector2 pos, Daemon item);
 void drawshop();

@@ -36,9 +36,9 @@ namespace Config {
     const Color COLOR_OVERCLOCKED = { 117, 1, 137, 255 };
 
     //shop
-    Color colorBg        = { 4, 2, 8, 255 };
-    Color colorButtonBg  = { 24, 24, 24, 255 };
-    Color colorRedAlert  = { 220, 40, 40, 255 };
+    const Color colorBg        = { 4, 2, 8, 255 };
+    const Color colorButtonBg  = { 24, 24, 24, 255 };
+    const Color colorRedAlert  = { 220, 40, 40, 255 };
 }
 
 enum State {

@@ -298,11 +298,11 @@ void initdaemons(){
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
     engine.daemons = {
-        Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "111x DATA", Config::COLOR_PROBE, 3,932,PASSIVE,testdaemon),
-        Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10kb per pin hit", Config::COLOR_UI_GREEN, 3,453,PINS,testdaemon2),
-        Daemon("Loyalty Points", "CRITICAL OVERLOAD", "2x points every 5 hits", Config::COLOR_UI_AMBER, 3, 4323,PINS,loyalty_points),
-        Daemon("Mesh Network", "SECURE // SYNCED", "1.5x score for each ball in play", Config::MAGENTA_DAEMON, 3, 543,PASSIVE,mesh_network),
-        Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3, 123,PASSIVE,loyalty_points)
+        Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "111x DATA", Config::COLOR_PROBE, 3,900,&ICON_PADLOCK,PASSIVE,testdaemon),
+        Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10kb per pin hit", Config::COLOR_UI_GREEN, 3,900,&ICON_PADLOCK,PINS,testdaemon2),
+        Daemon("Loyalty Points", "CRITICAL OVERLOAD", "2x points every 5 hits", Config::COLOR_UI_AMBER, 3,900,&ICON_PADLOCK,PINS,loyalty_points),
+        Daemon("Mesh Network", "SECURE // SYNCED", "1.5x score for each ball in play", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PASSIVE,mesh_network),
+        Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3,900,&ICON_PADLOCK,PASSIVE,loyalty_points)
     };
 }
 
