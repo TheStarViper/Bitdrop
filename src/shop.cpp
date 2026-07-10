@@ -5,19 +5,14 @@
 #include "variables.hpp"
 
 void DrawShopItem(Vector2 pos, Daemon iteminfo) {
-    const float totalWidth = 640.0f;
-    const float totalHeight = 80.0f;
-    const float buttonWidth = 140.0f;
     const float gap = 8.0f;
-    const float mainBoxWidth = totalWidth - buttonWidth - gap;
+    const float mainBoxWidth = Config::shopitemtotalWidth - Config::shopbuyitembuttonWidth - gap;
     Color mainColor   = iteminfo.GetColor();
     Color dimColor    = (Color){ static_cast<unsigned char>(mainColor.r * 0.4f), static_cast<unsigned char>(mainColor.g * 0.4f), static_cast<unsigned char>(mainColor.b * 0.4f), 255 };
     Color textDim     = (Color){ static_cast<unsigned char>(mainColor.r * 0.7f), static_cast<unsigned char>(mainColor.g * 0.7f), static_cast<unsigned char>(mainColor.b * 0.7f), 255 };
     
-
-
-    Rectangle btnRect = { pos.x, pos.y, buttonWidth, totalHeight };
-    Rectangle mainRect = { pos.x + buttonWidth + gap, pos.y, mainBoxWidth, totalHeight };
+    Rectangle btnRect = { pos.x, pos.y, Config::shopbuyitembuttonWidth, Config::shopitemtotalHeight };
+    Rectangle mainRect = { pos.x + Config::shopbuyitembuttonWidth + gap, pos.y, mainBoxWidth, Config::shopitemtotalHeight };
     DrawRectangleRec(btnRect, Config::colorBg);
     DrawRectangleLinesEx(btnRect, 1, dimColor);
     
@@ -30,7 +25,7 @@ void DrawShopItem(Vector2 pos, Daemon iteminfo) {
         DrawText("BUY", innerBtn.x + (innerBtn.width - MeasureText("BUY", 18)) / 2, innerBtn.y + 12, 18, (Color){ 65, 65, 65, 255 });
         DrawText("INSUFFICIENT FUNDS", btnRect.x + (btnRect.width - MeasureText("INSUFFICIENT FUNDS", 10)) / 2, btnRect.y + 60, 10, Config::colorRedAlert);
     }
-
+    
     DrawRectangleRec(mainRect, Config::colorBg);
     DrawRectangleLinesEx(mainRect, 1, dimColor);
     DrawRectangle(mainRect.x, mainRect.y, 10, 3, mainColor);
@@ -44,7 +39,6 @@ void DrawShopItem(Vector2 pos, Daemon iteminfo) {
     const float pixelScale = 3.0f; 
     // if (iteminfo.iconMatrix != nullptr) {
     //     const IconGrid& grid = *iteminfo.iconMatrix;
-
     //     for (int y = 0; y < 16; ++y) {
     //         for (int x = 0; x < 16; ++x) {
     //             if (grid[y][x]) {
@@ -74,5 +68,5 @@ void DrawShopItem(Vector2 pos, Daemon iteminfo) {
 }
 
 void drawshop(){
-    DrawShopItem((Vector2){ 20, 50 }, engine.daemons[2]);
+    DrawShopItem((Vector2){ 20, 500 }, engine.daemons[2]);
 }

@@ -1,6 +1,7 @@
 #include "daemons.hpp"
 #include "raylib.h"
 #include "variables.hpp"
+#include "button.hpp"
 #include <cmath>
 #include <utility>
 #include <sstream>
@@ -141,7 +142,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
     }
 
     float expansion = d.GetExpansion();
-    
+
     if (expansion > 0.01f) {
         float easeProgress = 1.0f - powf(1.0f - expansion, 3.0f);
         
@@ -157,53 +158,33 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         Rectangle rDown = { d.x + d.width - 115, bY, 30, 22 };
         Rectangle rSell = { d.x + d.width - 80, bY, 70, 22 };
 
-        Vector2 mouse = GetMousePosition();
-
-        Color upBg = CheckCollisionPointRec(mouse, rUp) ? Config::COLOR_GRID_LINE : Color{20, 32, 42, 255};
-        upBg.a = alpha;
-        DrawRectangleRec(rUp, upBg);
-        DrawRectangleLinesEx(rUp, 1.0f, borderCol);
-
-        
-        Vector2 upV1 = { rUp.x + rUp.width / 2.0f,  rUp.y + 5.0f };
-        Vector2 upV2 = { rUp.x + 8.0f,              rUp.y + rUp.height - 5.0f };
-        Vector2 upV3 = { rUp.x + rUp.width - 8.0f,  rUp.y + rUp.height - 5.0f };
-        DrawTriangle(upV1, upV2, upV3, textCol);
-
-
-        Color downBg = CheckCollisionPointRec(mouse, rDown) ? Config::COLOR_GRID_LINE : Color{20, 32, 42, 255};
-        downBg.a = alpha;
-        DrawRectangleRec(rDown, downBg);
-        DrawRectangleLinesEx(rDown, 1.0f, borderCol);
-
-        
-        Vector2 downV1 = { rDown.x + 8.0f,              rDown.y + 5.0f };
-        Vector2 downV2 = { rDown.x + rDown.width / 2.0f,  rDown.y + rDown.height - 5.0f };
-        Vector2 downV3 = { rDown.x + rDown.width - 8.0f,  rDown.y + 5.0f };
-        DrawTriangle(downV1, downV2, downV3, textCol);
-
-        std::string sellText = "$" + std::to_string(d.getsellval());
-        
-        Color sellBg = CheckCollisionPointRec(mouse, rSell) ? Color{180, 40, 40, 255} : Color{45, 15, 20, 255};
-        sellBg.a = alpha;
-        DrawRectangleRec(rSell, sellBg);
-        DrawRectangleLinesEx(rSell, 1.0f, amberCol);
-        DrawText("SELL", rSell.x + 6, rSell.y + 5, 11, amberCol);
-        DrawText(sellText.c_str(), rSell.x + 36, rSell.y + 6, 10, textCol);
-
+        Color baseBg = Color{20, 32, 42, 255};
         int targetSlot = -1;
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            if (CheckCollisionPointRec(mouse, rUp) && d.slot > 0) {
-                targetSlot = d.slot - 1;
-            } else if (CheckCollisionPointRec(mouse, rDown)) {
-                targetSlot = d.slot + 1;
-            } else if (CheckCollisionPointRec(mouse, rSell) && daemonidx < activedaemoninfo.daemons.size()) {
+        
+        // Up Button
+        if (DrawButton(rUp, ButtonType::ArrowUp, alpha, baseBg, Config::COLOR_GRID_LINE, borderCol, textCol)) {
+            if (d.slot > 0) targetSlot = d.slot - 1;
+        }
+
+        // Down Button
+        if (DrawButton(rDown, ButtonType::ArrowDown, alpha, baseBg, Config::COLOR_GRID_LINE, borderCol, textCol)) {
+            targetSlot = d.slot + 1;
+        }
+
+        // Sell Button
+        std::string sellPriceText = "$" + std::to_string(d.getsellval());
+        Color sellNormalBg = Color{45, 15, 20, 255};
+        Color sellHoverBg = Color{180, 40, 40, 255};
+        
+        if (DrawButton(rSell, ButtonType::TextSell, alpha, sellNormalBg, sellHoverBg, amberCol, textCol, "SELL", sellPriceText.c_str())) {
+            if (daemonidx < activedaemoninfo.daemons.size()) {
                 int cached_slot = d.slot;
                 gamestate.balance += d.getsellval();
                 std::swap(activedaemoninfo.daemons[daemonidx], activedaemoninfo.daemons.back());
                 activedaemoninfo.daemons.pop_back();
                 *selectedDaemonIndex = -1;
+                
                 for (auto& daemon : activedaemoninfo.daemons) {
                     if (daemon.slot > cached_slot) {
                         daemon.slot--;

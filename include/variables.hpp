@@ -22,6 +22,11 @@ namespace Config {
     inline float GAME_SPEED = 0.30f;
     inline float PIN_BOUNCYNESS = 0.20f; 
 
+
+    //shop
+    constexpr float shopitemtotalWidth = 640.0f;
+    constexpr float shopitemtotalHeight = 80.0f;
+    constexpr float shopbuyitembuttonWidth = 140.0f;
     //colors
     const Color COLOR_BG = { 4, 8, 12, 255 };
     const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
