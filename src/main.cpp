@@ -18,6 +18,7 @@ const int MAX_LAUNCH_CAPACITY = 10;
 const long double TARGET_QUOTA_BYTES = 524280; 
 
 std::string FormatByteSize(long double bytes) {
+    if (bytes < 1) return "0 B";
     if (bytes < 1024.0) return std::to_string(bytes)+" B";
     const char* suffixes[] = { "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB" };
     int i = 0;

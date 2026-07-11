@@ -52,6 +52,7 @@ public:
         name = daemonName;
         status = stat;
         price = itemCost;
+        description = desc;
         accentColor = identityColor;
         level = 1;
         max_level = maxlvl;

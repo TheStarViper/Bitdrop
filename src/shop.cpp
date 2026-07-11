@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "variables.hpp"
+#include "button.hpp"
 
 void DrawShopItem(Vector2 pos, Daemon iteminfo) {
     const float gap = 8.0f;
@@ -11,19 +12,54 @@ void DrawShopItem(Vector2 pos, Daemon iteminfo) {
     Color dimColor    = (Color){ static_cast<unsigned char>(mainColor.r * 0.4f), static_cast<unsigned char>(mainColor.g * 0.4f), static_cast<unsigned char>(mainColor.b * 0.4f), 255 };
     Color textDim     = (Color){ static_cast<unsigned char>(mainColor.r * 0.7f), static_cast<unsigned char>(mainColor.g * 0.7f), static_cast<unsigned char>(mainColor.b * 0.7f), 255 };
     
-    Rectangle btnRect = { pos.x, pos.y, Config::shopbuyitembuttonWidth, Config::shopitemtotalHeight };
-    Rectangle mainRect = { pos.x + Config::shopbuyitembuttonWidth + gap, pos.y, mainBoxWidth, Config::shopitemtotalHeight };
+    Rectangle btnRect = { pos.x+Config::shopitemtotalWidth-Config::shopbuyitembuttonWidth, pos.y, Config::shopbuyitembuttonWidth, Config::shopitemtotalHeight };
+    Rectangle mainRect = { pos.x, pos.y, mainBoxWidth, Config::shopitemtotalHeight };
+
     DrawRectangleRec(btnRect, Config::colorBg);
     DrawRectangleLinesEx(btnRect, 1, dimColor);
-    
+
     Rectangle innerBtn = { btnRect.x + 8, btnRect.y + 14, btnRect.width - 16, btnRect.height - 36 };
-    DrawRectangleRec(innerBtn, Config::colorButtonBg);
-    
-    if (gamestate.balance>=iteminfo.price) {
-        DrawText("BUY", innerBtn.x + (innerBtn.width - MeasureText("BUY", 18)) / 2, innerBtn.y + 12, 18, mainColor);
+    bool hasFunds = (gamestate.balance >= iteminfo.price);
+
+    bool buyClicked = false;
+    unsigned char alpha = 255; 
+
+    if (hasFunds) {
+        buyClicked = DrawButton(
+            innerBtn,
+            ButtonType::TextGeneric,
+            alpha,
+            Config::colorButtonBg,
+            Config::COLOR_GRID_LINE,
+            mainColor,
+            mainColor,
+            "BUY",
+            18
+        );
     } else {
-        DrawText("BUY", innerBtn.x + (innerBtn.width - MeasureText("BUY", 18)) / 2, innerBtn.y + 12, 18, (Color){ 65, 65, 65, 255 });
+        Color lockedBg = { 30, 30, 30, 255 };
+        Color lockedText = { 65, 65, 65, 255 };
+        DrawButton(
+            innerBtn,
+            ButtonType::TextGeneric,
+            alpha,
+            lockedBg,
+            lockedBg,
+            lockedText,
+            lockedText,
+            "BUY",
+            18
+        );
+         
         DrawText("INSUFFICIENT FUNDS", btnRect.x + (btnRect.width - MeasureText("INSUFFICIENT FUNDS", 10)) / 2, btnRect.y + 60, 10, Config::colorRedAlert);
+    }
+
+    if (buyClicked) {
+        Daemon stagingbuy = iteminfo;
+        stagingbuy.slot = activedaemoninfo.daemons.size()+1;
+        stagingbuy.updateYPosition();
+        activedaemoninfo.daemons.push_back(stagingbuy);
+        gamestate.balance -= iteminfo.price;
     }
     
     DrawRectangleRec(mainRect, Config::colorBg);
@@ -69,4 +105,5 @@ void DrawShopItem(Vector2 pos, Daemon iteminfo) {
 
 void drawshop(){
     DrawShopItem((Vector2){ 20, 500 }, engine.daemons[2]);
+    DrawShopItem((Vector2){ 20, 580 }, engine.daemons[3]);
 }

@@ -122,8 +122,8 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
             }
         }
         if (!currentLine.empty()) lines.push_back(currentLine);
-        if (lines.empty()) lines.push_back("");
-        float textLineHeight = (font.baseSize > 0) ? font.baseSize * (fontSize / font.baseSize) : fontSize;
+        if (lines.empty()) lines.push_back("ERROR THIS IS EMPTY");
+        float textLineHeight = (font.baseSize > 0) ? font.baseSize * ((float)fontSize / font.baseSize) : fontSize;
         float totalTextHeight = (lines.size() * textLineHeight) + ((lines.size() - 1) * (textLineHeight * 0.5f)); 
         float boxH = totalTextHeight + (paddingY * 2.0f);
         
@@ -135,6 +135,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         DrawRectangle(boxX + 1, boxY + 1, 3, boxH - 2, Config::COLOR_UI_GREEN); 
 
         float currentY = boxY + paddingY;
+        
         for (const auto& line : lines) {
             DrawTextEx(font, line.c_str(), { boxX + paddingX, currentY }, fontSize, spacing, Config::COLOR_PROBE);
             currentY += textLineHeight * 1.5f; 
@@ -177,7 +178,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         Color sellNormalBg = Color{45, 15, 20, 255};
         Color sellHoverBg = Color{180, 40, 40, 255};
         
-        if (DrawButton(rSell, ButtonType::TextSell, alpha, sellNormalBg, sellHoverBg, amberCol, textCol, "SELL", sellPriceText.c_str())) {
+        if (DrawButton(rSell, ButtonType::TextGeneric, alpha, sellNormalBg, sellHoverBg, amberCol, textCol, sellPriceText.c_str(), 11)) {
             if (daemonidx < activedaemoninfo.daemons.size()) {
                 int cached_slot = d.slot;
                 gamestate.balance += d.getsellval();

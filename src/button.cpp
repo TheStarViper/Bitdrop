@@ -1,7 +1,9 @@
 #include "button.hpp"
 #include "raylib.h"
 
-bool DrawButton(Rectangle rect, ButtonType type, unsigned char alpha, Color bgNormal, Color bgHover, Color borderCol, Color contentCol, const char* text = nullptr, const char* subText = nullptr) {
+
+
+bool DrawButton(Rectangle rect, ButtonType type, unsigned char alpha, Color bgNormal, Color bgHover, Color borderCol, Color contentCol, const char* text, int fontSize) {
     Vector2 mouse = GetMousePosition();
     bool isHovered = CheckCollisionPointRec(mouse, rect);
     
@@ -22,9 +24,12 @@ bool DrawButton(Rectangle rect, ButtonType type, unsigned char alpha, Color bgNo
         Vector2 v3 = { rect.x + rect.width - 8.0f, rect.y + 5.0f };
         DrawTriangle(v1, v2, v3, contentCol);
     } 
-    else if (type == ButtonType::TextSell) {
-        if (text)    DrawText(text, rect.x + 6, rect.y + 5, 11, borderCol);
-        if (subText) DrawText(subText, rect.x + 36, rect.y + 6, 10, contentCol);
+    else if (type == ButtonType::TextGeneric && text != nullptr) {
+        int textWidth = MeasureText(text, fontSize);
+        float textX = rect.x + (rect.width - textWidth) / 2.0f;
+        float textY = rect.y + (rect.height - fontSize) / 2.0f;
+        
+        DrawText(text, textX, textY, fontSize, contentCol);
     }
 
     return isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);

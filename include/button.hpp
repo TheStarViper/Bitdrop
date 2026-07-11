@@ -4,7 +4,7 @@
 enum class ButtonType {
     ArrowUp,
     ArrowDown,
-    TextSell
+    TextGeneric
 };
 
-bool DrawButton(Rectangle rect, ButtonType type, unsigned char alpha, Color bgNormal, Color bgHover, Color borderCol, Color contentCol, const char* text = nullptr, const char* subText = nullptr);
+bool DrawButton(Rectangle rect, ButtonType type, unsigned char alpha, Color bgNormal, Color bgHover, Color borderCol, Color contentCol, const char* text = nullptr, int fontSize = 11);
