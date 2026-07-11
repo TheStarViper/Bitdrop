@@ -4,10 +4,11 @@
 #include <cmath>
 #include <string>
 #include <iomanip>
+#include <iostream>
+#include <locale>
 #include <sstream>
 #include "daemons.hpp"
 #include <algorithm>
-#include <iomanip>
 #include "shop.hpp"
 
 #if defined(PLATFORM_WEB)
@@ -295,6 +296,24 @@ void UpdatePhysics(float dt) {
     }
 }
 
+std::string formatWithSpaces(long long num) {
+    std::string str = std::to_string(num);
+    std::string result = "";
+    int count = 0;
+
+    for (int i = str.length() - 1; i >= 0; i--) {
+        if (count == 3) {
+            result += " ";
+            count = 0;
+        }
+        result += str[i];
+        count++;
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
 void UpdateDrawFrame(void) {
     Vector2 currentMousePos = GetMousePosition();
     if (gamestate.gamestate==GAME){
@@ -319,8 +338,6 @@ void UpdateDrawFrame(void) {
     BeginDrawing();
     ClearBackground(Config::COLOR_BG);
     if (gamestate.gamestate==GAME){
-        DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
-        DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
         
         for (const auto& basket : engine.baskets) {
             DrawRectangleRec(basket.bounds, Config::COLOR_BASKET);
@@ -388,20 +405,24 @@ void UpdateDrawFrame(void) {
         DrawText("DATA HACKED PROGRESSION TIER:", 835, scoreBlockY + 24, 12, { 130, 160, 180, 255 });
         std::string dataProgressText = FormatByteSize(engine.globalDataHackedBytes) + " / " + FormatByteSize(TARGET_QUOTA_BYTES);
         DrawText(dataProgressText.c_str(), 835, scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
-
+        
+        DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
+        DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
     }
     if (gamestate.gamestate==SHOP){
+        DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
+        DrawLineEx({ 0, 530 }, { 810, 530 }, 2.0f, Config::COLOR_SHARD_BORDER);
         drawshop();
     }
     PrepDrawCyberpunkDaemonSlots();
     DrawFadingLines(engine);
 
-    float walletY = gamestate.gamestate==GAME ? 565.0f : 450.0f;
-    DrawRectangle(830, walletY, 420, 65, { 16, 22, 12, 240 });
-    DrawRectangleLines(830, walletY, 420, 65, Config::COLOR_SHARD_BORDER);
-    DrawText("ACCOUNT STANDALONE BALANCE LEDGER:", 845, walletY + 10, 11, Config::COLOR_NODE);
-    std::string walletStr = "CREDITS: $ " + std::to_string(gamestate.balance);
-    DrawText(walletStr.c_str(), 845, walletY + 26, 22, Config::COLOR_UI_GREEN);
+    //float walletY = gamestate.gamestate==GAME ? 565.0f : 450.0f;
+    DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });
+    DrawRectangleLines(Config::walletX, Config::walletY, 420, 65, Config::COLOR_SHARD_BORDER);
+    DrawText("ACCOUNT STANDALONE BALANCE LEDGER:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
+    std::string walletStr = "CREDITS: $ " + formatWithSpaces(gamestate.balance);
+    DrawText(walletStr.c_str(), Config::walletX+15, Config::walletY + 26, 22, Config::COLOR_UI_GREEN);
 
     EndDrawing();
 }

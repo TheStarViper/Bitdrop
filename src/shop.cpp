@@ -50,7 +50,7 @@ void DrawShopItem(Vector2 pos, Daemon iteminfo) {
             "BUY",
             18
         );
-         
+        
         DrawText("INSUFFICIENT FUNDS", btnRect.x + (btnRect.width - MeasureText("INSUFFICIENT FUNDS", 10)) / 2, btnRect.y + 60, 10, Config::colorRedAlert);
     }
 
@@ -72,17 +72,17 @@ void DrawShopItem(Vector2 pos, Daemon iteminfo) {
 
     DrawRectangleLinesEx((Rectangle){ iconPos.x, iconPos.y, targetIconSize, targetIconSize }, 2, mainColor);
 
-    const float pixelScale = 3.0f; 
+    const float pixelScale = 3.0f;
     // if (iteminfo.iconMatrix != nullptr) {
     //     const IconGrid& grid = *iteminfo.iconMatrix;
     //     for (int y = 0; y < 16; ++y) {
     //         for (int x = 0; x < 16; ++x) {
     //             if (grid[y][x]) {
     //                 DrawRectangle(
-    //                     iconPos.x + (x * pixelScale), 
-    //                     iconPos.y + (y * pixelScale), 
-    //                     pixelScale, 
-    //                     pixelScale, 
+    //                     iconPos.x + (x * pixelScale),
+    //                     iconPos.y + (y * pixelScale),
+    //                     pixelScale,
+    //                     pixelScale,
     //                     mainColor
     //                 );
     //             }
@@ -104,6 +104,25 @@ void DrawShopItem(Vector2 pos, Daemon iteminfo) {
 }
 
 void drawshop(){
-    DrawShopItem((Vector2){ 20, 500 }, engine.daemons[2]);
-    DrawShopItem((Vector2){ 20, 580 }, engine.daemons[3]);
+    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer }, engine.daemons[2]);
+    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer+80 }, engine.daemons[4]);
+    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer+80*2 }, engine.daemons[1]);
+    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer+80*3 }, engine.daemons[3]);
+    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer+80*4 }, engine.daemons[0]);
+    if (DrawButton({1045,Config::walletY-77,205,65},
+                    ButtonType::TextGeneric,
+                    255,Config::COLOR_GRID_LINE,
+                    Config::COLOR_UI_AMBER,
+                    Config::COLOR_UI_GREEN,
+                    WHITE,"Next",40)){
+        TraceLog(LOG_INFO,"LOG");
+    }
+    if (DrawButton({830,Config::walletY-77,205,65},
+                    ButtonType::TextGeneric,
+                    255,Config::COLOR_GRID_LINE,
+                    Config::COLOR_UI_AMBER,
+                    Config::COLOR_UI_GREEN,
+                    WHITE,"Reroll",40)){
+        TraceLog(LOG_INFO,"LOG Reroll");
+    }
 }

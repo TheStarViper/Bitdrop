@@ -2,6 +2,8 @@
 #include "raylib.h"
 #include <string>
 #include <vector>
+#include <iostream>
+#include <locale>
 
 class Daemon;
 namespace Config {
@@ -22,8 +24,12 @@ namespace Config {
     inline float GAME_SPEED = 0.30f;
     inline float PIN_BOUNCYNESS = 0.20f; 
 
+    //credits
+    constexpr float walletY = 530.0f;
+    constexpr float walletX = 830.0f;
 
     //shop
+    constexpr float shopitemsYbuffer = 100.0f;
     constexpr float shopitemtotalWidth = 640.0f;
     constexpr float shopitemtotalHeight = 80.0f;
     constexpr float shopbuyitembuttonWidth = 140.0f;
@@ -40,6 +46,7 @@ namespace Config {
     const Color OTHER_COLOR_FOR_DAEMONS = { 250, 15, 82, 255 };
     const Color COLOR_OVERCLOCKED = { 117, 1, 137, 255 };
 
+    
     //shop
     const Color colorBg        = { 4, 2, 8, 255 };
     const Color colorButtonBg  = { 24, 24, 24, 255 };
@@ -86,6 +93,8 @@ struct smartbool { //from my other project
         }
     }
 };
+
+
 
 enum ModifierType { MOD_NONE = 0, MOD_BOOST, MOD_GLITCH , MOD_CLONE};
 enum DaemonTriggersType { PASSIVE, BASKET, PINS, COLLISION };
