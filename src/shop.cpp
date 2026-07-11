@@ -2,6 +2,8 @@
 #include "raylib.h"
 #include <string>
 #include <vector>
+#include <random>
+#include <algorithm>
 #include "variables.hpp"
 #include "button.hpp"
 
@@ -96,33 +98,75 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold) {
     }
 }
 
-void drawshop(){
-    static bool slotSoldOut[5] = { false, false, false, false, false };
+void GenerateShopPool() {
+    std::vector<int> pool;
 
-    DrawText("BLACK MARKET", 200,25,50,WHITE);
-    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer }, engine.daemons[2], slotSoldOut[0]);
-    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer+80 }, engine.daemons[4], slotSoldOut[1]);
-    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer+80*2 }, engine.daemons[1], slotSoldOut[2]);
-    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer+80*3 }, engine.daemons[3], slotSoldOut[3]);
-    DrawShopItem((Vector2){ 75, Config::shopitemsYbuffer+80*4 }, engine.daemons[0], slotSoldOut[4]);
+    for (size_t i = 0; i < engine.daemons.size(); ++i) {
+        std::string name = engine.daemons[i].GetName();
+        std::transform(name.begin(), name.end(), name.begin(), ::toupper);
 
-    if (DrawButton({1045,Config::walletY-77,205,65},
-                    ButtonType::TextGeneric,
-                    255,Config::COLOR_GRID_LINE,
-                    Config::COLOR_UI_AMBER,
-                    Config::COLOR_UI_GREEN,
-                    WHITE,"Next",40)){
-        for(int i = 0; i < 5; i++) slotSoldOut[i] = false;
-        gamestate.gamestate=GAME;
+        if (name.find("TEST") != std::string::npos) continue;
+
+        if (!gamestate.allowduplicateshopitems) {
+            bool alreadyOwned = false;
+            for (size_t j = 0; j < activedaemoninfo.daemons.size(); ++j) {
+                std::string ownedName = activedaemoninfo.daemons[j].GetName();
+                std::transform(ownedName.begin(), ownedName.end(), ownedName.begin(), ::toupper);
+
+                if (name == ownedName) {
+                    alreadyOwned = true;
+                    break;
+                }
+            }
+            if (alreadyOwned) continue;
+        }
+
+        pool.push_back(static_cast<int>(i));
     }
 
-    if (DrawButton({830,Config::walletY-77,205,65},
-                    ButtonType::TextGeneric,
-                    255,Config::COLOR_GRID_LINE,
-                    Config::COLOR_UI_AMBER,
-                    Config::COLOR_UI_GREEN,
-                    WHITE,"Reroll",40)){
-        TraceLog(LOG_INFO,"LOG Reroll");
-        for(int i = 0; i < 5; i++) slotSoldOut[i] = false; 
+    for (int i = 0; i < 5; i++) {
+        shopstate.slots[i] = -1;
+        shopstate.sold[i] = false;
+    }
+    if (pool.empty()) return;
+
+    for (int i = 0; i < 5; i++) {
+        int randomIndex = GetRandomValue(0, static_cast<int>(pool.size()) - 1);
+        shopstate.slots[i] = pool[randomIndex];
+        if (!gamestate.allowduplicateshopitems && pool.size() > 1 && static_cast<int>(pool.size()) > (5 - i)) {
+            pool.erase(pool.begin() + randomIndex);
+        }
+    }
+}
+
+void drawshop() {
+    DrawText("BLACK MARKET", 200, 25, 50, WHITE);
+
+    if (!activedaemoninfo.daemons.empty() &&
+        shopstate.slots[0] == -1 && shopstate.slots[1] == -1 &&
+        shopstate.slots[2] == -1 && shopstate.slots[3] == -1 &&
+        shopstate.slots[4] == -1) {
+        GenerateShopPool();
+    }
+
+    for (int i = 0; i < 5; ++i) {
+        int daemonIdx = shopstate.slots[i];
+        if (daemonIdx != -1) {
+            DrawShopItem(
+                (Vector2){ 75, Config::shopitemsYbuffer + (80 * i) }, 
+                engine.daemons[daemonIdx], 
+                shopstate.sold[i]
+            );
+        }
+    }
+    //next
+    if (DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 40)) {
+        for (int i = 0; i < 5; i++) shopstate.slots[i] = -1;
+        gamestate.gamestate = GAME;
+    }
+
+    //reroll
+    if (DrawButton({830, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Reroll", 40)) {
+        GenerateShopPool();
     }
 }

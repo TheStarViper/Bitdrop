@@ -10,7 +10,11 @@
 void PrepDrawCyberpunkDaemonSlots(){
     static bool isInitialized = false;
     if (!isInitialized) {
-        activedaemoninfo.daemons = engine.daemons;
+        activedaemoninfo.daemons.push_back(engine.daemons[0]);
+        activedaemoninfo.daemons.push_back(engine.daemons[1]);
+        activedaemoninfo.daemons.push_back(engine.daemons[2]);
+        activedaemoninfo.daemons.push_back(engine.daemons[3]);
+        activedaemoninfo.daemons.push_back(engine.daemons[4]);
         activedaemoninfo.daemons[0].slot = 1;
         activedaemoninfo.daemons[1].slot = 2;
         activedaemoninfo.daemons[2].slot = 3;
@@ -258,6 +262,7 @@ void testdaemon2(Daemon& self, Probe& probe) {
 }
 
 void loyalty_points(Daemon& self, Probe& probe){
+    //2x points every 5 hits
     static int counter = 0;
     if (counter<=4){counter++;}
     if (counter ==5){
@@ -276,6 +281,24 @@ void mesh_network(Daemon& self, Probe& probe){
     }
 }
 
+void schrodingers_basket(Daemon& self, Probe& probe) {
+    // "schrodingers_basket" - score has a 50% chance of 3x mult and a 50% chance of .5x mult
+    addfadeline(self, probe);
+    if ((rand() % 100) < 50) {
+        probe.rawPayloadBytes *= 3.0f;
+    } else {
+        probe.rawPayloadBytes *= 0.5f;
+    }
+}
+
+void dark_web_node(Daemon& self, Probe& probe) {
+    // "dark_web_node" - score has a 5% chance of 15x score
+    if ((rand() % 100) < 5) {
+        addfadeline(self, probe);
+        probe.rawPayloadBytes *= 20; // 15x Hyper-Crit
+    }
+}
+
 void initdaemons(){
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
@@ -284,7 +307,8 @@ void initdaemons(){
         Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10kb per pin hit", Config::COLOR_UI_GREEN, 3,900,&ICON_PADLOCK,PINS,testdaemon2),
         Daemon("Loyalty Points", "CRITICAL OVERLOAD", "2x points every 5 hits", Config::COLOR_UI_AMBER, 3,900,&ICON_PADLOCK,PINS,loyalty_points),
         Daemon("Mesh Network", "SECURE // SYNCED", "1.5x score for each ball in play", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PASSIVE,mesh_network),
-        Daemon("MALWARE_SINK.IO", "HONEYPOT ACTIVE", "PLACEHOLDER LORUM IPSUM WHATEVER HERE", Config::OTHER_COLOR_FOR_DAEMONS, 3,900,&ICON_PADLOCK,PASSIVE,loyalty_points)
+        Daemon("Schrodinger's Basket", "????????", "score has either gets 2.5x points or .5x points on score", Config::OTHER_COLOR_FOR_DAEMONS, 3,900,&ICON_PADLOCK,PASSIVE,schrodingers_basket),
+        Daemon("Dark Web Node", "danger awaits", "Rare 5% chance to score 15x data", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PINS,dark_web_node)
     };
 }
 

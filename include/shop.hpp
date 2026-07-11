@@ -61,5 +61,5 @@ const IconGrid ICON_CROSSHAIR = {
     {0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0}
 };
 #include "daemons.hpp"
-void DrawShopItem(Vector2 pos, Daemon item);
 void drawshop();
+void GenerateShopPool() ;

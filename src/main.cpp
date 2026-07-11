@@ -81,7 +81,6 @@ void InitGame() {
         b.multiplier = Config::basketmults[multiplierIndex];
         engine.baskets.push_back(b);
     }
-
     initdaemons();
 }
 

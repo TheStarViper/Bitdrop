@@ -162,6 +162,12 @@ struct PendingTrigger {
     int frameDelay;
 };
 
+struct ShopState {
+    int slots[5] = { -1, -1, -1, -1, -1 };
+    bool sold[5] = { false, false, false, false, false };
+    bool needsRefresh;
+};
+
 struct GameEngine {
     std::vector<Probe> activeProbes;
     std::vector<Node> nodes;
@@ -184,6 +190,7 @@ struct GameEngine {
 
 struct GameState{
     int balance;
+    bool allowduplicateshopitems = false;
     State gamestate = SHOP;
 };
 
@@ -191,3 +198,4 @@ struct GameState{
 inline DaemonsDisplayInfo activedaemoninfo;
 inline GameEngine engine;
 inline GameState gamestate;
+inline ShopState shopstate;
