@@ -10,6 +10,7 @@
 #include "daemons.hpp"
 #include <algorithm>
 #include "shop.hpp"
+#include "map.hpp"
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
@@ -412,6 +413,9 @@ void UpdateDrawFrame(void) {
         DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
         DrawLineEx({ 0, 530 }, { 810, 530 }, 2.0f, Config::COLOR_SHARD_BORDER);
         drawshop();
+    }
+    if (gamestate.gamestate==MAP){
+        DrawMap();
     }
     PrepDrawCyberpunkDaemonSlots();
     DrawFadingLines(engine);

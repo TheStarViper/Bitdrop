@@ -33,6 +33,14 @@ namespace Config {
     constexpr float shopitemtotalWidth = 640.0f;
     constexpr float shopitemtotalHeight = 80.0f;
     constexpr float shopbuyitembuttonWidth = 140.0f;
+
+
+    //map
+    constexpr int maxmapcolumns = 16;
+    constexpr int maxnodespermapcolumn = 4;
+    constexpr int maxmapconnections = 4;
+    constexpr int totalmapcolumns = 16;
+    
     //colors
     const Color COLOR_BG = { 4, 8, 12, 255 };
     const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
