@@ -40,7 +40,8 @@ namespace Config {
     constexpr int maxnodespermapcolumn = 4;
     constexpr int maxmapconnections = 4;
     constexpr int totalmapcolumns = 16;
-    
+    constexpr float mapscrollspeed = 50.0f;
+
     //colors
     const Color COLOR_BG = { 4, 8, 12, 255 };
     const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };

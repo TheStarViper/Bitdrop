@@ -4063,6 +4063,60 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     };
 
   
+  var __tzset_js = (timezone, daylight, std_name, dst_name) => {
+      // TODO: Use (malleable) environment variables instead of system settings.
+      var currentYear = new Date().getFullYear();
+      var winter = new Date(currentYear, 0, 1);
+      var summer = new Date(currentYear, 6, 1);
+      var winterOffset = winter.getTimezoneOffset();
+      var summerOffset = summer.getTimezoneOffset();
+  
+      // Local standard timezone offset. Local standard time is not adjusted for
+      // daylight savings.  This code uses the fact that getTimezoneOffset returns
+      // a greater value during Standard Time versus Daylight Saving Time (DST).
+      // Thus it determines the expected output during Standard Time, and it
+      // compares whether the output of the given date the same (Standard) or less
+      // (DST).
+      var stdTimezoneOffset = Math.max(winterOffset, summerOffset);
+  
+      // timezone is specified as seconds west of UTC ("The external variable
+      // `timezone` shall be set to the difference, in seconds, between
+      // Coordinated Universal Time (UTC) and local standard time."), the same
+      // as returned by stdTimezoneOffset.
+      // See http://pubs.opengroup.org/onlinepubs/009695399/functions/tzset.html
+      HEAPU32[((timezone)>>2)] = stdTimezoneOffset * 60;
+  
+      HEAP32[((daylight)>>2)] = Number(winterOffset != summerOffset);
+  
+      var extractZone = (timezoneOffset) => {
+        // Why inverse sign?
+        // Read here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
+        var sign = timezoneOffset >= 0 ? "-" : "+";
+  
+        var absOffset = Math.abs(timezoneOffset)
+        var hours = String(Math.floor(absOffset / 60)).padStart(2, "0");
+        var minutes = String(absOffset % 60).padStart(2, "0");
+  
+        return `UTC${sign}${hours}${minutes}`;
+      }
+  
+      var winterName = extractZone(winterOffset);
+      var summerName = extractZone(summerOffset);
+      assert(winterName);
+      assert(summerName);
+      assert(lengthBytesUTF8(winterName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${winterName})`);
+      assert(lengthBytesUTF8(summerName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${summerName})`);
+      if (summerOffset < winterOffset) {
+        // Northern hemisphere
+        stringToUTF8(winterName, std_name, 17);
+        stringToUTF8(summerName, dst_name, 17);
+      } else {
+        stringToUTF8(winterName, dst_name, 17);
+        stringToUTF8(summerName, std_name, 17);
+      }
+    };
+
+  
   var _emscripten_date_now = () => Date.now();
   
   var nowIsMonotonic = 1;
@@ -7620,6 +7674,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _glReadPixels = _emscripten_glReadPixels;
 
+  var _glScissor = _emscripten_glScissor;
+
   var _glShaderSource = _emscripten_glShaderSource;
 
   var _glTexImage2D = _emscripten_glTexImage2D;
@@ -9734,48 +9790,48 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('onSbrkGrow');
 }
 var ASM_CONSTS = {
-  94836: () => { if (document.fullscreenElement) return 1; },  
- 94882: () => { return document.getElementById('canvas').width; },  
- 94934: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 95002: () => { document.exitFullscreen(); },  
- 95029: () => { setTimeout(function() { Module.requestFullscreen(false, false); }, 100); },  
- 95102: () => { if (document.fullscreenElement) return 1; },  
- 95148: () => { return document.getElementById('canvas').width; },  
- 95200: () => { return screen.width; },  
- 95225: () => { document.exitFullscreen(); },  
- 95252: () => { setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { canvas.style.width="unset"; }, 100); }, 100); },  
- 95385: () => { return window.innerWidth; },  
- 95411: () => { return window.innerHeight; },  
- 95438: () => { if (document.fullscreenElement) return 1; },  
- 95484: () => { return document.getElementById('canvas').width; },  
- 95536: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 95604: () => { if (document.fullscreenElement) return 1; },  
- 95650: () => { return document.getElementById('canvas').width; },  
- 95702: () => { return screen.width; },  
- 95727: () => { return window.innerWidth; },  
- 95753: () => { return window.innerHeight; },  
- 95780: () => { if (document.fullscreenElement) return 1; },  
- 95826: () => { return document.getElementById('canvas').width; },  
- 95878: () => { return screen.width; },  
- 95903: () => { document.exitFullscreen(); },  
- 95930: () => { if (document.fullscreenElement) return 1; },  
- 95976: () => { return document.getElementById('canvas').width; },  
- 96028: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 96096: () => { document.exitFullscreen(); },  
- 96123: ($0) => { document.getElementById('canvas').style.opacity = $0; },  
- 96181: () => { return screen.width; },  
- 96206: () => { return screen.height; },  
- 96232: () => { return window.screenX; },  
- 96259: () => { return window.screenY; },  
- 96286: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 96339: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 96410: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 96467: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
- 96723: ($0) => { document.getElementById('canvas').style.cursor = UTF8ToString($0); },  
- 96794: () => { if (document.fullscreenElement) return 1; },  
- 96840: () => { return window.innerWidth; },  
- 96866: () => { return window.innerHeight; },  
- 96893: () => { if (document.pointerLockElement) return 1; }
+  113552: () => { if (document.fullscreenElement) return 1; },  
+ 113598: () => { return document.getElementById('canvas').width; },  
+ 113650: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 113718: () => { document.exitFullscreen(); },  
+ 113745: () => { setTimeout(function() { Module.requestFullscreen(false, false); }, 100); },  
+ 113818: () => { if (document.fullscreenElement) return 1; },  
+ 113864: () => { return document.getElementById('canvas').width; },  
+ 113916: () => { return screen.width; },  
+ 113941: () => { document.exitFullscreen(); },  
+ 113968: () => { setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { canvas.style.width="unset"; }, 100); }, 100); },  
+ 114101: () => { return window.innerWidth; },  
+ 114127: () => { return window.innerHeight; },  
+ 114154: () => { if (document.fullscreenElement) return 1; },  
+ 114200: () => { return document.getElementById('canvas').width; },  
+ 114252: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 114320: () => { if (document.fullscreenElement) return 1; },  
+ 114366: () => { return document.getElementById('canvas').width; },  
+ 114418: () => { return screen.width; },  
+ 114443: () => { return window.innerWidth; },  
+ 114469: () => { return window.innerHeight; },  
+ 114496: () => { if (document.fullscreenElement) return 1; },  
+ 114542: () => { return document.getElementById('canvas').width; },  
+ 114594: () => { return screen.width; },  
+ 114619: () => { document.exitFullscreen(); },  
+ 114646: () => { if (document.fullscreenElement) return 1; },  
+ 114692: () => { return document.getElementById('canvas').width; },  
+ 114744: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 114812: () => { document.exitFullscreen(); },  
+ 114839: ($0) => { document.getElementById('canvas').style.opacity = $0; },  
+ 114897: () => { return screen.width; },  
+ 114922: () => { return screen.height; },  
+ 114948: () => { return window.screenX; },  
+ 114975: () => { return window.screenY; },  
+ 115002: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 115055: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 115126: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 115183: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
+ 115439: ($0) => { document.getElementById('canvas').style.cursor = UTF8ToString($0); },  
+ 115510: () => { if (document.fullscreenElement) return 1; },  
+ 115556: () => { return window.innerWidth; },  
+ 115582: () => { return window.innerHeight; },  
+ 115609: () => { if (document.pointerLockElement) return 1; }
 };
 
 // Imports from the Wasm binary.
@@ -9819,6 +9875,16 @@ var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
 var dynCall_vfff = makeInvalidEarlyAccess('dynCall_vfff');
 var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
 var dynCall_iidiiiii = makeInvalidEarlyAccess('dynCall_iidiiiii');
+var dynCall_viijii = makeInvalidEarlyAccess('dynCall_viijii');
+var dynCall_iiiii = makeInvalidEarlyAccess('dynCall_iiiii');
+var dynCall_iiiiii = makeInvalidEarlyAccess('dynCall_iiiiii');
+var dynCall_iiiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiiii');
+var dynCall_iiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiii');
+var dynCall_iiiiij = makeInvalidEarlyAccess('dynCall_iiiiij');
+var dynCall_iiiiid = makeInvalidEarlyAccess('dynCall_iiiiid');
+var dynCall_iiiiijj = makeInvalidEarlyAccess('dynCall_iiiiijj');
+var dynCall_iiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiii');
+var dynCall_iiiiiijj = makeInvalidEarlyAccess('dynCall_iiiiiijj');
 var _asyncify_start_unwind = makeInvalidEarlyAccess('_asyncify_start_unwind');
 var _asyncify_stop_unwind = makeInvalidEarlyAccess('_asyncify_stop_unwind');
 var _asyncify_start_rewind = makeInvalidEarlyAccess('_asyncify_start_rewind');
@@ -9868,6 +9934,16 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_vfff'] != 'undefined', 'missing Wasm export: dynCall_vfff');
   assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
   assert(typeof wasmExports['dynCall_iidiiiii'] != 'undefined', 'missing Wasm export: dynCall_iidiiiii');
+  assert(typeof wasmExports['dynCall_viijii'] != 'undefined', 'missing Wasm export: dynCall_viijii');
+  assert(typeof wasmExports['dynCall_iiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiii');
+  assert(typeof wasmExports['dynCall_iiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiii');
+  assert(typeof wasmExports['dynCall_iiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiii');
+  assert(typeof wasmExports['dynCall_iiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiii');
+  assert(typeof wasmExports['dynCall_iiiiij'] != 'undefined', 'missing Wasm export: dynCall_iiiiij');
+  assert(typeof wasmExports['dynCall_iiiiid'] != 'undefined', 'missing Wasm export: dynCall_iiiiid');
+  assert(typeof wasmExports['dynCall_iiiiijj'] != 'undefined', 'missing Wasm export: dynCall_iiiiijj');
+  assert(typeof wasmExports['dynCall_iiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiii');
+  assert(typeof wasmExports['dynCall_iiiiiijj'] != 'undefined', 'missing Wasm export: dynCall_iiiiiijj');
   assert(typeof wasmExports['asyncify_start_unwind'] != 'undefined', 'missing Wasm export: asyncify_start_unwind');
   assert(typeof wasmExports['asyncify_stop_unwind'] != 'undefined', 'missing Wasm export: asyncify_stop_unwind');
   assert(typeof wasmExports['asyncify_start_rewind'] != 'undefined', 'missing Wasm export: asyncify_start_rewind');
@@ -9914,6 +9990,16 @@ function assignWasmExports(wasmExports) {
   dynCall_vfff = dynCalls['vfff'] = createExportWrapper('dynCall_vfff', 4);
   dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', 4);
   dynCall_iidiiiii = dynCalls['iidiiiii'] = createExportWrapper('dynCall_iidiiiii', 8);
+  dynCall_viijii = dynCalls['viijii'] = createExportWrapper('dynCall_viijii', 6);
+  dynCall_iiiii = dynCalls['iiiii'] = createExportWrapper('dynCall_iiiii', 5);
+  dynCall_iiiiii = dynCalls['iiiiii'] = createExportWrapper('dynCall_iiiiii', 6);
+  dynCall_iiiiiiiii = dynCalls['iiiiiiiii'] = createExportWrapper('dynCall_iiiiiiiii', 9);
+  dynCall_iiiiiii = dynCalls['iiiiiii'] = createExportWrapper('dynCall_iiiiiii', 7);
+  dynCall_iiiiij = dynCalls['iiiiij'] = createExportWrapper('dynCall_iiiiij', 6);
+  dynCall_iiiiid = dynCalls['iiiiid'] = createExportWrapper('dynCall_iiiiid', 6);
+  dynCall_iiiiijj = dynCalls['iiiiijj'] = createExportWrapper('dynCall_iiiiijj', 7);
+  dynCall_iiiiiiii = dynCalls['iiiiiiii'] = createExportWrapper('dynCall_iiiiiiii', 8);
+  dynCall_iiiiiijj = dynCalls['iiiiiijj'] = createExportWrapper('dynCall_iiiiiijj', 8);
   _asyncify_start_unwind = createExportWrapper('asyncify_start_unwind', 1);
   _asyncify_stop_unwind = createExportWrapper('asyncify_stop_unwind', 0);
   _asyncify_start_rewind = createExportWrapper('asyncify_start_rewind', 1);
@@ -9943,6 +10029,8 @@ var wasmImports = {
   _emscripten_runtime_keepalive_clear: __emscripten_runtime_keepalive_clear,
   /** @export */
   _setitimer_js: __setitimer_js,
+  /** @export */
+  _tzset_js: __tzset_js,
   /** @export */
   clock_time_get: _clock_time_get,
   /** @export */
@@ -10415,6 +10503,8 @@ var wasmImports = {
   glPixelStorei: _glPixelStorei,
   /** @export */
   glReadPixels: _glReadPixels,
+  /** @export */
+  glScissor: _glScissor,
   /** @export */
   glShaderSource: _glShaderSource,
   /** @export */

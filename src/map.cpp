@@ -188,7 +188,7 @@ void GenerateTopologyMap(void) {
     }
 }
 
-void InitGame(void) {
+void InitMap(void) {
     state.currentColumn = -1;
     state.currentNodeId = -1;
     state.spoofActive = false;
@@ -216,20 +216,24 @@ void DrawMap(void) {
     Vector2 worldMousePos = GetScreenToWorld2D(mousePos, state.camera);
     
     float scrollSpeed = 650.0f * GetFrameTime();
-    if (IsKeyDown(KEY_RIGHT)) state.camera.target.x += scrollSpeed;
-    if (IsKeyDown(KEY_LEFT))  state.camera.target.x -= scrollSpeed;
     
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)||IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         Vector2 delta = GetMouseDelta();
         state.camera.target.x -= delta.x;
     }
     
     float maxMapWidth = 100.0f + (Config::totalmapcolumns - 1) * 220.0f;
     if (state.camera.target.x < 0) state.camera.target.x = 0;
-    if (state.camera.target.x > maxMapWidth - Config::SCREEN_WIDTH + 200.0f) {
-        state.camera.target.x = maxMapWidth - Config::SCREEN_WIDTH + 200.0f;
+    if (state.camera.target.x > maxMapWidth - Config::SCREEN_WIDTH + 400.0f) {
+        state.camera.target.x = maxMapWidth - Config::SCREEN_WIDTH + 400.0f;
     }
-    
+
+    //scroll wheel
+    float wheelMove = GetMouseWheelMove();
+    if (wheelMove != 0.0f) {
+        state.camera.target.x -= wheelMove * Config::mapscrollspeed;
+    }
+
     state.selectedNode = NULL;
     for (int c = 0; c < Config::totalmapcolumns; c++) {
         for (int r = 0; r < state.columnNodeCounts[c]; r++) {
@@ -238,7 +242,6 @@ void DrawMap(void) {
             
             if (CheckCollisionPointCircle(worldMousePos, n->position, 22.0f)) {
                 state.selectedNode = n;
-                
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     if (state.ddosTargetMode) {
                         if (n->type == SEC_FIREWALL_v2) {
@@ -265,7 +268,7 @@ void DrawMap(void) {
     
     BeginDrawing();
     ClearBackground(BLACK);
-    
+    BeginScissorMode(0, 0, 800, Config::SCREEN_HEIGHT);
     int offsetX = (int)state.camera.target.x % 40;
     for (int i = 0; i < Config::SCREEN_WIDTH; i += 40) {
         DrawLine(i - offsetX, 0, i - offsetX, Config::SCREEN_HEIGHT, (Color){ 0, 40, 10, 255 });
@@ -331,13 +334,11 @@ void DrawMap(void) {
                 DrawCircleV(n->position, radius * pulse + 8.0f, (Color){ 0, 255, 120, (unsigned char)(100 * selectGlow) });
             }
             
-if (state.currentNodeId == n->id) {
+            if (state.currentNodeId == n->id) {
                 DrawCircleV(n->position, radius * pulse + 5.0f, WHITE); 
             }
             
             DrawCircleV(n->position, radius * pulse, coreColor);
-            
-            // FIXED AUDIT: Correct signature is (Vector2 center, float radius, Color color)
             DrawCircleLinesV(n->position, radius * pulse, (Color){ 255, 255, 255, 180 });
             
             const char* symb = "N";
@@ -360,21 +361,21 @@ if (state.currentNodeId == n->id) {
     }
     
     EndMode2D();
-    
+    EndScissorMode();
     DrawRectangle(0, 0, Config::SCREEN_WIDTH, 50, (Color){ 5, 20, 10, 230 });
     DrawLine(0, 50, Config::SCREEN_WIDTH, 50, (Color){ 0, 255, 80, 255 });
     
-    DrawText("TRACEROUTE TOPOLOGY NETWORK SCHEMATIC v4.92", 20, 15, 18, (Color){ 0, 255, 100, 255 });
+    DrawText("HACKING ITINUARY", 20, 15, 18, (Color){ 0, 255, 100, 255 });
     
     char statusBuf[128];
     if (state.currentNodeId == -1) {
-        strcpy(statusBuf, "STATUS: PENDING INITIAL INTRUSION (SELECT ENTRY COLUMN NODE)");
+        strcpy(statusBuf, "STATUS: SELECT ENTRY NODE");
     } else {
         snprintf(statusBuf, sizeof(statusBuf), "NODE LOCATION: ID %02d | COLUMN: %d/%d", state.currentNodeId, state.currentColumn, Config::totalmapcolumns - 1);
     }
     DrawText(statusBuf, 750, 18, 14, (Color){ 0, 200, 255, 255 });
     
-    int panX = Config::SCREEN_WIDTH - 300;
+    int panX = 800;
     int panY = 50;
     int panW = 300;
     int panH = Config::SCREEN_HEIGHT - 50;
@@ -383,99 +384,6 @@ if (state.currentNodeId == n->id) {
     DrawLine(panX, panY, panX, Config::SCREEN_HEIGHT, (Color){ 0, 255, 80, 255 });
     
     int uiY = panY + 20;
-    
-    DrawText("SYSTEM DATA DECRYPTION", panX + 20, uiY, 14, WHITE);
-    uiY += 25;
-    
-    Rectangle btnDecrypt = (Rectangle){ (float)panX + 20.0f, (float)uiY, 260.0f, 30.0f };
-    bool hoverDecrypt = CheckCollisionPointRec(mousePos, btnDecrypt);
-    DrawRectangleRec(btnDecrypt, hoverDecrypt ? (Color){ 40, 40, 50, 255 } : (Color){ 20, 22, 25, 255 });
-    
-    DrawRectangleLinesEx(btnDecrypt, 1.0f, state.showEncrypted ? MAGENTA : (Color){ 100, 100, 100, 255 });
-    
-    DrawText(state.showEncrypted ? "DISCONNECT NET_DECRYPT" : "RUN DECRYPT_NETWORK.exe", panX + 40, uiY + 8, 12, state.showEncrypted ? MAGENTA : LIGHTGRAY);
-    
-    if (hoverDecrypt && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        state.showEncrypted = !state.showEncrypted;
-    }
-    uiY += 45;
-    
-    DrawText("SIMULATED NODE CLEARANCE PRESETS", panX + 20, uiY, 13, WHITE);
-    uiY += 22;
-    
-    Rectangle sliderBar = (Rectangle){ (float)panX + 20.0f, (float)uiY + 5.0f, 260.0f, 8.0f };
-    DrawRectangleRec(sliderBar, (Color){ 50, 50, 50, 255 });
-    int handleX = (int)(sliderBar.x + (state.traceSlider * sliderBar.width));
-    DrawRectangle(handleX - 6, uiY, 12, 18, (Color){ 0, 255, 100, 255 });
-    
-    char sliderStr[32];
-    snprintf(sliderStr, sizeof(sliderStr), "On-Clear Trace Spike: %d%%", (int)(state.traceSlider * 100));
-    DrawText(sliderStr, panX + 20, uiY + 25, 11, (Color){ 180, 180, 180, 255 });
-    
-    if (CheckCollisionPointRec(mousePos, (Rectangle){ sliderBar.x, sliderBar.y - 10, sliderBar.width, 28 })) {
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-            state.traceSlider = (mousePos.x - sliderBar.x) / sliderBar.width;
-            if (state.traceSlider < 0.0f) state.traceSlider = 0.0f;
-            if (state.traceSlider > 1.0f) state.traceSlider = 1.0f;
-        }
-    }
-    uiY += 55;
-    
-    DrawText("NET_RUNNER PING EXECUTABLES", panX + 20, uiY, 13, WHITE);
-    uiY += 25;
-    
-    // Tool 1
-    Rectangle rTool1 = (Rectangle){ (float)panX + 20.0f, (float)uiY, 260.0f, 35.0f };
-    bool hTool1 = CheckCollisionPointRec(mousePos, rTool1);
-    DrawRectangleRec(rTool1, hTool1 ? (Color){ 30, 50, 40, 255 } : (Color){ 15, 25, 20, 255 });
-    DrawRectangleLinesEx(rTool1, 1.0f, (state.portScans > 0) ? (Color){ 0, 200, 80, 255 } : RED);
-    char bufT1[64]; snprintf(bufT1, sizeof(bufT1), "Port_Scan.sh  [Qty: %d]", state.portScans);
-    DrawText(bufT1, panX + 32, uiY + 6, 12, WHITE);
-    DrawText("Expose exact layout identities of all '?' nodes", panX + 32, uiY + 20, 9, DARKGRAY);
-    if (hTool1 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && state.portScans > 0) {
-        state.portScans--;
-        for (int c = 0; c < Config::totalmapcolumns; c++) {
-            for (int r = 0; r < state.columnNodeCounts[c]; r++) {
-                state.nodes[c][r].isRevealed = true;
-            }
-        }
-    }
-    uiY += 48;
-    
-    // Tool 2
-    Rectangle rTool2 = (Rectangle){ (float)panX + 20.0f, (float)uiY, 260.0f, 35.0f };
-    bool hTool2 = CheckCollisionPointRec(mousePos, rTool2);
-    Color ddosBorder = state.ddosTargetMode ? RED : ((state.ddosAttacks > 0) ? (Color){ 0, 200, 80, 255 } : RED);
-    DrawRectangleRec(rTool2, hTool2 ? (Color){ 30, 50, 40, 255 } : (Color){ 15, 25, 20, 255 });
-    DrawRectangleLinesEx(rTool2, 1.0f, ddosBorder);
-    char bufT2[64]; snprintf(bufT2, sizeof(bufT2), "DDoS_Attack.bat [Qty: %d]", state.ddosAttacks);
-    DrawText(state.ddosTargetMode ? "CLICK TARGET FIREWALL..." : bufT2, panX + 32, uiY + 6, 12, state.ddosTargetMode ? RED : WHITE);
-    DrawText("Downgrade an Elite Firewall into a Workstation", panX + 32, uiY + 20, 9, DARKGRAY);
-    if (hTool2 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && state.ddosAttacks > 0) {
-        state.ddosTargetMode = !state.ddosTargetMode;
-    }
-    uiY += 48;
-    
-    // Tool 3
-    Rectangle rTool3 = (Rectangle){ (float)panX + 20.0f, (float)uiY, 260.0f, 35.0f };
-    bool hTool3 = CheckCollisionPointRec(mousePos, rTool3);
-    DrawRectangleRec(rTool3, hTool3 ? (Color){ 30, 50, 40, 255 } : (Color){ 15, 25, 20, 255 });
-    DrawRectangleLinesEx(rTool3, 1.0f, state.spoofActive ? GOLD : ((state.ipSpoofs > 0) ? (Color){ 0, 200, 80, 255 } : RED));
-    char bufT3[64]; snprintf(bufT3, sizeof(bufT3), "IP_Spoof.cfg   [Qty: %d]", state.ipSpoofs);
-    DrawText(state.spoofActive ? "SPOOF LAYER ACTIVE" : bufT3, panX + 32, uiY + 6, 12, state.spoofActive ? GOLD : WHITE);
-    DrawText("Bypass limits: jump laterally within same column", panX + 32, uiY + 20, 9, DARKGRAY);
-    if (hTool3 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && state.ipSpoofs > 0 && state.currentNodeId != -1) {
-        state.spoofActive = !state.spoofActive;
-        if (state.spoofActive) state.ipSpoofs--;
-        else state.ipSpoofs++; 
-    }
-    uiY += 60;
-    
-    DrawText("NODE INSPECTION LOGS", panX + 20, uiY, 13, WHITE);
-    uiY += 20;
-    Rectangle inspectionBox = (Rectangle){ (float)panX + 15.0f, (float)uiY, 270.0f, 130.0f };
-    DrawRectangleRec(inspectionBox, (Color){ 5, 8, 6, 255 });
-    DrawRectangleLinesEx(inspectionBox, 1.0f, (Color){ 0, 120, 40, 255 });
     
     if (state.selectedNode) {
         MapNode* sn = state.selectedNode;
@@ -493,7 +401,7 @@ if (state.currentNodeId == n->id) {
     }
     
     DrawRectangle(0, Config::SCREEN_HEIGHT - 35, Config::SCREEN_WIDTH - panW, 35, (Color){ 2, 10, 5, 240 });
-    DrawText("CONTROLS: LEFT-CLICK to select/hack | RIGHT-MOUSE DRAG or ARROW KEYS to scroll graph map", 15, Config::SCREEN_HEIGHT - 24, 12, (Color){ 0, 180, 70, 255 });
+    DrawText("CONTROLS: LEFT-CLICK to select/hack | RIGHT-MOUSE DRAG to scroll graph map", 15, Config::SCREEN_HEIGHT - 24, 12, (Color){ 0, 180, 70, 255 });
     
     EndDrawing();
 }
