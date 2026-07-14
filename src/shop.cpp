@@ -160,13 +160,29 @@ void drawshop() {
         }
     }
     //next
-    if (DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 40)) {
+    if (DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 35)) {
         for (int i = 0; i < 5; i++) shopstate.slots[i] = -1;
-        gamestate.gamestate = GAME;
+        gamestate.gamestate = MAP;
     }
-
+    
+    const static int rerollsprice = 100;
+    bool affordable = false;
+    if (100+shopstate.rerolls*rerollsprice<=gamestate.balance){
+        affordable = true;
+    }
+    std::string rerollstring ="Reroll $" + std::to_string(100+(shopstate.rerolls*rerollsprice));
+    
     //reroll
-    if (DrawButton({830, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Reroll", 40)) {
-        GenerateShopPool();
+    if (DrawButton({830, Config::walletY - 77, 205, 65},
+                    ButtonType::TextGeneric, 255, 
+                    (affordable) ? Config::COLOR_GRID_LINE: Config::COLOR_GRID_LINE_DARKER, 
+                    (affordable) ? Config::COLOR_UI_AMBER : Config::COLOR_GRID_LINE_DARKER, 
+                    Config::COLOR_UI_GREEN, WHITE, 
+                    rerollstring.c_str(), 35)) {
+        if (affordable){
+            gamestate.balance -=100+shopstate.rerolls*rerollsprice;
+            shopstate.rerolls +=1;
+            GenerateShopPool();
+        }
     }
 }

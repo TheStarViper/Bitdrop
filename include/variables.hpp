@@ -36,6 +36,7 @@ namespace Config {
     //colors
     const Color COLOR_BG = { 4, 8, 12, 255 };
     const Color COLOR_GRID_LINE = { 0, 75, 50, 255 };
+    const Color COLOR_GRID_LINE_DARKER = {0,45,20,225};
     const Color COLOR_NODE = { 0, 255, 180, 255 };
     const Color COLOR_PROBE = { 0, 240, 255, 255 };     
     const Color COLOR_UI_GREEN = { 150, 255, 50, 255 };
@@ -56,9 +57,9 @@ namespace Config {
 enum State {
         MainMenu,
         GAME,
-        PUZZLES,
         SETTINGS,
-        SHOP
+        SHOP,
+        MAP
     };
 
 namespace Resources{
@@ -166,6 +167,7 @@ struct ShopState {
     int slots[5] = { -1, -1, -1, -1, -1 };
     bool sold[5] = { false, false, false, false, false };
     bool needsRefresh;
+    int rerolls = 1;
 };
 
 struct GameEngine {
