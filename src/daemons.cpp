@@ -7,6 +7,19 @@
 #include <sstream>
 #include <ctime>
 
+void DrawCyberpunkEmptySlot(int slotIndex) {
+    float x = 830.0f;
+    float targetY = Config::Daemon_Y_Buffer + (slotIndex - 1) * (Config::Daemon_Slot_Spacing+76);
+    DrawRectangle(x, targetY, 420, 76, Color{ 10, 16, 26, 100 });
+    DrawRectangleLinesEx({ x, targetY, 420, 76 }, 1.0f, Color{ 40, 60, 80, 150 });
+
+    DrawLineEx({ x, targetY }, { x + 10, targetY }, 1.5f, Color{ 80, 110, 130, 120 });
+    DrawLineEx({ x, targetY }, { x, targetY + 10 }, 1.5f, Color{ 80, 110, 130, 120 });
+
+    std::string emptyText = "[ EMPTY_SLOT_0" + std::to_string(slotIndex) + " ]";
+    DrawText(emptyText.c_str(), x + 20, targetY + (76 / 2) - 6, 12, Color{ 60, 90, 110, 180 });
+}
+
 void PrepDrawCyberpunkDaemonSlots(){
     static bool isInitialized = false;
     if (!isInitialized) {
@@ -53,7 +66,19 @@ void PrepDrawCyberpunkDaemonSlots(){
         activedaemoninfo.daemons[i].UpdateExpansion(scaledDt, isSelected);
         DrawCyberpunkDaemonSlot(activedaemoninfo.daemons[i], GetMousePosition(), isSelected, (int)i,&localSelectedDaemonIndex);
     }
-    
+    const int MAX_TOTAL_SLOTS = 5;
+    for (int slotNum = 1; slotNum <= MAX_TOTAL_SLOTS; slotNum++) {
+        bool slotOccupied = false;
+        for (const auto& daemon : activedaemoninfo.daemons) {
+            if (daemon.slot == slotNum) {
+                slotOccupied = true;
+                break;
+            }
+        }
+        if (!slotOccupied) {
+            DrawCyberpunkEmptySlot(slotNum);
+        }
+    }
 }
 
 void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex) {
@@ -299,20 +324,30 @@ void dark_web_node(Daemon& self, Probe& probe) {
     }
 }
 
+void kill_switch(Daemon& self, Probe& probe) {
+    // last ball you score does x4 mult
+    if (engine.activeProbes.size() == 1&&engine.remainingBalls==0) {
+        addfadeline(self, probe);
+        probe.rawPayloadBytes *= 4.0f;
+    }
+}
+
 void initdaemons(){
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
     engine.daemons = {
+        //             name,                   subtitle,      description,          color ,levels, price, icon, trigger type, function pointer
         Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "111x DATA", Config::COLOR_PROBE, 3,900,&ICON_PADLOCK,PASSIVE,testdaemon),
         Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10kb per pin hit", Config::COLOR_UI_GREEN, 3,900,&ICON_PADLOCK,PINS,testdaemon2),
         Daemon("Loyalty Points", "CRITICAL OVERLOAD", "2x points every 5 hits", Config::COLOR_UI_AMBER, 3,900,&ICON_PADLOCK,PINS,loyalty_points),
         Daemon("Mesh Network", "SECURE // SYNCED", "1.5x score for each ball in play", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PASSIVE,mesh_network),
         Daemon("Schrodinger's Basket", "????????", "score has either gets 2.5x points or .5x points on score", Config::OTHER_COLOR_FOR_DAEMONS, 3,900,&ICON_PADLOCK,PASSIVE,schrodingers_basket),
-        Daemon("Dark Web Node", "danger awaits", "Rare 5% chance to score 15x data", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PINS,dark_web_node)
+        Daemon("Dark Web Node", "danger awaits", "5% chance to score 15x data", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PASSIVE,dark_web_node),
+        Daemon("Kill Switch", "FAILSAFE", "4x output multiplier if down to last active unit", Config::COLOR_UI_AMBER, 3,900,&ICON_PADLOCK,PASSIVE,kill_switch)
     };
 }
 
-//animate scoring so it goes onto a belt and goes through the daemons
+//
 //overclocking requires overclocking shard 1x then 2x then 3x and so on
 //empty slots
 //locked slots

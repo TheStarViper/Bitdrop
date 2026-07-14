@@ -98,7 +98,7 @@ void RecycleProbeId(GameEngine& eng, int id) {
 }
 
 void InjectProbeFromTurret() {
-    if (engine.remainingBalls <= 0) return; 
+    if (engine.remainingBalls <= 0) return;
 
     engine.remainingBalls--;
     engine.turretBarrelFlash = 0.12f;
@@ -322,7 +322,7 @@ void UpdateDrawFrame(void) {
                 if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
                     int nextState = (int)node.modifier + 1;
                     node.modifier = (nextState > (int)MOD_CLONE) ? MOD_NONE : (ModifierType)nextState;
-                    node.pulseAnimTimer = 1.0f; 
+                    node.pulseAnimTimer = 1.0f;
                     
                     engine.calculationLog = "EASING PARAMETERS GENERATED";
                     break;
