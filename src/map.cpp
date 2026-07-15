@@ -113,7 +113,7 @@ void GenerateTopologyMap(void) {
         float totalHeight = 550.0f;
         float stepY = totalHeight / (state.columnNodeCounts[c] + 1);
         
-        for (int r = 0; r < state.columnNodeCounts[c]; r++) {
+        for (int r = 0; r < state.columnNodeCounts[c]; r++) { //node settings
             MapNode* n = &state.nodes[c][r];
             n->id = uniqueId++;
             n->column = c;
@@ -125,6 +125,7 @@ void GenerateTopologyMap(void) {
             float exponentVariance = GetRandomValue(70, 130) / 100.0f; 
             float randomizedExponent = (float)c * exponentVariance;
             n->targetquota = (int)(baseScore * powf(1.0f + Config::exponentialmapscoregrowth, randomizedExponent)); //generate node score requirement
+            n->reward = std::round(std::pow(n->targetquota/752,1.087)*GetRandomValue(100,200)/100);
             n->position = (Vector2){ colX, 80.0f + (r + 1) * stepY };
             
             if (c == Config::totalmapcolumns - 1) {
@@ -257,6 +258,7 @@ void DrawMap(void) {
                     }
                     else if (IsNodeSelectable(n)) {
                         TraceLog(LOG_INFO,std::to_string(n->targetquota).c_str()); //IMPORTANT RIGHT HERE
+                        TraceLog(LOG_INFO,std::to_string(n->reward).c_str()); 
                         state.currentNodeId = n->id;
                         state.currentColumn = n->column;
                         SimulateNodeClear(n, state.traceSlider);
@@ -411,15 +413,12 @@ void DrawMap(void) {
     if (state.selectedNode) {
         MapNode* sn = state.selectedNode;
         char nameLine[64]; snprintf(nameLine, sizeof(nameLine), "NAME: %s", GetNodeName(sn->type));
-        char colLine[64];  snprintf(colLine, sizeof(colLine),   "GRID: Col %d, Row %d", sn->column, sn->row);
-        char alertLine[64];snprintf(alertLine, sizeof(alertLine), "TRACE METRIC: %.1f%%", sn->alertState * 100.0f);
-        char encLine[64];  snprintf(encLine, sizeof(encLine),   "SECURITY ENCRYPT: %s", sn->isEncrypted ? "TRUE" : "FALSE");
+        //char colLine[64];  snprintf(colLine, sizeof(colLine),   "GRID: Col %d, Row %d", sn->column, sn->row);
 
         DrawText(nameLine, panX - 250, uiY + 15, 12, GetNodeColor(sn->type, 0.0f));
-        DrawText(colLine, panX - 250, uiY + 40, 11, LIGHTGRAY);
-        DrawText(alertLine, panX - 250, uiY + 65, 11, (sn->alertState > 0.5f) ? RED : ORANGE);
-        DrawText(encLine, panX - 250, uiY + 90, 11, sn->isEncrypted ? MAGENTA : GREEN);
-        DrawText(FormatByteSize(sn->targetquota).c_str(), panX - 250, uiY + 115, 11, GREEN);
+        //DrawText(colLine, panX - 250, uiY + 40, 11, LIGHTGRAY);
+        DrawText(FormatByteSize(sn->targetquota).c_str(), panX - 250, uiY + 65, 11, GREEN);
+        DrawText(std::to_string(sn->reward).c_str(), panX - 250, uiY + 90, 11, GREEN);
     } else {
         DrawText("NO ACTIVE TARGET HOVERED\n\nSYSTEM IDLE...", panX - 250, uiY + 45, 12, (Color){ 0, 100, 30, 255 });
     }
