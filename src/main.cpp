@@ -38,7 +38,7 @@ std::string FormatByteSize(long double bytes) {
 
 void InitGame() {
     InitMap();
-    engine.globalDataHackedBytes = 0.0;
+    levelstate.scoredbytes = 0.0;
     engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
     engine.turretBarrelFlash = 0.0f;
     engine.calculationLog = "CORE ARMED: DATA METERS ROUTED TO KB MINIMUMS";
@@ -264,7 +264,7 @@ void UpdatePhysics(float dt) {
                     }
                 }
                 long double localizedFinalBytesYield = std::round(p.rawPayloadBytes * basket.multiplier);
-                engine.globalDataHackedBytes += localizedFinalBytesYield;
+                levelstate.scoredbytes += localizedFinalBytesYield;
 
                 CashoutParticle cp;
                 cp.position = { p.position.x - 25.0f, basket.bounds.y - 25.0f };
@@ -292,6 +292,19 @@ void UpdatePhysics(float dt) {
     
     if (!clonesToSpawn.empty()) {
         engine.activeProbes.insert(engine.activeProbes.end(), clonesToSpawn.begin(), clonesToSpawn.end());
+    }
+
+    const static float waitabit = 3.0f; //target in seconds
+    static float timetracker = 0.0f;//tracker 
+    if (levelstate.scoredbytes>=levelstate.TARGET_QUOTA_BYTES&&engine.activeProbes.size()==0){
+        timetracker += GetFrameTime(); 
+        if (timetracker>=waitabit){
+            engine.particles.clear();
+            gamestate.gamestate = SHOP; //later for resolve end of game scorings and consider gamespeed
+            timetracker = 0;
+            levelstate.scoredbytes = 0;
+            engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
+        }
     }
 }
 
@@ -329,7 +342,7 @@ void UpdateDrawFrame(void) {
                 }
             }
         }
-        if (IsKeyPressed(KEY_SPACE)) InjectProbeFromTurret();
+        if (IsKeyPressed(KEY_SPACE)&&levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES) InjectProbeFromTurret();
         UpdatePhysics(GetFrameTime());
         ProcessLineFades(engine);
     }
@@ -397,12 +410,12 @@ void UpdateDrawFrame(void) {
         DrawText(bottomTip.c_str(), 400 - (MeasureText(bottomTip.c_str(), 11) / 2), 685, 11, Config::COLOR_GRID_LINE);
         
         float scoreBlockY = 455.0f;
-        bool targetMet = (engine.globalDataHackedBytes >= levelstate.TARGET_QUOTA_BYTES);
+        bool targetMet = (levelstate.scoredbytes >= levelstate.TARGET_QUOTA_BYTES);
         std::string quotaString = "TARGET QUOTA: " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
         DrawText(quotaString.c_str(), 835, scoreBlockY, 13, targetMet ? Config::COLOR_UI_GREEN : Config::COLOR_UI_AMBER);
 
         DrawText("DATA HACKED PROGRESSION TIER:", 835, scoreBlockY + 24, 12, { 130, 160, 180, 255 });
-        std::string dataProgressText = FormatByteSize(engine.globalDataHackedBytes) + " / " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
+        std::string dataProgressText = FormatByteSize(levelstate.scoredbytes) + " / " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
         DrawText(dataProgressText.c_str(), 835, scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
         
         DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);

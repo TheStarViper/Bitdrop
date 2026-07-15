@@ -28,6 +28,7 @@ typedef struct MapNode {
     int connectionCount;
 
     double targetquota;
+    int reward;
 } MapNode;
 
 typedef struct {

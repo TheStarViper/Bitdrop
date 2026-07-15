@@ -191,7 +191,6 @@ struct GameEngine {
     Vector2 centerApexPegPos;
 
     int remainingBalls;
-    long double globalDataHackedBytes;
     int nextProbeId = 0;
     std::vector<int> recycledProbeIds;
     const int latencyCap = 15;
@@ -209,6 +208,7 @@ struct GameState{
 struct LevelState{
     int MAX_LAUNCH_CAPACITY = 10;
     long double TARGET_QUOTA_BYTES; 
+    long double scoredbytes;
 };
 
 inline DaemonsDisplayInfo activedaemoninfo;
