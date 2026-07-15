@@ -285,32 +285,33 @@ void DrawMap(void) {
     }
     
     BeginMode2D(state.camera);
-    
-    for (int c = 0; c < Config::totalmapcolumns; c++) {
-        for (int r = 0; r < state.columnNodeCounts[c]; r++) {
-            MapNode* n = &state.nodes[c][r];
-            if (n->isEncrypted && !state.showEncrypted) continue;
-            
-            for (int i = 0; i < n->connectionCount; i++) {
-                MapNode* target = FindNodeById(n->connections[i]);
-                if (!target) continue;
-                if (target->isEncrypted && !state.showEncrypted) continue;
+    if (gamestate.gamestate==MAP){ //incase state changes
+        for (int c = 0; c < Config::totalmapcolumns; c++) {
+            for (int r = 0; r < state.columnNodeCounts[c]; r++) {
+                MapNode* n = &state.nodes[c][r];
+                if (n->isEncrypted && !state.showEncrypted) continue;
                 
-                Color lineCol = (Color){ 0, 80, 20, 150 }; 
-                float thickness = 1.5f;
-                
-                bool nodeIsCurrent = (state.currentNodeId == n->id);
-                bool canSelectTarget = IsNodeSelectable(target);
-                
-                if (nodeIsCurrent && canSelectTarget) {
-                    float alphaPulse = (sinf(state.timeRunning * 7.0f) * 0.3f) + 0.7f;
-                    lineCol = (Color){ 0, 255, 100, (unsigned char)(255 * alphaPulse) };
-                    thickness = 3.0f;
-                } else if (n->column < state.currentColumn || (n->column == state.currentColumn && n->id != state.currentNodeId)) {
-                    lineCol = (Color){ 0, 60, 20, 100 }; 
+                for (int i = 0; i < n->connectionCount; i++) {
+                    MapNode* target = FindNodeById(n->connections[i]);
+                    if (!target) continue;
+                    if (target->isEncrypted && !state.showEncrypted) continue;
+                    
+                    Color lineCol = (Color){ 0, 80, 20, 150 }; 
+                    float thickness = 1.5f;
+                    
+                    bool nodeIsCurrent = (state.currentNodeId == n->id);
+                    bool canSelectTarget = IsNodeSelectable(target);
+                    
+                    if (nodeIsCurrent && canSelectTarget) {
+                        float alphaPulse = (sinf(state.timeRunning * 7.0f) * 0.3f) + 0.7f;
+                        lineCol = (Color){ 0, 255, 100, (unsigned char)(255 * alphaPulse) };
+                        thickness = 3.0f;
+                    } else if (n->column < state.currentColumn || (n->column == state.currentColumn && n->id != state.currentNodeId)) {
+                        lineCol = (Color){ 0, 60, 20, 100 }; 
+                    }
+                    
+                    DrawLineEx(n->position, target->position, thickness, lineCol);
                 }
-                
-                DrawLineEx(n->position, target->position, thickness, lineCol);
             }
         }
     }
