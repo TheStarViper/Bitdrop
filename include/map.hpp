@@ -26,6 +26,8 @@ typedef struct MapNode {
     
     int connections[Config::maxmapconnections];
     int connectionCount;
+
+    double targetquota;
 } MapNode;
 
 typedef struct {
@@ -33,12 +35,12 @@ typedef struct {
     int columnNodeCounts[Config::maxmapcolumns];
     
     int currentColumn;
-    int currentNodeId;     
-    bool spoofActive;      
-    bool showEncrypted;    
+    int currentNodeId;
+    bool spoofActive;
+    bool showEncrypted;
     
-    float traceSlider;     
-    MapNode* selectedNode;    
+    float traceSlider;
+    MapNode* selectedNode;
     
     int portScans;
     int ddosAttacks;

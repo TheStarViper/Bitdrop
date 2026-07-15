@@ -121,6 +121,7 @@ void GenerateTopologyMap(void) {
             n->alertState = 0.0f;
             n->connectionCount = 0;
             n->isRevealed = false;
+            n->targetquota = GetRandomValue(1, 10) * (n->column+1);
             n->position = (Vector2){ colX, 80.0f + (r + 1) * stepY };
             
             if (c == Config::totalmapcolumns - 1) {
@@ -252,10 +253,12 @@ void DrawMap(void) {
                         }
                     }
                     else if (IsNodeSelectable(n)) {
+                        TraceLog(LOG_INFO,std::to_string(n->targetquota).c_str()); //IMPORTANT RIGHT HERE
                         state.currentNodeId = n->id;
                         state.currentColumn = n->column;
                         SimulateNodeClear(n, state.traceSlider);
-                        state.spoofActive = false; 
+                        state.spoofActive = false;
+                        gamestate.gamestate = SHOP;
                     }
                 }
             }
@@ -313,8 +316,21 @@ void DrawMap(void) {
             MapNode* n = &state.nodes[c][r];
             if (n->isEncrypted && !state.showEncrypted) continue;
             
-            float radius = (n->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
+            float baseRadius = (n->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
+            float hoverScale = 1.0f;
+            
+            if (CheckCollisionPointCircle(worldMousePos, n->position, baseRadius + 6.0f)) {
+                hoverScale = 1.25f + sinf(state.timeRunning * 16.0f) * 0.05f;
+            }
+            
+            float radius = baseRadius * hoverScale;
             float pulse = 1.0f;
+            
+            if (n->alertState > 0.05f) {
+                pulse += sinf(state.timeRunning * 12.0f) * (n->alertState * 0.25f);
+            } else if (n->type == MAINFRAME_GATEWAY) {
+                pulse += sinf(state.timeRunning * 3.0f) * 0.1f;
+            }
             
             if (n->alertState > 0.05f) {
                 pulse += sinf(state.timeRunning * 12.0f) * (n->alertState * 0.25f);
@@ -373,12 +389,14 @@ void DrawMap(void) {
     } else {
         snprintf(statusBuf, sizeof(statusBuf), "NODE LOCATION: ID %02d | COLUMN: %d/%d", state.currentNodeId, state.currentColumn, Config::totalmapcolumns - 1);
     }
-    DrawText(statusBuf, 750, 18, 14, (Color){ 0, 200, 255, 255 });
+    DrawText(statusBuf, 550, 18, 14, (Color){ 0, 200, 255, 255 });
     
+
     int panX = 800;
     int panY = 50;
-    int panW = 300;
+    int panW = 480;
     int panH = Config::SCREEN_HEIGHT - 50;
+    
     
     DrawRectangle(panX, panY, panW, panH, (Color){ 10, 15, 12, 245 });
     DrawLine(panX, panY, panX, Config::SCREEN_HEIGHT, (Color){ 0, 255, 80, 255 });
@@ -392,12 +410,12 @@ void DrawMap(void) {
         char alertLine[64];snprintf(alertLine, sizeof(alertLine), "TRACE METRIC: %.1f%%", sn->alertState * 100.0f);
         char encLine[64];  snprintf(encLine, sizeof(encLine),   "SECURITY ENCRYPT: %s", sn->isEncrypted ? "TRUE" : "FALSE");
         
-        DrawText(nameLine, panX + 25, uiY + 15, 12, GetNodeColor(sn->type, 0.0f));
-        DrawText(colLine, panX + 25, uiY + 40, 11, LIGHTGRAY);
-        DrawText(alertLine, panX + 25, uiY + 65, 11, (sn->alertState > 0.5f) ? RED : ORANGE);
-        DrawText(encLine, panX + 25, uiY + 90, 11, sn->isEncrypted ? MAGENTA : GREEN);
+        DrawText(nameLine, panX - 250, uiY + 15, 12, GetNodeColor(sn->type, 0.0f));
+        DrawText(colLine, panX - 250, uiY + 40, 11, LIGHTGRAY);
+        DrawText(alertLine, panX - 250, uiY + 65, 11, (sn->alertState > 0.5f) ? RED : ORANGE);
+        DrawText(encLine, panX - 250, uiY + 90, 11, sn->isEncrypted ? MAGENTA : GREEN);
     } else {
-        DrawText("NO ACTIVE TARGET HOVERED\n\nSYSTEM IDLE...", panX + 25, uiY + 45, 12, (Color){ 0, 100, 30, 255 });
+        DrawText("NO ACTIVE TARGET HOVERED\n\nSYSTEM IDLE...", panX - 250, uiY + 45, 12, (Color){ 0, 100, 30, 255 });
     }
     
     DrawRectangle(0, Config::SCREEN_HEIGHT - 35, Config::SCREEN_WIDTH - panW, 35, (Color){ 2, 10, 5, 240 });

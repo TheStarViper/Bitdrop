@@ -16,8 +16,6 @@
     #include <emscripten.h>
 #endif
 
-const int MAX_LAUNCH_CAPACITY = 10;
-const long double TARGET_QUOTA_BYTES = 524280; 
 
 std::string FormatByteSize(long double bytes) {
     if (bytes < 1) return "0 B";
@@ -41,7 +39,7 @@ std::string FormatByteSize(long double bytes) {
 void InitGame() {
     InitMap();
     engine.globalDataHackedBytes = 0.0;
-    engine.remainingBalls = MAX_LAUNCH_CAPACITY;
+    engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
     engine.turretBarrelFlash = 0.0f;
     engine.calculationLog = "CORE ARMED: DATA METERS ROUTED TO KB MINIMUMS";
     engine.daemons.clear();
@@ -399,12 +397,12 @@ void UpdateDrawFrame(void) {
         DrawText(bottomTip.c_str(), 400 - (MeasureText(bottomTip.c_str(), 11) / 2), 685, 11, Config::COLOR_GRID_LINE);
         
         float scoreBlockY = 455.0f;
-        bool targetMet = (engine.globalDataHackedBytes >= TARGET_QUOTA_BYTES);
-        std::string quotaString = "TARGET QUOTA: " + FormatByteSize(TARGET_QUOTA_BYTES);
+        bool targetMet = (engine.globalDataHackedBytes >= levelstate.TARGET_QUOTA_BYTES);
+        std::string quotaString = "TARGET QUOTA: " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
         DrawText(quotaString.c_str(), 835, scoreBlockY, 13, targetMet ? Config::COLOR_UI_GREEN : Config::COLOR_UI_AMBER);
 
         DrawText("DATA HACKED PROGRESSION TIER:", 835, scoreBlockY + 24, 12, { 130, 160, 180, 255 });
-        std::string dataProgressText = FormatByteSize(engine.globalDataHackedBytes) + " / " + FormatByteSize(TARGET_QUOTA_BYTES);
+        std::string dataProgressText = FormatByteSize(engine.globalDataHackedBytes) + " / " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
         DrawText(dataProgressText.c_str(), 835, scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
         
         DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
@@ -419,8 +417,7 @@ void UpdateDrawFrame(void) {
     if (gamestate.gamestate==MAP){
         DrawMap();
     }
-    //PrepDrawCyberpunkDaemonSlots();
-    
+    PrepDrawCyberpunkDaemonSlots();
 
     //float walletY = gamestate.gamestate==GAME ? 565.0f : 450.0f;
     DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });

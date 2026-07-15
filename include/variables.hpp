@@ -205,8 +205,13 @@ struct GameState{
     State gamestate = SHOP;
 };
 
+struct LevelState{
+    int MAX_LAUNCH_CAPACITY = 10;
+    long double TARGET_QUOTA_BYTES; 
+};
 
 inline DaemonsDisplayInfo activedaemoninfo;
 inline GameEngine engine;
 inline GameState gamestate;
 inline ShopState shopstate;
+inline LevelState levelstate;
