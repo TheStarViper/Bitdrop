@@ -338,7 +338,7 @@ void initdaemons(){
     engine.daemons = {
         //             name,                   subtitle,      description,          color ,levels, price, icon, trigger type, function pointer
         Daemon("TESTDAEMON_WITH ABILITY", "SECURE // SYNCED", "111x DATA", Config::COLOR_PROBE, 3,900,&ICON_PADLOCK,PASSIVE,testdaemon),
-        Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10kb per pin hit", Config::COLOR_UI_GREEN, 3,900,&ICON_PADLOCK,PINS,testdaemon2),
+        Daemon("TESTDAEMON2 WITH ABILITY", "STANDBY RUNTIME", "+10mb per pin hit", Config::COLOR_UI_GREEN, 3,900,&ICON_PADLOCK,PINS,testdaemon2),
         Daemon("Loyalty Points", "CRITICAL OVERLOAD", "2x points every 5 hits", Config::COLOR_UI_AMBER, 3,900,&ICON_PADLOCK,PINS,loyalty_points),
         Daemon("Mesh Network", "SECURE // SYNCED", "1.5x score for each ball in play", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PASSIVE,mesh_network),
         Daemon("Schrodinger's Basket", "????????", "score has either gets 2.5x points or .5x points on score", Config::OTHER_COLOR_FOR_DAEMONS, 3,900,&ICON_PADLOCK,PASSIVE,schrodingers_basket),

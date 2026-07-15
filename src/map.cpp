@@ -7,7 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
-
+#include "main.hpp"
 
 
 static Mapstate state;
@@ -121,7 +121,10 @@ void GenerateTopologyMap(void) {
             n->alertState = 0.0f;
             n->connectionCount = 0;
             n->isRevealed = false;
-            n->targetquota = GetRandomValue(1, 10) * (n->column+1);
+            static float baseScore = 204800.0f;
+            float exponentVariance = GetRandomValue(70, 130) / 100.0f; 
+            float randomizedExponent = (float)c * exponentVariance;
+            n->targetquota = (int)(baseScore * powf(1.0f + Config::exponentialmapscoregrowth, randomizedExponent)); //generate node score requirement
             n->position = (Vector2){ colX, 80.0f + (r + 1) * stepY };
             
             if (c == Config::totalmapcolumns - 1) {
@@ -258,7 +261,8 @@ void DrawMap(void) {
                         state.currentColumn = n->column;
                         SimulateNodeClear(n, state.traceSlider);
                         state.spoofActive = false;
-                        gamestate.gamestate = SHOP;
+                        levelstate.TARGET_QUOTA_BYTES = n->targetquota;
+                        gamestate.gamestate = GAME;
                     }
                 }
             }
@@ -409,11 +413,12 @@ void DrawMap(void) {
         char colLine[64];  snprintf(colLine, sizeof(colLine),   "GRID: Col %d, Row %d", sn->column, sn->row);
         char alertLine[64];snprintf(alertLine, sizeof(alertLine), "TRACE METRIC: %.1f%%", sn->alertState * 100.0f);
         char encLine[64];  snprintf(encLine, sizeof(encLine),   "SECURITY ENCRYPT: %s", sn->isEncrypted ? "TRUE" : "FALSE");
-        
+
         DrawText(nameLine, panX - 250, uiY + 15, 12, GetNodeColor(sn->type, 0.0f));
         DrawText(colLine, panX - 250, uiY + 40, 11, LIGHTGRAY);
         DrawText(alertLine, panX - 250, uiY + 65, 11, (sn->alertState > 0.5f) ? RED : ORANGE);
         DrawText(encLine, panX - 250, uiY + 90, 11, sn->isEncrypted ? MAGENTA : GREEN);
+        DrawText(FormatByteSize(sn->targetquota).c_str(), panX - 250, uiY + 115, 11, GREEN);
     } else {
         DrawText("NO ACTIVE TARGET HOVERED\n\nSYSTEM IDLE...", panX - 250, uiY + 45, 12, (Color){ 0, 100, 30, 255 });
     }
