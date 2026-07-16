@@ -66,6 +66,7 @@ namespace Config {
 
 enum State {
         MainMenu,
+        LOST,
         GAME,
         SETTINGS,
         SHOP,
@@ -209,6 +210,7 @@ struct LevelState{
     int MAX_LAUNCH_CAPACITY = 10;
     long double TARGET_QUOTA_BYTES; 
     long double scoredbytes;
+    int reward;
 };
 
 inline DaemonsDisplayInfo activedaemoninfo;

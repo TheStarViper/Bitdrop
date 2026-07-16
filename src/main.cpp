@@ -12,6 +12,11 @@
 #include "shop.hpp"
 #include "map.hpp"
 
+//add animation for getting money from balls
+//add animation for getting money from beating level
+//add transitions
+//make so you cant have more than 5 daemons
+//cant interact with daemons on map
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
 #endif
@@ -25,7 +30,7 @@ std::string FormatByteSize(long double bytes) {
     long double size = bytes / 1024.0;
     while (size >= 1024.0 && i < 8) {
         size /= 1024.0;
-        i++;
+        i++; 
     }
     std::stringstream stream;
     if (i == 8 && size >= 1024.0) {
@@ -294,16 +299,24 @@ void UpdatePhysics(float dt) {
         engine.activeProbes.insert(engine.activeProbes.end(), clonesToSpawn.begin(), clonesToSpawn.end());
     }
 
-    const static float waitabit = 3.0f; //target in seconds
+    const static float waitabit = 1.5f; //target in seconds
     static float timetracker = 0.0f;//tracker 
-    if (levelstate.scoredbytes>=levelstate.TARGET_QUOTA_BYTES&&engine.activeProbes.size()==0){
+    if (levelstate.scoredbytes>=levelstate.TARGET_QUOTA_BYTES&&engine.activeProbes.size()==0){ //transition to shop
         timetracker += GetFrameTime(); 
         if (timetracker>=waitabit){
             engine.particles.clear();
             gamestate.gamestate = SHOP; //later for resolve end of game scorings and consider gamespeed
             timetracker = 0;
             levelstate.scoredbytes = 0;
+            gamestate.balance += levelstate.reward;
             engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
+        }
+    }
+    if (levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES&&engine.activeProbes.size()==0&&engine.remainingBalls==0){ //loss condition
+        timetracker += GetFrameTime(); 
+        if (timetracker>=waitabit){
+            gamestate.gamestate = LOST;
+            timetracker = 0;
         }
     }
 }

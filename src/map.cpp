@@ -125,7 +125,7 @@ void GenerateTopologyMap(void) {
             float exponentVariance = GetRandomValue(70, 130) / 100.0f; 
             float randomizedExponent = (float)c * exponentVariance;
             n->targetquota = (int)(baseScore * powf(1.0f + Config::exponentialmapscoregrowth, randomizedExponent)); //generate node score requirement
-            n->reward = std::round(std::pow(n->targetquota/752,1.087)*GetRandomValue(100,200)/100);
+            n->reward = std::round((500.0f + GetRandomValue(0, 100)) + (std::pow((n->column) / 15.0f, 1.5f) * (2100.0f + GetRandomValue(-200, 200))));
             n->position = (Vector2){ colX, 80.0f + (r + 1) * stepY };
             
             if (c == Config::totalmapcolumns - 1) {
@@ -196,7 +196,7 @@ void GenerateTopologyMap(void) {
 void InitMap(void) {
     state.currentColumn = -1;
     state.currentNodeId = -1;
-    state.spoofActive = false;
+    state.spoofActive = false; 
     state.showEncrypted = false;
     state.traceSlider = 0.40f;
     state.selectedNode = NULL;
@@ -264,6 +264,7 @@ void DrawMap(void) {
                         SimulateNodeClear(n, state.traceSlider);
                         state.spoofActive = false;
                         levelstate.TARGET_QUOTA_BYTES = n->targetquota;
+                        levelstate.reward = n->reward;
                         gamestate.gamestate = GAME;
                     }
                 }
@@ -349,7 +350,7 @@ void DrawMap(void) {
             bool selectState = IsNodeSelectable(n);
             
             if (n->type == RAW_PACKET_STREAM && !n->isRevealed) {
-                coreColor = (Color){ 130, 130, 130, 255 }; 
+                coreColor = (Color){ 130, 130, 130, 255 };
             }
             
             if (selectState) {
@@ -409,16 +410,51 @@ void DrawMap(void) {
     DrawLine(panX, panY, panX, Config::SCREEN_HEIGHT, (Color){ 0, 255, 80, 255 });
     
     int uiY = panY + 20;
-    
     if (state.selectedNode) {
         MapNode* sn = state.selectedNode;
-        char nameLine[64]; snprintf(nameLine, sizeof(nameLine), "NAME: %s", GetNodeName(sn->type));
-        //char colLine[64];  snprintf(colLine, sizeof(colLine),   "GRID: Col %d, Row %d", sn->column, sn->row);
 
+        Vector2 screenPos = GetWorldToScreen2D(sn->position, state.camera);
+
+        std::string reward_string = "REWARD: " + std::to_string(sn->reward);
+        std::string targetquota_string = "QUOTA: " + FormatByteSize(sn->targetquota);
+
+        int rewardoffsetx = MeasureText(reward_string.c_str(), 11);
+        int quotaoffsetx = MeasureText(targetquota_string.c_str(), 11);
+        
+        int max_width = (rewardoffsetx > quotaoffsetx) ? rewardoffsetx : quotaoffsetx;
+        int padding = 10;
+        int bg_width = max_width + padding * 2;
+        int bg_height = 40; 
+
+        int bg_x = screenPos.x - bg_width / 2;
+        int bg_y = screenPos.y - 70; 
+
+        DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
+        DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(GREEN, 0.5f)); 
+
+        DrawText(targetquota_string.c_str(), screenPos.x - quotaoffsetx / 2, bg_y + 6, 11, GREEN);
+        DrawText(reward_string.c_str(), screenPos.x - rewardoffsetx / 2, bg_y + 22, 11, GREEN);
+
+        float offset = 16.0f; 
+        float bracketSize = 6.0f;   
+        float thickness = 2.0f;     
+        Vector2 center = screenPos;
+
+        DrawLineEx({center.x - offset, center.y - offset}, {center.x - offset + bracketSize, center.y - offset}, thickness, GREEN);
+        DrawLineEx({center.x - offset, center.y - offset}, {center.x - offset, center.y - offset + bracketSize}, thickness, GREEN);
+
+        DrawLineEx({center.x + offset, center.y - offset}, {center.x + offset - bracketSize, center.y - offset}, thickness, GREEN);
+        DrawLineEx({center.x + offset, center.y - offset}, {center.x + offset, center.y - offset + bracketSize}, thickness, GREEN);
+
+        DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset + bracketSize, center.y + offset}, thickness, GREEN);
+        DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset, center.y + offset - bracketSize}, thickness, GREEN);
+
+        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset - bracketSize, center.y + offset}, thickness, GREEN);
+        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset, center.y + offset - bracketSize}, thickness, GREEN);
+
+        char nameLine[64]; 
+        snprintf(nameLine, sizeof(nameLine), "NAME: %s", GetNodeName(sn->type));
         DrawText(nameLine, panX - 250, uiY + 15, 12, GetNodeColor(sn->type, 0.0f));
-        //DrawText(colLine, panX - 250, uiY + 40, 11, LIGHTGRAY);
-        DrawText(FormatByteSize(sn->targetquota).c_str(), panX - 250, uiY + 65, 11, GREEN);
-        DrawText(std::to_string(sn->reward).c_str(), panX - 250, uiY + 90, 11, GREEN);
     } else {
         DrawText("NO ACTIVE TARGET HOVERED\n\nSYSTEM IDLE...", panX - 250, uiY + 45, 12, (Color){ 0, 100, 30, 255 });
     }
