@@ -101,19 +101,19 @@ bool IsNodeSelectable(MapNode* target) {
 
 void GenerateTopologyMap(void) {
     int uniqueId = 0;
-    
+
     for (int c = 0; c < Config::totalmapcolumns; c++) {
         if (c == Config::totalmapcolumns - 1) {
-            state.columnNodeCounts[c] = 1; 
+            state.columnNodeCounts[c] = 1;
         } else {
             state.columnNodeCounts[c] = GetRandomValue(2, Config::maxnodespermapcolumn);
         }
-        
+
         float colX = 100.0f + c * 220.0f;
         float totalHeight = 550.0f;
         float stepY = totalHeight / (state.columnNodeCounts[c] + 1);
-        
-        for (int r = 0; r < state.columnNodeCounts[c]; r++) { //node settings
+
+        for (int r = 0; r < state.columnNodeCounts[c]; r++) {
             MapNode* n = &state.nodes[c][r];
             n->id = uniqueId++;
             n->column = c;
@@ -122,12 +122,15 @@ void GenerateTopologyMap(void) {
             n->connectionCount = 0;
             n->isRevealed = false;
             static float baseScore = 204800.0f;
-            float exponentVariance = GetRandomValue(70, 130) / 100.0f; 
+            float exponentVariance = GetRandomValue(70, 130) / 100.0f;
             float randomizedExponent = (float)c * exponentVariance;
-            n->targetquota = (int)(baseScore * powf(1.0f + Config::exponentialmapscoregrowth, randomizedExponent)); //generate node score requirement
+            n->targetquota = (int)(baseScore * powf(1.0f + Config::exponentialmapscoregrowth, randomizedExponent));
             n->reward = std::round((500.0f + GetRandomValue(0, 100)) + (std::pow((n->column) / 15.0f, 1.5f) * (2100.0f + GetRandomValue(-200, 200))));
-            n->position = (Vector2){ colX, 80.0f + (r + 1) * stepY };
-            
+
+            float jitterX = (float)GetRandomValue(-20, 20);
+            float jitterY = (float)GetRandomValue(-20, 20);
+            n->position = (Vector2){ colX + jitterX, 80.0f + (r + 1) * stepY + jitterY };
+
             if (c == Config::totalmapcolumns - 1) {
                 n->type = MAINFRAME_GATEWAY;
             } else {
@@ -148,50 +151,87 @@ void GenerateTopologyMap(void) {
             n->isEncrypted = (c > 2 && c < 14 && GetRandomValue(1, 12) == 1);
         }
     }
-    
+
+    int numPaths = state.columnNodeCounts[0];
+    std::vector<int> pathRow(numPaths);
+    for (int p = 0; p < numPaths; p++) {
+        pathRow[p] = p;
+    }
+
+    for (int c = 0; c < Config::totalmapcolumns - 1; c++) {
+        int currCount = state.columnNodeCounts[c];
+        int nextCount = state.columnNodeCounts[c + 1];
+
+        for (int p = 0; p < numPaths; p++) {
+            int fromRow = pathRow[p];
+            MapNode* fromNode = &state.nodes[c][fromRow];
+
+            int idealNext = (currCount > 0) ? (fromRow * nextCount) / currCount : 0;
+            int delta = GetRandomValue(-1, 1);
+            int nextRow = ClampInteger(idealNext + delta, 0, nextCount - 1);
+
+            int targetId = state.nodes[c + 1][nextRow].id;
+
+            bool alreadyConnected = false;
+            for (int con = 0; con < fromNode->connectionCount; con++) {
+                if (fromNode->connections[con] == targetId) { alreadyConnected = true; break; }
+            }
+
+            if (!alreadyConnected && fromNode->connectionCount < Config::maxmapconnections) {
+                fromNode->connections[fromNode->connectionCount++] = targetId;
+            }
+
+            pathRow[p] = nextRow;
+        }
+    }
+
     for (int c = 0; c < Config::totalmapcolumns - 1; c++) {
         int nextCol = c + 1;
         int nextCount = state.columnNodeCounts[nextCol];
         int currCount = state.columnNodeCounts[c];
-        
-        for (int r = 0; r < currCount; r++) {
-            MapNode* currNode = &state.nodes[c][r];
-            int baseTarget = (r * nextCount) / currCount;
-            
-            int rangeStart = ClampInteger(baseTarget - 1, 0, nextCount - 1);
-            int rangeEnd = ClampInteger(baseTarget + 1, 0, nextCount - 1);
-            
-            for (int t = rangeStart; t <= rangeEnd; t++) {
-                if (currNode->connectionCount < Config::maxmapconnections) {
-                    currNode->connections[currNode->connectionCount++] = state.nodes[nextCol][t].id;
-                }
-            }
-        }
-        
+
         for (int nc = 0; nc < nextCount; nc++) {
             int targetId = state.nodes[nextCol][nc].id;
             bool hasParent = false;
-            
-            for (int cr = 0; cr < currCount; cr++) {
+
+            for (int cr = 0; cr < currCount && !hasParent; cr++) {
                 for (int con = 0; con < state.nodes[c][cr].connectionCount; con++) {
-                    if (state.nodes[c][cr].connections[con] == targetId) {
-                        hasParent = true;
-                        break;
+                    if (state.nodes[c][cr].connections[con] == targetId) { hasParent = true; break; }
+                }
+            }
+
+            if (!hasParent) {
+                int idealRow = ClampInteger((currCount > 0) ? (nc * currCount) / nextCount : 0, 0, currCount - 1);
+                MapNode* chosenParent = nullptr;
+
+                for (int offset = 0; offset < currCount && !chosenParent; offset++) {
+                    int candidates[2] = { idealRow - offset, idealRow + offset };
+                    for (int k = 0; k < 2; k++) {
+                        int row = candidates[k];
+                        if (row < 0 || row >= currCount) continue;
+                        MapNode* candidate = &state.nodes[c][row];
+                        if (candidate->connectionCount < Config::maxmapconnections) {
+                            chosenParent = candidate;
+                            break;
+                        }
                     }
                 }
-                if (hasParent) break;
+
+                if (!chosenParent) chosenParent = &state.nodes[c][idealRow];
+                chosenParent->connections[chosenParent->connectionCount++] = targetId;
             }
-            
-            if (!hasParent) {
-                int randomParentRow = GetRandomValue(0, currCount - 1);
-                MapNode* parentNode = &state.nodes[c][randomParentRow];
-                if (parentNode->connectionCount < Config::maxmapconnections) {
-                    parentNode->connections[parentNode->connectionCount++] = targetId;
-                }
+        }
+
+        for (int r = 0; r < currCount; r++) {
+            MapNode* currNode = &state.nodes[c][r];
+            if (currNode->connectionCount == 0) {
+                int idealNext = ClampInteger((currCount > 0) ? (r * nextCount) / currCount : 0, 0, nextCount - 1);
+                currNode->connections[currNode->connectionCount++] = state.nodes[nextCol][idealNext].id;
             }
         }
     }
 }
+
 
 void InitMap(void) {
     state.currentColumn = -1;
@@ -227,7 +267,7 @@ void DrawMap(void) {
         state.camera.target.x -= delta.x;
     }
     
-    float maxMapWidth = 100.0f + (Config::totalmapcolumns - 1) * 220.0f;
+    float maxMapWidth = 300.0f + (Config::totalmapcolumns - 1) * 220.0f;
     if (state.camera.target.x < 0) state.camera.target.x = 0;
     if (state.camera.target.x > maxMapWidth - Config::SCREEN_WIDTH + 400.0f) {
         state.camera.target.x = maxMapWidth - Config::SCREEN_WIDTH + 400.0f;
@@ -288,7 +328,7 @@ void DrawMap(void) {
     }
     
     BeginMode2D(state.camera);
-    if (gamestate.gamestate==MAP){ //incase state changes
+    if (gamestate.gamestate==MAP){ //lines between nodess
         for (int c = 0; c < Config::totalmapcolumns; c++) {
             for (int r = 0; r < state.columnNodeCounts[c]; r++) {
                 MapNode* n = &state.nodes[c][r];
@@ -347,7 +387,6 @@ void DrawMap(void) {
             }
             
             if (selectState) {
-                float selectGlow = (sinf(state.timeRunning * 8.0f) * 0.4f) + 0.6f;
 
                 float cameraTopY = state.camera.target.y - (state.camera.offset.y / state.camera.zoom);
                 float cameraBottomY = cameraTopY + (Config::SCREEN_HEIGHT / state.camera.zoom);
@@ -358,7 +397,7 @@ void DrawMap(void) {
                     cameraTopY, 
                     100,
                     visibleHeight, 
-                    (Color){255, 165, 0, (unsigned char)(25 * selectGlow)}
+                    (Color){51, 249, 47, 12}
                 );
             }
                     
@@ -419,30 +458,39 @@ void DrawMap(void) {
 
         Vector2 screenPos = GetWorldToScreen2D(sn->position, state.camera);
 
-        std::string reward_string = "REWARD: " + std::to_string(sn->reward);
+        char name_string[64]; 
+        snprintf(name_string, sizeof(name_string), "%s", GetNodeName(sn->type));
+        std::string reward_string = "REWARD: $" + std::to_string(sn->reward);
         std::string targetquota_string = "QUOTA: " + FormatByteSize(sn->targetquota);
 
+        int nameoffsetx = MeasureText(name_string, 11);
         int rewardoffsetx = MeasureText(reward_string.c_str(), 11);
         int quotaoffsetx = MeasureText(targetquota_string.c_str(), 11);
-        
-        int max_width = (rewardoffsetx > quotaoffsetx) ? rewardoffsetx : quotaoffsetx;
+
+        int max_width = nameoffsetx;
+        if (quotaoffsetx > max_width) max_width = quotaoffsetx;
+        if (rewardoffsetx > max_width) max_width = rewardoffsetx;
+
         int padding = 10;
         int bg_width = max_width + padding * 2;
-        int bg_height = 40;
+        int bg_height = 56;
 
         int bg_x = screenPos.x - bg_width / 2;
-        int bg_y = screenPos.y - 70; 
+        int bg_y = screenPos.y - 86; 
 
         DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
         DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(GREEN, 0.5f)); 
 
-        DrawText(targetquota_string.c_str(), screenPos.x - quotaoffsetx / 2, bg_y + 6, 11, GREEN);
-        DrawText(reward_string.c_str(), screenPos.x - rewardoffsetx / 2, bg_y + 22, 11, GREEN);
+        DrawText(name_string, screenPos.x - nameoffsetx / 2, bg_y + 6, 11, GetNodeColor(sn->type, 0.0f));
+        DrawText(targetquota_string.c_str(), screenPos.x - quotaoffsetx / 2, bg_y + 22, 11, GREEN);
+        DrawText(reward_string.c_str(), screenPos.x - rewardoffsetx / 2, bg_y + 38, 11, GREEN);
+
         float time = GetTime(); 
         float pulseSpeed = 4.0f;
 
-            
-        float offset = GetPulseOffset(16.0f, 18.0f, 10.0f,Easings::EaseInOutQuad);
+        float minoffset = (sn->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
+        float maxoffset = (sn->type == MAINFRAME_GATEWAY) ? 30.0f : 18.0f;
+        float offset = GetPulseOffset(minoffset, maxoffset, 10.0f,Easings::EaseInOutQuad);
         Color pulseColor = Fade(GREEN, 255);
 
         float bracketSize = 6.0f;
@@ -459,10 +507,7 @@ void DrawMap(void) {
         DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset, center.y + offset - bracketSize}, thickness, pulseColor);
 
         DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset - bracketSize, center.y + offset}, thickness, pulseColor);
-        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset, center.y + offset - bracketSize}, thickness, pulseColor);    char nameLine[64]; 
-        
-        snprintf(nameLine, sizeof(nameLine), "NAME: %s", GetNodeName(sn->type));
-        DrawText(nameLine, panX - 250, uiY + 15, 12, GetNodeColor(sn->type, 0.0f));
+        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset, center.y + offset - bracketSize}, thickness, pulseColor);    
     }
     
     DrawRectangle(0, Config::SCREEN_HEIGHT - 35, Config::SCREEN_WIDTH - panW, 35, (Color){ 2, 10, 5, 240 });
