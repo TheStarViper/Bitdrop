@@ -222,7 +222,7 @@ void DrawMap(void) {
     
     float scrollSpeed = 650.0f * GetFrameTime();
     
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)||IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+    if ((IsMouseButtonDown(MOUSE_BUTTON_RIGHT)||IsMouseButtonDown(MOUSE_BUTTON_LEFT))&&mousePos.x<810) {
         Vector2 delta = GetMouseDelta();
         state.camera.target.x -= delta.x;
     }
@@ -324,14 +324,7 @@ void DrawMap(void) {
             MapNode* n = &state.nodes[c][r];
             if (n->isEncrypted && !state.showEncrypted) continue;
             
-            float baseRadius = (n->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
-            float hoverScale = 1.0f;
-            
-            if (CheckCollisionPointCircle(worldMousePos, n->position, baseRadius + 6.0f)) {
-                hoverScale = 1.25f + sinf(state.timeRunning * 16.0f) * 0.05f;
-            }
-            
-            float radius = baseRadius * hoverScale;
+            float radius = (n->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
             float pulse = 1.0f;
             
             if (n->alertState > 0.05f) {
@@ -355,9 +348,20 @@ void DrawMap(void) {
             
             if (selectState) {
                 float selectGlow = (sinf(state.timeRunning * 8.0f) * 0.4f) + 0.6f;
-                DrawCircleV(n->position, radius * pulse + 8.0f, (Color){ 0, 255, 120, (unsigned char)(100 * selectGlow) });
+
+                float cameraTopY = state.camera.target.y - (state.camera.offset.y / state.camera.zoom);
+                float cameraBottomY = cameraTopY + (Config::SCREEN_HEIGHT / state.camera.zoom);
+                float visibleHeight = cameraBottomY - cameraTopY;
+
+                DrawRectangle(
+                    n->position.x - 50, 
+                    cameraTopY, 
+                    100,
+                    visibleHeight, 
+                    (Color){255, 165, 0, (unsigned char)(25 * selectGlow)}
+                );
             }
-            
+                    
             if (state.currentNodeId == n->id) {
                 DrawCircleV(n->position, radius * pulse + 5.0f, WHITE); 
             }
@@ -410,7 +414,7 @@ void DrawMap(void) {
     DrawLine(panX, panY, panX, Config::SCREEN_HEIGHT, (Color){ 0, 255, 80, 255 });
     
     int uiY = panY + 20;
-    if (state.selectedNode) {
+    if (state.selectedNode&&GetWorldToScreen2D(state.selectedNode->position,state.camera).x<800) {
         MapNode* sn = state.selectedNode;
 
         Vector2 screenPos = GetWorldToScreen2D(sn->position, state.camera);
@@ -424,7 +428,7 @@ void DrawMap(void) {
         int max_width = (rewardoffsetx > quotaoffsetx) ? rewardoffsetx : quotaoffsetx;
         int padding = 10;
         int bg_width = max_width + padding * 2;
-        int bg_height = 40; 
+        int bg_height = 40;
 
         int bg_x = screenPos.x - bg_width / 2;
         int bg_y = screenPos.y - 70; 
@@ -434,29 +438,31 @@ void DrawMap(void) {
 
         DrawText(targetquota_string.c_str(), screenPos.x - quotaoffsetx / 2, bg_y + 6, 11, GREEN);
         DrawText(reward_string.c_str(), screenPos.x - rewardoffsetx / 2, bg_y + 22, 11, GREEN);
+        float time = GetTime(); 
+        float pulseSpeed = 4.0f;
 
-        float offset = 16.0f; 
-        float bracketSize = 6.0f;   
-        float thickness = 2.0f;     
+            
+        float offset = GetPulseOffset(16.0f, 18.0f, 10.0f,Easings::EaseInOutQuad);
+        Color pulseColor = Fade(GREEN, 255);
+
+        float bracketSize = 6.0f;
+        float thickness = 2.0f;
         Vector2 center = screenPos;
 
-        DrawLineEx({center.x - offset, center.y - offset}, {center.x - offset + bracketSize, center.y - offset}, thickness, GREEN);
-        DrawLineEx({center.x - offset, center.y - offset}, {center.x - offset, center.y - offset + bracketSize}, thickness, GREEN);
+        DrawLineEx({center.x - offset, center.y - offset}, {center.x - offset + bracketSize, center.y - offset}, thickness, pulseColor);
+        DrawLineEx({center.x - offset, center.y - offset}, {center.x - offset, center.y - offset + bracketSize}, thickness, pulseColor);
 
-        DrawLineEx({center.x + offset, center.y - offset}, {center.x + offset - bracketSize, center.y - offset}, thickness, GREEN);
-        DrawLineEx({center.x + offset, center.y - offset}, {center.x + offset, center.y - offset + bracketSize}, thickness, GREEN);
+        DrawLineEx({center.x + offset, center.y - offset}, {center.x + offset - bracketSize, center.y - offset}, thickness, pulseColor);
+        DrawLineEx({center.x + offset, center.y - offset}, {center.x + offset, center.y - offset + bracketSize}, thickness, pulseColor);
 
-        DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset + bracketSize, center.y + offset}, thickness, GREEN);
-        DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset, center.y + offset - bracketSize}, thickness, GREEN);
+        DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset + bracketSize, center.y + offset}, thickness, pulseColor);
+        DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset, center.y + offset - bracketSize}, thickness, pulseColor);
 
-        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset - bracketSize, center.y + offset}, thickness, GREEN);
-        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset, center.y + offset - bracketSize}, thickness, GREEN);
-
-        char nameLine[64]; 
+        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset - bracketSize, center.y + offset}, thickness, pulseColor);
+        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset, center.y + offset - bracketSize}, thickness, pulseColor);    char nameLine[64]; 
+        
         snprintf(nameLine, sizeof(nameLine), "NAME: %s", GetNodeName(sn->type));
         DrawText(nameLine, panX - 250, uiY + 15, 12, GetNodeColor(sn->type, 0.0f));
-    } else {
-        DrawText("NO ACTIVE TARGET HOVERED\n\nSYSTEM IDLE...", panX - 250, uiY + 45, 12, (Color){ 0, 100, 30, 255 });
     }
     
     DrawRectangle(0, Config::SCREEN_HEIGHT - 35, Config::SCREEN_WIDTH - panW, 35, (Color){ 2, 10, 5, 240 });

@@ -9790,48 +9790,48 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('onSbrkGrow');
 }
 var ASM_CONSTS = {
-  113632: () => { if (document.fullscreenElement) return 1; },  
- 113678: () => { return document.getElementById('canvas').width; },  
- 113730: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 113798: () => { document.exitFullscreen(); },  
- 113825: () => { setTimeout(function() { Module.requestFullscreen(false, false); }, 100); },  
- 113898: () => { if (document.fullscreenElement) return 1; },  
- 113944: () => { return document.getElementById('canvas').width; },  
- 113996: () => { return screen.width; },  
- 114021: () => { document.exitFullscreen(); },  
- 114048: () => { setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { canvas.style.width="unset"; }, 100); }, 100); },  
- 114181: () => { return window.innerWidth; },  
- 114207: () => { return window.innerHeight; },  
- 114234: () => { if (document.fullscreenElement) return 1; },  
- 114280: () => { return document.getElementById('canvas').width; },  
- 114332: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 114400: () => { if (document.fullscreenElement) return 1; },  
- 114446: () => { return document.getElementById('canvas').width; },  
- 114498: () => { return screen.width; },  
- 114523: () => { return window.innerWidth; },  
- 114549: () => { return window.innerHeight; },  
- 114576: () => { if (document.fullscreenElement) return 1; },  
- 114622: () => { return document.getElementById('canvas').width; },  
- 114674: () => { return screen.width; },  
- 114699: () => { document.exitFullscreen(); },  
- 114726: () => { if (document.fullscreenElement) return 1; },  
- 114772: () => { return document.getElementById('canvas').width; },  
- 114824: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 114892: () => { document.exitFullscreen(); },  
- 114919: ($0) => { document.getElementById('canvas').style.opacity = $0; },  
- 114977: () => { return screen.width; },  
- 115002: () => { return screen.height; },  
- 115028: () => { return window.screenX; },  
- 115055: () => { return window.screenY; },  
- 115082: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 115135: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 115206: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 115263: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
- 115519: ($0) => { document.getElementById('canvas').style.cursor = UTF8ToString($0); },  
- 115590: () => { if (document.fullscreenElement) return 1; },  
- 115636: () => { return window.innerWidth; },  
- 115662: () => { return window.innerHeight; },  
- 115689: () => { if (document.pointerLockElement) return 1; }
+  114128: () => { if (document.fullscreenElement) return 1; },  
+ 114174: () => { return document.getElementById('canvas').width; },  
+ 114226: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 114294: () => { document.exitFullscreen(); },  
+ 114321: () => { setTimeout(function() { Module.requestFullscreen(false, false); }, 100); },  
+ 114394: () => { if (document.fullscreenElement) return 1; },  
+ 114440: () => { return document.getElementById('canvas').width; },  
+ 114492: () => { return screen.width; },  
+ 114517: () => { document.exitFullscreen(); },  
+ 114544: () => { setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { canvas.style.width="unset"; }, 100); }, 100); },  
+ 114677: () => { return window.innerWidth; },  
+ 114703: () => { return window.innerHeight; },  
+ 114730: () => { if (document.fullscreenElement) return 1; },  
+ 114776: () => { return document.getElementById('canvas').width; },  
+ 114828: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 114896: () => { if (document.fullscreenElement) return 1; },  
+ 114942: () => { return document.getElementById('canvas').width; },  
+ 114994: () => { return screen.width; },  
+ 115019: () => { return window.innerWidth; },  
+ 115045: () => { return window.innerHeight; },  
+ 115072: () => { if (document.fullscreenElement) return 1; },  
+ 115118: () => { return document.getElementById('canvas').width; },  
+ 115170: () => { return screen.width; },  
+ 115195: () => { document.exitFullscreen(); },  
+ 115222: () => { if (document.fullscreenElement) return 1; },  
+ 115268: () => { return document.getElementById('canvas').width; },  
+ 115320: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 115388: () => { document.exitFullscreen(); },  
+ 115415: ($0) => { document.getElementById('canvas').style.opacity = $0; },  
+ 115473: () => { return screen.width; },  
+ 115498: () => { return screen.height; },  
+ 115524: () => { return window.screenX; },  
+ 115551: () => { return window.screenY; },  
+ 115578: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 115631: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 115702: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 115759: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
+ 116015: ($0) => { document.getElementById('canvas').style.cursor = UTF8ToString($0); },  
+ 116086: () => { if (document.fullscreenElement) return 1; },  
+ 116132: () => { return window.innerWidth; },  
+ 116158: () => { return window.innerHeight; },  
+ 116185: () => { if (document.pointerLockElement) return 1; }
 };
 
 // Imports from the Wasm binary.
@@ -9857,6 +9857,7 @@ var dynCall_vidd = makeInvalidEarlyAccess('dynCall_vidd');
 var dynCall_ii = makeInvalidEarlyAccess('dynCall_ii');
 var dynCall_iiii = makeInvalidEarlyAccess('dynCall_iiii');
 var dynCall_v = makeInvalidEarlyAccess('dynCall_v');
+var dynCall_ff = makeInvalidEarlyAccess('dynCall_ff');
 var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
 var dynCall_vffff = makeInvalidEarlyAccess('dynCall_vffff');
 var dynCall_vf = makeInvalidEarlyAccess('dynCall_vf');
@@ -9875,6 +9876,7 @@ var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
 var dynCall_vfff = makeInvalidEarlyAccess('dynCall_vfff');
 var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
 var dynCall_iidiiiii = makeInvalidEarlyAccess('dynCall_iidiiiii');
+var dynCall_fii = makeInvalidEarlyAccess('dynCall_fii');
 var dynCall_viijii = makeInvalidEarlyAccess('dynCall_viijii');
 var dynCall_iiiii = makeInvalidEarlyAccess('dynCall_iiiii');
 var dynCall_iiiiii = makeInvalidEarlyAccess('dynCall_iiiiii');
@@ -9916,6 +9918,7 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_ii'] != 'undefined', 'missing Wasm export: dynCall_ii');
   assert(typeof wasmExports['dynCall_iiii'] != 'undefined', 'missing Wasm export: dynCall_iiii');
   assert(typeof wasmExports['dynCall_v'] != 'undefined', 'missing Wasm export: dynCall_v');
+  assert(typeof wasmExports['dynCall_ff'] != 'undefined', 'missing Wasm export: dynCall_ff');
   assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
   assert(typeof wasmExports['dynCall_vffff'] != 'undefined', 'missing Wasm export: dynCall_vffff');
   assert(typeof wasmExports['dynCall_vf'] != 'undefined', 'missing Wasm export: dynCall_vf');
@@ -9934,6 +9937,7 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_vfff'] != 'undefined', 'missing Wasm export: dynCall_vfff');
   assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
   assert(typeof wasmExports['dynCall_iidiiiii'] != 'undefined', 'missing Wasm export: dynCall_iidiiiii');
+  assert(typeof wasmExports['dynCall_fii'] != 'undefined', 'missing Wasm export: dynCall_fii');
   assert(typeof wasmExports['dynCall_viijii'] != 'undefined', 'missing Wasm export: dynCall_viijii');
   assert(typeof wasmExports['dynCall_iiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiii');
   assert(typeof wasmExports['dynCall_iiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiii');
@@ -9972,6 +9976,7 @@ function assignWasmExports(wasmExports) {
   dynCall_ii = dynCalls['ii'] = createExportWrapper('dynCall_ii', 2);
   dynCall_iiii = dynCalls['iiii'] = createExportWrapper('dynCall_iiii', 4);
   dynCall_v = dynCalls['v'] = createExportWrapper('dynCall_v', 1);
+  dynCall_ff = dynCalls['ff'] = createExportWrapper('dynCall_ff', 2);
   dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', 2);
   dynCall_vffff = dynCalls['vffff'] = createExportWrapper('dynCall_vffff', 5);
   dynCall_vf = dynCalls['vf'] = createExportWrapper('dynCall_vf', 2);
@@ -9990,6 +9995,7 @@ function assignWasmExports(wasmExports) {
   dynCall_vfff = dynCalls['vfff'] = createExportWrapper('dynCall_vfff', 4);
   dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', 4);
   dynCall_iidiiiii = dynCalls['iidiiiii'] = createExportWrapper('dynCall_iidiiiii', 8);
+  dynCall_fii = dynCalls['fii'] = createExportWrapper('dynCall_fii', 3);
   dynCall_viijii = dynCalls['viijii'] = createExportWrapper('dynCall_viijii', 6);
   dynCall_iiiii = dynCalls['iiiii'] = createExportWrapper('dynCall_iiiii', 5);
   dynCall_iiiiii = dynCalls['iiiiii'] = createExportWrapper('dynCall_iiiiii', 6);

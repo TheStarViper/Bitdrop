@@ -1,5 +1,7 @@
 #include <cmath>
 #include "easing_functions.hpp"
+#include "raylib.h"
+#include <functional>
 
 //https://easings.net/
 constexpr float pi = 3.14159265358979;
@@ -105,4 +107,15 @@ namespace Easings{
         return t < 0.5f ? (1.0f - EaseOutBounce(1.0f - 2.0f * t)) / 2.0f
                         : (1.0f + EaseOutBounce(2.0f * t - 1.0f)) / 2.0f;
     }
+}
+
+float GetPulseOffset(float minOffset, float maxOffset, float speed, const std::function<float(float)>& easing) {
+    float time = GetTime();
+    
+    float pulseFactor = (sinf(time * speed) + 1.0f) / 2.0f; 
+
+    if (easing != nullptr) {
+        pulseFactor = easing(pulseFactor);
+    }
+    return minOffset + (pulseFactor * (maxOffset - minOffset));
 }

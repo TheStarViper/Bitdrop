@@ -1,3 +1,5 @@
+#include <functional>
+
 namespace Easings{
     float EaseLinear(float t);
     float EaseInSine(float t);
@@ -31,3 +33,4 @@ namespace Easings{
     float EaseInBounce(float t);
     float EaseInOutBounce(float t);
 }
+float GetPulseOffset(float minOffset, float maxOffset, float speed, const std::function<float(float)>& easing = nullptr);
