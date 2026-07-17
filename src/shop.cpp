@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "variables.hpp"
 #include "button.hpp"
+#include "main.hpp"
 
 void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold) {
     const float gap = 8.0f;
@@ -161,8 +162,9 @@ void drawshop() {
     }
     //next
     if (DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 35)) {
+        RequestGameStateChange(MAP);
         for (int i = 0; i < 5; i++) shopstate.slots[i] = -1;
-        gamestate.gamestate = MAP;
+        return;
     }
     
     const static int rerollsprice = 100;

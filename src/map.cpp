@@ -102,7 +102,7 @@ bool IsNodeSelectable(MapNode* target) {
     return false;
 }
 
-void GenerateTopologyMap(void) {
+void GenerateTopologyMap() {
     int uniqueId = 0;
 
     for (int c = 0; c < Config::totalmapcolumns; c++) {
@@ -241,7 +241,7 @@ void GenerateTopologyMap(void) {
     }
 }
 
-void InitMap(void) {
+void InitMap() {
     state.currentColumn = -1;
     state.currentNodeId = -1;
     state.spoofActive = false; 
@@ -267,21 +267,18 @@ void DrawMap(void) {
     state.timeRunning += GetFrameTime();
     Vector2 mousePos = GetMousePosition();
     Vector2 worldMousePos = GetScreenToWorld2D(mousePos, state.camera);
-    
-    float scrollSpeed = 650.0f * GetFrameTime();
-    
-    if ((IsMouseButtonDown(MOUSE_BUTTON_RIGHT)||IsMouseButtonDown(MOUSE_BUTTON_LEFT))&&mousePos.x<810) {
+
+    if (!IsTransitioning() && (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)||IsMouseButtonDown(MOUSE_BUTTON_LEFT))&&mousePos.x<810) {
         Vector2 delta = GetMouseDelta();
         state.camera.target.x -= delta.x;
     }
-    
+
     float maxMapWidth = 300.0f + (Config::totalmapcolumns - 1) * 220.0f;
     if (state.camera.target.x < 0) state.camera.target.x = 0;
     if (state.camera.target.x > maxMapWidth - Config::SCREEN_WIDTH + 400.0f) {
         state.camera.target.x = maxMapWidth - Config::SCREEN_WIDTH + 400.0f;
     }
 
-    //scroll wheel
     float wheelMove = GetMouseWheelMove();
     if (wheelMove != 0.0f) {
         state.camera.target.x -= wheelMove * Config::mapscrollspeed;
@@ -292,10 +289,10 @@ void DrawMap(void) {
         for (int r = 0; r < state.columnNodeCounts[c]; r++) {
             MapNode* n = &state.nodes[c][r];
             if (n->isEncrypted && !state.showEncrypted) continue;
-            
+
             if (CheckCollisionPointCircle(worldMousePos, n->position, 22.0f)) {
                 state.selectedNode = n;
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                if (!IsTransitioning() && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     if (state.ddosTargetMode) {
                         if (n->type == SEC_FIREWALL_v2) {
                             n->type = SYS_WORKSTATION;
@@ -305,28 +302,25 @@ void DrawMap(void) {
                         }
                     }
                     else if (IsNodeSelectable(n)) {
-                        TraceLog(LOG_INFO,std::to_string(n->targetquota).c_str()); //IMPORTANT RIGHT HERE
-                        TraceLog(LOG_INFO,std::to_string(n->reward).c_str()); 
                         state.currentNodeId = n->id;
                         state.currentColumn = n->column;
                         SimulateNodeClear(n, state.traceSlider);
                         state.spoofActive = false;
                         levelstate.TARGET_QUOTA_BYTES = n->targetquota;
                         levelstate.reward = n->reward;
-                        gamestate.gamestate = GAME;
+                        RequestGameStateChange(GAME);
+                        return;
                     }
                 }
             }
         }
     }
-    
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !state.selectedNode) {
+
+    if (!IsTransitioning() && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !state.selectedNode) {
         state.ddosTargetMode = false;
     }
-    
-    BeginDrawing();
-    ClearBackground(BLACK);
-    BeginScissorMode(0, 0, 800, Config::SCREEN_HEIGHT);
+
+    //background grid
     int offsetX = (int)state.camera.target.x % 40;
     for (int i = 0; i < Config::SCREEN_WIDTH; i += 40) {
         DrawLine(i - offsetX, 0, i - offsetX, Config::SCREEN_HEIGHT, (Color){ 0, 40, 10, 255 });
@@ -334,15 +328,14 @@ void DrawMap(void) {
     for (int i = 0; i < Config::SCREEN_HEIGHT; i += 40) {
         DrawLine(0, i, Config::SCREEN_WIDTH, i, (Color){ 0, 40, 10, 255 });
     }
-    
+
     BeginMode2D(state.camera);
 
+    //hover path BFS
     std::vector<int> hoverPath;
     std::unordered_map<int,int> pathIndex;
 
-    if (gamestate.gamestate==MAP && state.selectedNode && state.currentNodeId != -1
-        && state.selectedNode->id != state.currentNodeId) {
-
+    if (state.selectedNode && state.currentNodeId != -1 && state.selectedNode->id != state.currentNodeId) {
         std::unordered_map<int,int> cameFrom;
         std::unordered_set<int> visited;
         std::queue<int> q;
@@ -383,116 +376,91 @@ void DrawMap(void) {
         }
     }
 
-    if (gamestate.gamestate==MAP){
-        for (int c = 0; c < Config::totalmapcolumns; c++) {
-            for (int r = 0; r < state.columnNodeCounts[c]; r++) {
-                MapNode* n = &state.nodes[c][r];
-                for (int i = 0; i < n->connectionCount; i++) {
-                    MapNode* target = FindNodeById(n->connections[i]);
-                    if (!target) continue;
-                    if (target->isEncrypted && !state.showEncrypted) continue;
-                    
-                    Color lineCol = (Color){ 0, 80, 20, 150 }; 
-                    float thickness = 1.5f;
-                    
-                    bool nodeIsCurrent = (state.currentNodeId == n->id);
-                    bool canSelectTarget = IsNodeSelectable(target);
+    //connection lines (single pass, not duplicated)
+    for (int c = 0; c < Config::totalmapcolumns; c++) {
+        for (int r = 0; r < state.columnNodeCounts[c]; r++) {
+            MapNode* n = &state.nodes[c][r];
 
-                    auto itN = pathIndex.find(n->id);
-                    auto itT = pathIndex.find(target->id);
-                    bool isOnHoverPath = (itN != pathIndex.end() && itT != pathIndex.end()
-                                        && itT->second == itN->second + 1);
+            for (int i = 0; i < n->connectionCount; i++) {
+                MapNode* target = FindNodeById(n->connections[i]);
+                if (!target) continue;
+                if (target->isEncrypted && !state.showEncrypted) continue;
 
-                    if (isOnHoverPath) {
-                        float alphaPulse = (sinf(state.timeRunning * 9.0f) * 0.3f) + 0.7f;
-                        lineCol = (Color){ 255, 230, 0, (unsigned char)(255 * alphaPulse) };
-                        thickness = 3.0f;
-                    } else if (nodeIsCurrent && canSelectTarget) {
-                        float alphaPulse = (sinf(state.timeRunning * 7.0f) * 0.3f) + 0.7f;
-                        lineCol = (Color){ 0, 255, 100, (unsigned char)(255 * alphaPulse) };
-                        thickness = 3.0f;
-                    } else if (n->column < state.currentColumn || (n->column == state.currentColumn && n->id != state.currentNodeId)) {
-                        lineCol = (Color){ 0, 60, 20, 100 }; 
-                    }
-                    
-                    DrawLineEx(n->position, target->position, thickness, lineCol);
+                Color lineCol = (Color){ 0, 80, 20, 150 };
+                float thickness = 1.5f;
+
+                bool nodeIsCurrent = (state.currentNodeId == n->id);
+                bool canSelectTarget = IsNodeSelectable(target);
+
+                auto itN = pathIndex.find(n->id);
+                auto itT = pathIndex.find(target->id);
+                bool isOnHoverPath = (itN != pathIndex.end() && itT != pathIndex.end()
+                                    && itT->second == itN->second + 1);
+
+                if (isOnHoverPath) {
+                    float alphaPulse = (sinf(state.timeRunning * 9.0f) * 0.3f) + 0.7f;
+                    lineCol = (Color){ 255, 230, 0, (unsigned char)(255 * alphaPulse) };
+                    thickness = 3.0f;
+                } else if (nodeIsCurrent && canSelectTarget) {
+                    float alphaPulse = (sinf(state.timeRunning * 7.0f) * 0.3f) + 0.7f;
+                    lineCol = (Color){ 0, 255, 100, (unsigned char)(255 * alphaPulse) };
+                    thickness = 3.0f;
+                } else if (n->column < state.currentColumn || (n->column == state.currentColumn && n->id != state.currentNodeId)) {
+                    lineCol = (Color){ 0, 60, 20, 100 };
                 }
-                if (n->isEncrypted && !state.showEncrypted) continue;
-                
-                for (int i = 0; i < n->connectionCount; i++) {
-                    MapNode* target = FindNodeById(n->connections[i]);
-                    if (!target) continue;
-                    if (target->isEncrypted && !state.showEncrypted) continue;
-                    
-                    Color lineCol = (Color){ 0, 80, 20, 150 }; 
-                    float thickness = 1.5f;
-                    
-                    bool nodeIsCurrent = (state.currentNodeId == n->id);
-                    bool canSelectTarget = IsNodeSelectable(target);
-                    
-                    if (nodeIsCurrent && canSelectTarget) {
-                        float alphaPulse = (sinf(state.timeRunning * 7.0f) * 0.3f) + 0.7f;
-                        lineCol = (Color){ 0, 255, 100, (unsigned char)(255 * alphaPulse) };
-                        thickness = 3.0f;
-                    } else if (n->column < state.currentColumn || (n->column == state.currentColumn && n->id != state.currentNodeId)) {
-                        lineCol = (Color){ 0, 60, 20, 100 }; 
-                    }
-                    
-                    DrawLineEx(n->position, target->position, thickness, lineCol);
-                }
+
+                DrawLineEx(n->position, target->position, thickness, lineCol);
             }
         }
     }
-    
+
+    // column highlight bands (single pass, not nested per-node)
+    for (int c = 0; c < Config::totalmapcolumns; c++) {
+        bool columnHasSelectable = false;
+        for (int r = 0; r < state.columnNodeCounts[c]; r++) {
+            MapNode* n = &state.nodes[c][r];
+            if (n->isEncrypted && !state.showEncrypted) continue;
+            if (IsNodeSelectable(n)) { columnHasSelectable = true; break; }
+        }
+
+        if (columnHasSelectable) {
+            float colX = 100.0f + c * 220.0f;
+            float cameraTopY = state.camera.target.y - (state.camera.offset.y / state.camera.zoom);
+            float cameraBottomY = cameraTopY + (Config::SCREEN_HEIGHT / state.camera.zoom);
+            float visibleHeight = cameraBottomY - cameraTopY;
+
+            DrawRectangle(colX - 50, cameraTopY, 100, visibleHeight, (Color){51, 249, 47, 12});
+        }
+    }
+
+    //nodes
     for (int c = 0; c < Config::totalmapcolumns; c++) {
         for (int r = 0; r < state.columnNodeCounts[c]; r++) {
             MapNode* n = &state.nodes[c][r];
             if (n->isEncrypted && !state.showEncrypted) continue;
-            
+
             float radius = (n->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
             float pulse = 1.0f;
-            
+
             if (n->alertState > 0.05f) {
                 pulse += sinf(state.timeRunning * 12.0f) * (n->alertState * 0.25f);
             } else if (n->type == MAINFRAME_GATEWAY) {
                 pulse += sinf(state.timeRunning * 3.0f) * 0.1f;
             }
-            
-            if (n->alertState > 0.05f) {
-                pulse += sinf(state.timeRunning * 12.0f) * (n->alertState * 0.25f);
-            } else if (n->type == MAINFRAME_GATEWAY) {
-                pulse += sinf(state.timeRunning * 3.0f) * 0.1f;
-            }
-            
+
             Color coreColor = GetNodeColor(n->type, n->alertState);
-            bool selectState = IsNodeSelectable(n);
-            
+
             if (n->type == RAW_PACKET_STREAM && !n->isRevealed) {
                 coreColor = (Color){ 130, 130, 130, 255 };
             }
-            
-            if (selectState) {
 
-                float cameraTopY = state.camera.target.y - (state.camera.offset.y / state.camera.zoom);
-                float cameraBottomY = cameraTopY + (Config::SCREEN_HEIGHT / state.camera.zoom);
-                float visibleHeight = cameraBottomY - cameraTopY;
-
-                DrawRectangle(
-                    n->position.x - 50, 
-                    cameraTopY, 
-                    100,
-                    visibleHeight, 
-                    (Color){51, 249, 47, 12}
-                );
-            }
-                    
             if (state.currentNodeId == n->id) {
                 DrawCircleV(n->position, radius * pulse + 5.0f, WHITE);
             }
-            
+
             DrawCircleV(n->position, radius * pulse, coreColor);
             DrawCircleLinesV(n->position, radius * pulse, (Color){ 255, 255, 255, 180 });
-            
+
             const char* symb = "N";
             if (n->type == MAINFRAME_GATEWAY) symb = "BOSS";
             else if (n->type == SYS_WORKSTATION) symb = "SYS";
@@ -500,25 +468,25 @@ void DrawMap(void) {
             else if (n->type == BLACK_MARKET_NODE) symb = "MKT";
             else if (n->type == COOLING_VENT_RESET) symb = "VENT";
             else if (n->type == RAW_PACKET_STREAM) symb = n->isRevealed ? "PKT" : "?";
-            
+
             int fontSize = (n->type == MAINFRAME_GATEWAY) ? 12 : 10;
             int textW = MeasureText(symb, fontSize);
-        
+
             DrawText(symb, (int)n->position.x - textW / 2, (int)n->position.y - fontSize / 2, fontSize, BLACK);
-            
+
             if (n->isEncrypted) {
                 DrawText("[ENC]", (int)n->position.x, (int)n->position.y - (int)radius - 14, 9, MAGENTA);
             }
         }
     }
-    
+
     EndMode2D();
-    EndScissorMode();
+
+    //UI chrome
     DrawRectangle(0, 0, Config::SCREEN_WIDTH, 50, (Color){ 5, 20, 10, 230 });
     DrawLine(0, 50, Config::SCREEN_WIDTH, 50, (Color){ 0, 255, 80, 255 });
-    
     DrawText("HACKING ITINUARY", 20, 15, 18, (Color){ 0, 255, 100, 255 });
-    
+
     char statusBuf[128];
     if (state.currentNodeId == -1) {
         strcpy(statusBuf, "STATUS: SELECT ENTRY NODE");
@@ -526,24 +494,20 @@ void DrawMap(void) {
         snprintf(statusBuf, sizeof(statusBuf), "NODE LOCATION: ID %02d | COLUMN: %d/%d", state.currentNodeId, state.currentColumn, Config::totalmapcolumns - 1);
     }
     DrawText(statusBuf, 550, 18, 14, (Color){ 0, 200, 255, 255 });
-    
 
     int panX = 800;
     int panY = 50;
     int panW = 480;
     int panH = Config::SCREEN_HEIGHT - 50;
-    
-    
+
     DrawRectangle(panX, panY, panW, panH, (Color){ 10, 15, 12, 245 });
     DrawLine(panX, panY, panX, Config::SCREEN_HEIGHT, (Color){ 0, 255, 80, 255 });
-    
-    int uiY = panY + 20;
-    if (state.selectedNode&&GetWorldToScreen2D(state.selectedNode->position,state.camera).x<800) {
-        MapNode* sn = state.selectedNode;
 
+    if (state.selectedNode && GetWorldToScreen2D(state.selectedNode->position, state.camera).x < 800) {
+        MapNode* sn = state.selectedNode;
         Vector2 screenPos = GetWorldToScreen2D(sn->position, state.camera);
 
-        char name_string[64]; 
+        char name_string[64];
         snprintf(name_string, sizeof(name_string), "%s", GetNodeName(sn->type));
         std::string reward_string = "REWARD: $" + std::to_string(sn->reward);
         std::string targetquota_string = "QUOTA: " + FormatByteSize(sn->targetquota);
@@ -561,21 +525,18 @@ void DrawMap(void) {
         int bg_height = 56;
 
         int bg_x = screenPos.x - bg_width / 2;
-        int bg_y = screenPos.y - 86; 
+        int bg_y = screenPos.y - 86;
 
         DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
-        DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(GREEN, 0.5f)); 
+        DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(GREEN, 0.5f));
 
         DrawText(name_string, screenPos.x - nameoffsetx / 2, bg_y + 6, 11, GetNodeColor(sn->type, 0.0f));
         DrawText(targetquota_string.c_str(), screenPos.x - quotaoffsetx / 2, bg_y + 22, 11, GREEN);
         DrawText(reward_string.c_str(), screenPos.x - rewardoffsetx / 2, bg_y + 38, 11, GREEN);
 
-        float time = GetTime(); 
-        float pulseSpeed = 4.0f;
-
         float minoffset = (sn->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
         float maxoffset = (sn->type == MAINFRAME_GATEWAY) ? 30.0f : 18.0f;
-        float offset = GetPulseOffset(minoffset, maxoffset, 10.0f,Easings::EaseInOutQuad);
+        float offset = GetPulseOffset(minoffset, maxoffset, 10.0f, Easings::EaseInOutQuad);
         Color pulseColor = Fade(GREEN, 255);
 
         float bracketSize = 6.0f;
@@ -584,19 +545,14 @@ void DrawMap(void) {
 
         DrawLineEx({center.x - offset, center.y - offset}, {center.x - offset + bracketSize, center.y - offset}, thickness, pulseColor);
         DrawLineEx({center.x - offset, center.y - offset}, {center.x - offset, center.y - offset + bracketSize}, thickness, pulseColor);
-
         DrawLineEx({center.x + offset, center.y - offset}, {center.x + offset - bracketSize, center.y - offset}, thickness, pulseColor);
         DrawLineEx({center.x + offset, center.y - offset}, {center.x + offset, center.y - offset + bracketSize}, thickness, pulseColor);
-
         DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset + bracketSize, center.y + offset}, thickness, pulseColor);
         DrawLineEx({center.x - offset, center.y + offset}, {center.x - offset, center.y + offset - bracketSize}, thickness, pulseColor);
-
         DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset - bracketSize, center.y + offset}, thickness, pulseColor);
-        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset, center.y + offset - bracketSize}, thickness, pulseColor);    
+        DrawLineEx({center.x + offset, center.y + offset}, {center.x + offset, center.y + offset - bracketSize}, thickness, pulseColor);
     }
-    
+
     DrawRectangle(0, Config::SCREEN_HEIGHT - 35, Config::SCREEN_WIDTH - panW, 35, (Color){ 2, 10, 5, 240 });
     DrawText("CONTROLS: LEFT-CLICK to select/hack | RIGHT-MOUSE DRAG to scroll graph map", 15, Config::SCREEN_HEIGHT - 24, 12, (Color){ 0, 180, 70, 255 });
-    
-    EndDrawing();
 }

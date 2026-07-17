@@ -218,3 +218,20 @@ inline GameEngine engine;
 inline GameState gamestate;
 inline ShopState shopstate;
 inline LevelState levelstate;
+
+
+enum TransitionPhase {
+    TRANS_NONE,
+    TRANS_GLITCH_OUT,
+    TRANS_GLITCH_IN
+};
+
+struct TransitionState {
+    TransitionPhase phase = TRANS_NONE;
+    float timer = 0.0f;
+    float duration = 0.12f;
+    State pendingState;
+};
+
+inline TransitionState transition;
+inline RenderTexture2D sceneTarget;
