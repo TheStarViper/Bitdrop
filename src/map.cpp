@@ -8,7 +8,10 @@
 #include <time.h>
 #include <math.h>
 #include "main.hpp"
-
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
+#include <algorithm>
 
 static Mapstate state;
 
@@ -217,8 +220,14 @@ void GenerateTopologyMap(void) {
                     }
                 }
 
-                if (!chosenParent) chosenParent = &state.nodes[c][idealRow];
-                chosenParent->connections[chosenParent->connectionCount++] = targetId;
+                if (chosenParent) {
+                    chosenParent->connections[chosenParent->connectionCount++] = targetId;
+                } else {
+                    MapNode* fallbackParent = &state.nodes[c][idealRow];
+                    if (fallbackParent->connectionCount > 0) {
+                        fallbackParent->connections[fallbackParent->connectionCount - 1] = targetId;
+                    }
+                }
             }
         }
 
@@ -232,12 +241,11 @@ void GenerateTopologyMap(void) {
     }
 }
 
-
 void InitMap(void) {
     state.currentColumn = -1;
     state.currentNodeId = -1;
     state.spoofActive = false; 
-    state.showEncrypted = false;
+    state.showEncrypted = true;
     state.traceSlider = 0.40f;
     state.selectedNode = NULL;
     state.timeRunning = 0.0f;
@@ -328,10 +336,87 @@ void DrawMap(void) {
     }
     
     BeginMode2D(state.camera);
-    if (gamestate.gamestate==MAP){ //lines between nodess
+
+    std::vector<int> hoverPath;
+    std::unordered_map<int,int> pathIndex;
+
+    if (gamestate.gamestate==MAP && state.selectedNode && state.currentNodeId != -1
+        && state.selectedNode->id != state.currentNodeId) {
+
+        std::unordered_map<int,int> cameFrom;
+        std::unordered_set<int> visited;
+        std::queue<int> q;
+
+        q.push(state.currentNodeId);
+        visited.insert(state.currentNodeId);
+        bool found = false;
+
+        while (!q.empty() && !found) {
+            int curId = q.front(); q.pop();
+            MapNode* curNode = FindNodeById(curId);
+            if (!curNode) continue;
+
+            for (int i = 0; i < curNode->connectionCount; i++) {
+                int nextId = curNode->connections[i];
+                MapNode* nextNode = FindNodeById(nextId);
+                if (!nextNode) continue;
+                if (nextNode->isEncrypted && !state.showEncrypted) continue;
+                if (visited.count(nextId)) continue;
+
+                visited.insert(nextId);
+                cameFrom[nextId] = curId;
+
+                if (nextId == state.selectedNode->id) { found = true; break; }
+                q.push(nextId);
+            }
+        }
+
+        if (found) {
+            int cur = state.selectedNode->id;
+            hoverPath.push_back(cur);
+            while (cur != state.currentNodeId) {
+                cur = cameFrom[cur];
+                hoverPath.push_back(cur);
+            }
+            std::reverse(hoverPath.begin(), hoverPath.end());
+            for (size_t i = 0; i < hoverPath.size(); i++) pathIndex[hoverPath[i]] = (int)i;
+        }
+    }
+
+    if (gamestate.gamestate==MAP){
         for (int c = 0; c < Config::totalmapcolumns; c++) {
             for (int r = 0; r < state.columnNodeCounts[c]; r++) {
                 MapNode* n = &state.nodes[c][r];
+                for (int i = 0; i < n->connectionCount; i++) {
+                    MapNode* target = FindNodeById(n->connections[i]);
+                    if (!target) continue;
+                    if (target->isEncrypted && !state.showEncrypted) continue;
+                    
+                    Color lineCol = (Color){ 0, 80, 20, 150 }; 
+                    float thickness = 1.5f;
+                    
+                    bool nodeIsCurrent = (state.currentNodeId == n->id);
+                    bool canSelectTarget = IsNodeSelectable(target);
+
+                    auto itN = pathIndex.find(n->id);
+                    auto itT = pathIndex.find(target->id);
+                    bool isOnHoverPath = (itN != pathIndex.end() && itT != pathIndex.end()
+                                        && itT->second == itN->second + 1);
+
+                    if (isOnHoverPath) {
+                        float alphaPulse = (sinf(state.timeRunning * 9.0f) * 0.3f) + 0.7f;
+                        lineCol = (Color){ 255, 230, 0, (unsigned char)(255 * alphaPulse) };
+                        thickness = 3.0f;
+                    } else if (nodeIsCurrent && canSelectTarget) {
+                        float alphaPulse = (sinf(state.timeRunning * 7.0f) * 0.3f) + 0.7f;
+                        lineCol = (Color){ 0, 255, 100, (unsigned char)(255 * alphaPulse) };
+                        thickness = 3.0f;
+                    } else if (n->column < state.currentColumn || (n->column == state.currentColumn && n->id != state.currentNodeId)) {
+                        lineCol = (Color){ 0, 60, 20, 100 }; 
+                    }
+                    
+                    DrawLineEx(n->position, target->position, thickness, lineCol);
+                }
                 if (n->isEncrypted && !state.showEncrypted) continue;
                 
                 for (int i = 0; i < n->connectionCount; i++) {
@@ -402,7 +487,7 @@ void DrawMap(void) {
             }
                     
             if (state.currentNodeId == n->id) {
-                DrawCircleV(n->position, radius * pulse + 5.0f, WHITE); 
+                DrawCircleV(n->position, radius * pulse + 5.0f, WHITE);
             }
             
             DrawCircleV(n->position, radius * pulse, coreColor);
@@ -422,7 +507,7 @@ void DrawMap(void) {
             DrawText(symb, (int)n->position.x - textW / 2, (int)n->position.y - fontSize / 2, fontSize, BLACK);
             
             if (n->isEncrypted) {
-                DrawText("[ENC]", (int)n->position.x - 15, (int)n->position.y - (int)radius - 14, 9, MAGENTA);
+                DrawText("[ENC]", (int)n->position.x, (int)n->position.y - (int)radius - 14, 9, MAGENTA);
             }
         }
     }
