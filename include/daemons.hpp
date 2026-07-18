@@ -21,6 +21,7 @@ private:
     float expansionTimer = 0.0f;
     int sellval;
     DaemonAction actionCallback;
+    
 
 public:
     std::function<void(class GameEngine&, float)> systemPatch;
@@ -35,6 +36,11 @@ public:
     const IconGrid* iconMatrix;
     DaemonTriggersType triggertype;
 
+    //daemon tools
+    int counterState = 0;
+    float multiplierState = 1.0f;
+    int lastBasketIndex = -1;
+    bool flagState = false;
     Daemon(std::string daemonName, 
            std::string stat, 
            std::string desc, 
@@ -108,6 +114,11 @@ public:
     //me realising you can just use variables instead of a function to return them in a class whoopsies but i diont feel like changing it now
 };
 
+void PrepDrawCyberpunkDaemonSlots();
+void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
+void initdaemons();
+void ProcessLineFades(GameEngine& eng);
+void DrawFadingLines(const GameEngine& eng);
 void PrepDrawCyberpunkDaemonSlots();
 void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
 void initdaemons();

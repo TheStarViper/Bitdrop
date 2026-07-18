@@ -288,12 +288,11 @@ void testdaemon2(Daemon& self, Probe& probe) {
 
 void loyalty_points(Daemon& self, Probe& probe){
     //2x points every 5 hits
-    static int counter = 0;
-    if (counter<=4){counter++;}
-    if (counter ==5){
+    if (self.counterState <= 4) { self.counterState++; }
+    if (self.counterState == 5){
         addfadeline(self,probe);
         probe.rawPayloadBytes *=2;
-        counter = 0;
+        self.counterState = 0;
     }
 }
 
@@ -332,6 +331,39 @@ void kill_switch(Daemon& self, Probe& probe) {
     }
 }
 
+void honeypot_trap(Daemon& self, Probe& probe) {
+    // "Honeypot Trap" - 30% chance to duplicate the probe's score entirely (paid twice)
+    if ((rand() % 100) < 30) {
+        addfadeline(self, probe);
+        probe.rawPayloadBytes *= 2.0f;
+    }
+}
+
+void firmware_backdoor(Daemon& self, Probe& probe) {
+    // "Firmware Backdoor" - flat +5 MB bonus added on every hit, no multiplier
+    addfadeline(self, probe);
+    probe.rawPayloadBytes += 5120;
+}
+
+void proxy_chain(Daemon& self, Probe& probe) {
+    // "Proxy Chain" - score multiplier increases the MORE daemons you own (rewards wide builds)
+    int ownedCount = (int)activedaemoninfo.daemons.size();
+    if (ownedCount > 1) {
+        addfadeline(self, probe);
+        probe.rawPayloadBytes *= (1.0f + (ownedCount - 1) * 0.2f);
+    }
+}
+
+void rootkit_persistence(Daemon& self, Probe& probe) {
+    // "Rootkit Persistence" - every 3rd probe scored gets 3x
+    self.counterState++;
+
+    if (self.counterState % 3 == 0) {
+        addfadeline(self, probe);
+        probe.rawPayloadBytes *= 3.0f;
+    }
+}
+
 void initdaemons(){
     float slotYStart = 15.0f;
     float slotSpacing = 10.0f;
@@ -343,7 +375,11 @@ void initdaemons(){
         Daemon("Mesh Network", "SECURE // SYNCED", "1.5x score for each ball in play", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PASSIVE,mesh_network),
         Daemon("Schrodinger's Basket", "????????", "score has either gets 2.5x points or .5x points on score", Config::OTHER_COLOR_FOR_DAEMONS, 3,900,&ICON_PADLOCK,PASSIVE,schrodingers_basket),
         Daemon("Dark Web Node", "danger awaits", "5% chance to score 15x data", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PASSIVE,dark_web_node),
-        Daemon("Kill Switch", "FAILSAFE", "4x output multiplier if down to last active unit", Config::COLOR_UI_AMBER, 3,900,&ICON_PADLOCK,PASSIVE,kill_switch)
+        Daemon("Kill Switch", "FAILSAFE", "4x output multiplier if down to last active unit", Config::COLOR_UI_AMBER, 3,900,&ICON_PADLOCK,PASSIVE,kill_switch),
+        Daemon("Honeypot Trap", "DECEPTION LAYER", "30% chance to duplicate score", Config::COLOR_PROBE, 3,900,&ICON_PADLOCK,PASSIVE,honeypot_trap),
+        Daemon("Firmware Backdoor", "FLAT ACCESS", "+5 MB on every hit", Config::COLOR_UI_GREEN, 3,900,&ICON_PADLOCK,PINS,firmware_backdoor),
+        Daemon("Proxy Chain", "WIDE NETWORK", "Multiplier scales 1.2x with daemons owned (1.2x,1.4x,1.6x)", Config::MAGENTA_DAEMON, 3,900,&ICON_PADLOCK,PASSIVE,proxy_chain),
+        Daemon("Rootkit Persistence", "DEEP ACCESS", "Every 3rd probe scored gets 3x", Config::COLOR_UI_GREEN, 3,900,&ICON_PADLOCK,PASSIVE,rootkit_persistence)
     };
 }
 

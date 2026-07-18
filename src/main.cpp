@@ -13,12 +13,11 @@
 #include "map.hpp"
 #include <algorithm>
 #include "raymath.h"
+#include "raymath.h"
 
 //add animation for getting money from balls
 //add animation for getting money from beating level
-//reroll animation
 //more daemons
-//make so you cant have more than 5 daemons
 //audio
 //consumables
 //shop polish with hovers
@@ -219,8 +218,166 @@ void DrawGlitchedScene(RenderTexture2D target) {
     }
 }
 
-bool IsTransitioning(void) {
+bool IsTransitioning() {
     return transition.phase != TRANS_NONE;
+}
+
+float displayedBalance = -1.0f;
+
+void UpdateDisplayedBalance(void) {
+    if (displayedBalance < 0.0f) {
+        displayedBalance = (float)gamestate.balance;
+        return;
+    }
+
+    float target = (float)gamestate.balance;
+    float diff = target - displayedBalance;
+
+    float speed = 4.0f + fabsf(diff) * 3.0f;
+    displayedBalance += diff * Clamp(speed * GetFrameTime(), 0.0f, 1.0f);
+
+    if (fabsf(target - displayedBalance) < 0.5f) {
+        displayedBalance = target;
+    }
+}
+
+struct EnergyTrailPoint {
+    Vector2 pos;
+    float life;
+};
+
+struct EnergyOrbInstance {
+    bool travelling = false;
+    bool bursting = false;
+    Vector2 startPos;
+    Vector2 endPos;
+    float timer = 0.0f;
+    float duration = 0.55f;
+    float burstTimer = 0.0f;
+    float burstDuration = 0.3f;
+    int value = 0;
+    std::vector<EnergyTrailPoint> trail;
+    float trailSpawnTimer = 0.0f;
+};
+
+std::vector<EnergyOrbInstance> activeOrbs;
+
+void SpawnEnergyOrb(Vector2 from, Vector2 to, int value, float startDelay) {
+    EnergyOrbInstance orb;
+    orb.startPos = from;
+    orb.endPos = to;
+    orb.value = value;
+    orb.timer = -startDelay;
+    activeOrbs.push_back(orb);
+}
+
+void UpdateEnergyOrbs(void) {
+    for (auto& orb : activeOrbs) {
+        if (orb.bursting) {
+            orb.burstTimer += GetFrameTime();
+            continue;
+        }
+
+        orb.timer += GetFrameTime();
+        if (orb.timer < 0.0f) continue;
+
+        orb.travelling = true;
+        float t = Clamp(orb.timer / orb.duration, 0.0f, 1.0f);
+        float eased = Easings::EaseInOutQuad(t);
+
+        orb.trailSpawnTimer += GetFrameTime();
+        if (orb.trailSpawnTimer >= 0.015f) {
+            orb.trailSpawnTimer = 0.0f;
+            Vector2 pos = Vector2Lerp(orb.startPos, orb.endPos, eased);
+            pos.x += GetRandomValue(-3, 3);
+            pos.y += GetRandomValue(-3, 3);
+            orb.trail.push_back({ pos, 1.0f });
+        }
+
+        for (auto& p : orb.trail) p.life -= GetFrameTime() * 3.0f;
+        orb.trail.erase(
+            std::remove_if(orb.trail.begin(), orb.trail.end(),
+                [](const EnergyTrailPoint& p){ return p.life <= 0.0f; }),
+            orb.trail.end()
+        );
+
+        if (t >= 1.0f) {
+            orb.travelling = false;
+            orb.bursting = true;
+            orb.burstTimer = 0.0f;
+            gamestate.balance += orb.value;
+        }
+    }
+
+    activeOrbs.erase(
+        std::remove_if(activeOrbs.begin(), activeOrbs.end(),
+            [](const EnergyOrbInstance& o) { return o.bursting && o.burstTimer >= o.burstDuration; }),
+        activeOrbs.end()
+    );
+}
+
+void DrawEnergyOrbs(void) {
+    for (const auto& orb : activeOrbs) {
+        for (const auto& p : orb.trail) {
+            Color trailCol = Fade((Color){ 0, 255, 140, 255 }, p.life * 0.6f);
+            float size = 4.0f * p.life;
+            DrawRectangle((int)(p.pos.x - size/2), (int)(p.pos.y - size/2), (int)size, (int)size, trailCol);
+        }
+
+        if (orb.travelling) {
+            float t = Clamp(orb.timer / orb.duration, 0.0f, 1.0f);
+            float eased = Easings::EaseInOutQuad(t);
+            Vector2 pos = Vector2Lerp(orb.startPos, orb.endPos, eased);
+            pos.x += GetRandomValue(-1, 1);
+            pos.y += GetRandomValue(-1, 1);
+
+            float pulse = 5.0f + sinf(GetTime() * 20.0f) * 1.5f;
+            DrawCircleV(pos, pulse + 3.0f, Fade((Color){ 0, 255, 140, 255 }, 0.25f));
+            DrawCircleV(pos, pulse, (Color){ 0, 255, 140, 255 });
+            DrawCircleLinesV(pos, pulse + 2.0f, Fade(WHITE, 0.6f));
+        }
+
+        if (orb.bursting) {
+            float t = Clamp(orb.burstTimer / orb.burstDuration, 0.0f, 1.0f);
+            float intensity = sinf(t * PI);
+            Vector2 center = orb.endPos;
+
+            int barCount = (int)(intensity * 6.0f);
+            for (int i = 0; i < barCount; i++) {
+                int bx = (int)center.x + GetRandomValue(-40, 40);
+                int by = (int)center.y + GetRandomValue(-15, 15);
+                DrawRectangle(bx, by, GetRandomValue(10, 50), GetRandomValue(2, 5),
+                    Fade((Color){ 0, 255, 140, 255 }, intensity));
+            }
+
+            DrawCircleV(center, 10.0f * intensity, Fade(RED, 0.4f * intensity));
+            DrawCircleV({ center.x - 3, center.y }, 10.0f * intensity, Fade((Color){0,180,255,255}, 0.4f * intensity));
+            DrawCircleV(center, 8.0f * intensity, Fade(WHITE, 0.5f * intensity));
+
+            if (t < 0.4f) {
+                DrawRectangle(Config::walletX, Config::walletY, 420, 65, Fade((Color){0,255,140,255}, (0.4f - t) * 0.5f));
+            }
+        }
+    }
+}
+
+
+std::string formatWithSpaces(long long int num) {
+    std::string str = std::to_string(num);
+    std::string result = "";
+    int count = 0;
+
+    for (int i = str.length() - 1; i >= 0; i--) {
+        if (count == 3) {
+            result += " ";
+            count = 0;
+        }
+        result += str[i];
+        count++;
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
 }
 
 void UpdatePhysics(float dt) {
@@ -399,16 +556,41 @@ void UpdatePhysics(float dt) {
     }
 
     const static float waitabit = 1.5f; //target in seconds
-    static float timetracker = 0.0f;//tracker 
-    if (levelstate.scoredbytes>=levelstate.TARGET_QUOTA_BYTES&&engine.activeProbes.size()==0){ //transition to shop
-        timetracker += GetFrameTime(); 
+    static float timetracker = 0.0f;
+    static bool energyOrbsTriggered = false;
+
+    if (levelstate.scoredbytes>=levelstate.TARGET_QUOTA_BYTES && engine.activeProbes.size()==0){
+        timetracker += GetFrameTime();
+
+        float waitabit = 1.6f + engine.remainingBalls * 0.12f;
+
+        if (!energyOrbsTriggered) {
+            energyOrbsTriggered = true;
+
+            Vector2 walletTarget = { Config::walletX + 60.0f, Config::walletY + 30.0f };
+
+            SpawnEnergyOrb({ 1080.0f, Config::scoreBlockY }, walletTarget, levelstate.reward, 0.0f);
+
+            Vector2 launcherPos = engine.centerApexPegPos;
+            for (int i = 0; i < engine.remainingBalls; i++) {
+                SpawnEnergyOrb(launcherPos, walletTarget, 80, 0.15f + i * 0.12f);
+            }
+        }
+
         if (timetracker>=waitabit){
             engine.particles.clear();
-            RequestGameStateChange(SHOP); //later for resolve end of game scorings and consider gamespeed
+            RequestGameStateChange(SHOP);
             timetracker = 0;
+            energyOrbsTriggered = false;
             levelstate.scoredbytes = 0;
-            gamestate.balance += levelstate.reward;
             engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
+        }
+    }
+    if (levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES && engine.activeProbes.size()==0 && engine.remainingBalls==0){
+        timetracker += GetFrameTime();
+        if (timetracker>=1.5f){
+            gamestate.gamestate = LOST;
+            timetracker = 0;
         }
     }
     if (levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES&&engine.activeProbes.size()==0&&engine.remainingBalls==0){ //loss condition
@@ -420,23 +602,6 @@ void UpdatePhysics(float dt) {
     }
 }
 
-std::string formatWithSpaces(long long num) {
-    std::string str = std::to_string(num);
-    std::string result = "";
-    int count = 0;
-
-    for (int i = str.length() - 1; i >= 0; i--) {
-        if (count == 3) {
-            result += " ";
-            count = 0;
-        }
-        result += str[i];
-        count++;
-    }
-
-    std::reverse(result.begin(), result.end());
-    return result;
-}
 
 void UpdateDrawFrame(void) {
     Vector2 currentMousePos = GetMousePosition();
@@ -462,6 +627,9 @@ void UpdateDrawFrame(void) {
     BeginTextureMode(sceneTarget);
     ClearBackground(Config::COLOR_BG);
     UpdateTransition();
+    UpdateDisplayedBalance();
+    UpdateEnergyOrbs();
+    
     if (gamestate.gamestate==GAME){
         
         for (const auto& basket : engine.baskets) {
@@ -522,14 +690,17 @@ void UpdateDrawFrame(void) {
         std::string bottomTip = "SYS ENG: [CLICK PIN] CHANGE MODIFIERS // [SPACEBAR] INJECT LOAD PACKETS";
         DrawText(bottomTip.c_str(), 400 - (MeasureText(bottomTip.c_str(), 11) / 2), 685, 11, Config::COLOR_GRID_LINE);
         
-        float scoreBlockY = 455.0f;
+        
         bool targetMet = (levelstate.scoredbytes >= levelstate.TARGET_QUOTA_BYTES);
         std::string quotaString = "TARGET QUOTA: " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
-        DrawText(quotaString.c_str(), 835, scoreBlockY, 13, targetMet ? Config::COLOR_UI_GREEN : Config::COLOR_UI_AMBER);
+        DrawText(quotaString.c_str(), 835, Config::scoreBlockY, 13, targetMet ? Config::COLOR_UI_GREEN : Config::COLOR_UI_AMBER);
 
-        DrawText("DATA HACKED PROGRESSION TIER:", 835, scoreBlockY + 24, 12, { 130, 160, 180, 255 });
+        std::string rewardstr = "Reward Credits: $ " + formatWithSpaces(levelstate.reward);
+        DrawText(rewardstr.c_str(), 1080, Config::scoreBlockY, 13, Config::COLOR_UI_GREEN);
+
+        DrawText("DATA HACKED PROGRESSION TIER:", 835, Config::scoreBlockY + 24, 12, { 130, 160, 180, 255 });
         std::string dataProgressText = FormatByteSize(levelstate.scoredbytes) + " / " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
-        DrawText(dataProgressText.c_str(), 835, scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
+        DrawText(dataProgressText.c_str(), 835, Config::scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
         
         DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
         DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
@@ -549,8 +720,9 @@ void UpdateDrawFrame(void) {
     DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });
     DrawRectangleLines(Config::walletX, Config::walletY, 420, 65, Config::COLOR_SHARD_BORDER);
     DrawText("ACCOUNT STANDALONE BALANCE LEDGER:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
-    std::string walletStr = "CREDITS: $ " + formatWithSpaces(gamestate.balance);
+    std::string walletStr = "CREDITS: $ " + formatWithSpaces((long long)displayedBalance);
     DrawText(walletStr.c_str(), Config::walletX+15, Config::walletY + 26, 22, Config::COLOR_UI_GREEN);
+    DrawEnergyOrbs();
     EndTextureMode();
     BeginDrawing();
         DrawGlitchedScene(sceneTarget);

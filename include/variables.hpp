@@ -24,6 +24,7 @@ namespace Config {
     inline float GAME_SPEED = 0.30f;
     inline float PIN_BOUNCYNESS = 0.20f; 
 
+    constexpr float scoreBlockY = 455.0f;
     //credits
     constexpr float walletY = 530.0f;
     constexpr float walletX = 830.0f;

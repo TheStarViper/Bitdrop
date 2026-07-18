@@ -57,17 +57,22 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold) {
         DrawRectangleRec(btnRect, Config::colorBg);
         DrawRectangleLinesEx(btnRect, 1, dimColor);
 
-        if (hasFunds) {
+        if (hasFunds && activedaemoninfo.daemons.size()<5) {
             buyClicked = DrawButton(innerBtn, ButtonType::TextGeneric, alpha, Config::colorButtonBg, Config::COLOR_GRID_LINE, mainColor, mainColor, "BUY", 18);
-        } else {
+        } else if (!hasFunds) {
             Color lockedBg = { 30, 30, 30, 255 };
             Color lockedText = { 65, 65, 65, 255 };
             DrawButton(innerBtn, ButtonType::TextGeneric, alpha, lockedBg, lockedBg, lockedText, lockedText, "BUY", 18);
             DrawText("INSUFFICIENT FUNDS", btnRect.x + (btnRect.width - MeasureText("INSUFFICIENT FUNDS", 10)) / 2, btnRect.y + 60, 10, Config::colorRedAlert);
+        } else {
+            Color lockedBg = { 30, 30, 30, 255 };
+            Color lockedText = { 65, 65, 65, 255 };
+            DrawButton(innerBtn, ButtonType::TextGeneric, alpha, lockedBg, lockedBg, lockedText, lockedText, "BUY", 18);
+            DrawText("MAX SLOTS REACHED", btnRect.x + (btnRect.width - MeasureText("INSUFFICIENT FUNDS", 10)) / 2, btnRect.y + 60, 10, (Color){150,150,150,255});
         }
     }
 
-    if (buyClicked && !isSlotSold) {
+    if (buyClicked && !isSlotSold && activedaemoninfo.daemons.size()<5) {
         Daemon stagingbuy = iteminfo;
         stagingbuy.slot = activedaemoninfo.daemons.size()+1;
         stagingbuy.updateYPosition();
