@@ -16,9 +16,13 @@
 
 //add animation for getting money from balls
 //add animation for getting money from beating level
-//add transitions
+//reroll animation
+//more daemons
 //make so you cant have more than 5 daemons
-//cant interact with daemons on map
+//audio
+//consumables
+//shop polish with hovers
+
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
 #endif

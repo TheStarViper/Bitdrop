@@ -229,7 +229,7 @@ enum TransitionPhase {
 struct TransitionState {
     TransitionPhase phase = TRANS_NONE;
     float timer = 0.0f;
-    float duration = 0.12f;
+    float duration = 0.16f;
     State pendingState;
 };
 

@@ -8,6 +8,29 @@
 #include "button.hpp"
 #include "main.hpp"
 
+struct RerollGlitchState {
+    float timer = 0.0f;
+    float duration = 0.25f;
+    bool active = false;
+};
+RerollGlitchState rerollGlitch;
+
+float GetRerollGlitchIntensity(void) {
+    if (!rerollGlitch.active) return 0.0f;
+    float t = rerollGlitch.timer / rerollGlitch.duration;
+    if (t >= 1.0f) return 0.0f;
+    return sinf(t * PI);
+}
+
+void UpdateRerollGlitch(void) {
+    if (!rerollGlitch.active) return;
+    rerollGlitch.timer += GetFrameTime();
+    if (rerollGlitch.timer >= rerollGlitch.duration) {
+        rerollGlitch.active = false;
+        rerollGlitch.timer = 0.0f;
+    }
+}
+
 void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold) {
     const float gap = 8.0f;
     const float mainBoxWidth = Config::shopitemtotalWidth - Config::shopbuyitembuttonWidth - gap;
@@ -141,6 +164,7 @@ void GenerateShopPool() {
 }
 
 void drawshop() {
+    UpdateRerollGlitch();
     DrawText("BLACK MARKET", 200, 25, 50, WHITE);
 
     if (!activedaemoninfo.daemons.empty() &&
@@ -160,6 +184,41 @@ void drawshop() {
             );
         }
     }
+    float glitchIntensity = GetRerollGlitchIntensity();
+    if (glitchIntensity > 0.0f) {
+        int clipX = 70;
+        int clipY = (int)Config::shopitemsYbuffer - 5;
+        int clipW = Config::shopitemtotalWidth + 15;
+        int clipH = (80 * 5) + 10;
+
+        BeginScissorMode(clipX, clipY, clipW, clipH);
+
+        int barCount = (int)(glitchIntensity * 8.0f);
+        for (int i = 0; i < barCount; i++) {
+            int barY = GetRandomValue(clipY, clipY + clipH);
+            int barHeight = GetRandomValue(3, 14);
+            int xOffset = GetRandomValue(-15, 15);
+
+            DrawRectangle(clipX + xOffset, barY, clipW, barHeight, (Color){ 0, 255, 120, (unsigned char)(180 * glitchIntensity) });
+        }
+
+        int sliceCount = (int)(glitchIntensity * 4.0f);
+        for (int i = 0; i < sliceCount; i++) {
+            int sliceY = GetRandomValue(clipY, clipY + clipH - 8);
+            int sliceHeight = GetRandomValue(4, 10);
+            int shift = GetRandomValue(4, 14);
+
+            DrawRectangle(clipX + shift, sliceY, clipW, sliceHeight, Fade(RED, 0.35f * glitchIntensity));
+            DrawRectangle(clipX - shift, sliceY, clipW, sliceHeight, Fade((Color){0,180,255,255}, 0.35f * glitchIntensity));
+        }
+
+        if (glitchIntensity > 0.5f) {
+            DrawRectangle(clipX, clipY, clipW, clipH, Fade(WHITE, (glitchIntensity - 0.5f) * 0.4f));
+        }
+
+        EndScissorMode();
+    }
+
     //next
     if (DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 35)) {
         RequestGameStateChange(MAP);
@@ -185,6 +244,8 @@ void drawshop() {
             gamestate.balance -=100+shopstate.rerolls*rerollsprice;
             shopstate.rerolls +=1;
             GenerateShopPool();
+            rerollGlitch.active = true;
+            rerollGlitch.timer = 0.0f;
         }
     }
 }

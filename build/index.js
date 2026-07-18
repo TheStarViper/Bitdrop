@@ -7690,6 +7690,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _glRenderbufferStorage = _emscripten_glRenderbufferStorage;
 
+  var _glScissor = _emscripten_glScissor;
+
   var _glShaderSource = _emscripten_glShaderSource;
 
   var _glTexImage2D = _emscripten_glTexImage2D;
@@ -10539,6 +10541,8 @@ var wasmImports = {
   glReadPixels: _glReadPixels,
   /** @export */
   glRenderbufferStorage: _glRenderbufferStorage,
+  /** @export */
+  glScissor: _glScissor,
   /** @export */
   glShaderSource: _glShaderSource,
   /** @export */

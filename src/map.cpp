@@ -429,7 +429,7 @@ void DrawMap(void) {
             float cameraBottomY = cameraTopY + (Config::SCREEN_HEIGHT / state.camera.zoom);
             float visibleHeight = cameraBottomY - cameraTopY;
 
-            DrawRectangle(colX - 50, cameraTopY, 100, visibleHeight, (Color){51, 249, 47, 12});
+            DrawRectangle(colX - 50, cameraTopY, 100, visibleHeight, (Color){51, 249, 47, 50});
         }
     }
 
