@@ -28,6 +28,7 @@ namespace Config {
     //credits
     constexpr float walletY = 530.0f;
     constexpr float walletX = 830.0f;
+    constexpr int extraballsreward = 80;
 
     //shop
     constexpr float shopitemsYbuffer = 100.0f;
@@ -233,6 +234,27 @@ struct TransitionState {
     float duration = 0.16f;
     State pendingState;
 };
+
+struct EnergyTrailPoint {
+    Vector2 pos;
+    float life;
+};
+
+struct EnergyOrbInstance {
+    bool travelling = false;
+    bool bursting = false;
+    Vector2 startPos;
+    Vector2 endPos;
+    float timer = 0.0f;
+    float duration = 0.55f;
+    float burstTimer = 0.0f;
+    float burstDuration = 0.3f;
+    int value = 0;
+    std::vector<EnergyTrailPoint> trail;
+    float trailSpawnTimer = 0.0f;
+};
+
+inline std::vector<EnergyOrbInstance> activeOrbs;
 
 inline TransitionState transition;
 inline RenderTexture2D sceneTarget;

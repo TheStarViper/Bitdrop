@@ -15,12 +15,14 @@
 #include "raymath.h"
 #include "raymath.h"
 
-//add animation for getting money from balls
-//add animation for getting money from beating level
 //more daemons
 //audio
 //consumables
 //shop polish with hovers
+//buy animation
+//move daemon animation
+//screen shake
+//consumable that turns encrypted off selected map node
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
@@ -35,7 +37,7 @@ std::string FormatByteSize(long double bytes) {
     long double size = bytes / 1024.0;
     while (size >= 1024.0 && i < 8) {
         size /= 1024.0;
-        i++; 
+        i++;
     }
     std::stringstream stream;
     if (i == 8 && size >= 1024.0) {
@@ -240,27 +242,6 @@ void UpdateDisplayedBalance(void) {
         displayedBalance = target;
     }
 }
-
-struct EnergyTrailPoint {
-    Vector2 pos;
-    float life;
-};
-
-struct EnergyOrbInstance {
-    bool travelling = false;
-    bool bursting = false;
-    Vector2 startPos;
-    Vector2 endPos;
-    float timer = 0.0f;
-    float duration = 0.55f;
-    float burstTimer = 0.0f;
-    float burstDuration = 0.3f;
-    int value = 0;
-    std::vector<EnergyTrailPoint> trail;
-    float trailSpawnTimer = 0.0f;
-};
-
-std::vector<EnergyOrbInstance> activeOrbs;
 
 void SpawnEnergyOrb(Vector2 from, Vector2 to, int value, float startDelay) {
     EnergyOrbInstance orb;
@@ -571,9 +552,11 @@ void UpdatePhysics(float dt) {
 
             SpawnEnergyOrb({ 1080.0f, Config::scoreBlockY }, walletTarget, levelstate.reward, 0.0f);
 
-            Vector2 launcherPos = engine.centerApexPegPos;
-            for (int i = 0; i < engine.remainingBalls; i++) {
-                SpawnEnergyOrb(launcherPos, walletTarget, 80, 0.15f + i * 0.12f);
+            Vector2 launcherPos = {engine.centerApexPegPos.x,engine.centerApexPegPos.y-100};
+            int cacheremainingballs = engine.remainingBalls;
+            for (int i = 0; i < cacheremainingballs; i++) {
+                SpawnEnergyOrb(launcherPos, walletTarget, Config::extraballsreward, 0.15f + i * 0.12f);
+                engine.remainingBalls -=1;
             }
         }
 

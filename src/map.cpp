@@ -241,11 +241,53 @@ void GenerateTopologyMap() {
     }
 }
 
+void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time) {
+    float flicker = (sinf(time * 17.0f) * 0.5f + 0.5f) * (sinf(time * 6.3f) * 0.5f + 0.5f);
+    bool visibleFrame = (GetRandomValue(0, 100) < 85);
+
+    if (!visibleFrame) return;
+
+    Color staticColor = (Color){ 0, 255, 140, (unsigned char)(120 + flicker * 100) };
+
+    DrawCircleV(pos, radius, Fade((Color){ 20, 30, 25, 255 }, 0.6f));
+    DrawCircleLinesV(pos, radius, Fade(staticColor, 0.5f));
+
+    int barCount = GetRandomValue(2, 5);
+    for (int i = 0; i < barCount; i++) {
+        float barY = pos.y + GetRandomValue(-(int)radius, (int)radius);
+        float barHeight = (float)GetRandomValue(1, 3);
+        float barWidth = radius * 2.0f * (0.4f + (GetRandomValue(0, 60) / 100.0f));
+        float xOffset = GetRandomValue(-(int)(radius * 0.3f), (int)(radius * 0.3f));
+
+        DrawRectangle(
+            (int)(pos.x - barWidth / 2 + xOffset),
+            (int)barY,
+            (int)barWidth,
+            (int)barHeight,
+            Fade(staticColor, 0.5f + flicker * 0.5f)
+        );
+    }
+
+    if (GetRandomValue(0, 100) < 8) {
+        Vector2 spikePos = { pos.x + GetRandomValue(-(int)radius, (int)radius) * 0.6f,
+                              pos.y + GetRandomValue(-(int)radius, (int)radius) * 0.6f };
+        DrawCircleV(spikePos, 2.0f, Fade(WHITE, 0.8f));
+    }
+
+    const char* symb = "?";
+    int fontSize = 10;
+    int textW = MeasureText(symb, fontSize);
+    int jitterX = GetRandomValue(-1, 1);
+    int jitterY = GetRandomValue(-1, 1);
+    DrawText(symb, (int)(pos.x - textW / 2 + jitterX), (int)(pos.y - fontSize / 2 + jitterY),
+        fontSize, Fade(staticColor, 0.7f));
+}
+
 void InitMap() {
     state.currentColumn = -1;
     state.currentNodeId = -1;
     state.spoofActive = false; 
-    state.showEncrypted = true;
+    state.showEncrypted = false;
     state.traceSlider = 0.40f;
     state.selectedNode = NULL;
     state.timeRunning = 0.0f;
@@ -288,10 +330,14 @@ void DrawMap(void) {
     for (int c = 0; c < Config::totalmapcolumns; c++) {
         for (int r = 0; r < state.columnNodeCounts[c]; r++) {
             MapNode* n = &state.nodes[c][r];
-            if (n->isEncrypted && !state.showEncrypted) continue;
 
             if (CheckCollisionPointCircle(worldMousePos, n->position, 22.0f)) {
                 state.selectedNode = n;
+
+                if (n->isEncrypted && !state.showEncrypted) {
+                    continue;
+                }
+
                 if (!IsTransitioning() && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     if (state.ddosTargetMode) {
                         if (n->type == SEC_FIREWALL_v2) {
@@ -384,7 +430,11 @@ void DrawMap(void) {
             for (int i = 0; i < n->connectionCount; i++) {
                 MapNode* target = FindNodeById(n->connections[i]);
                 if (!target) continue;
-                if (target->isEncrypted && !state.showEncrypted) continue;
+                if (target->isEncrypted && !state.showEncrypted) {
+                    Color glitchLineCol = Fade((Color){ 0, 255, 140, 255 }, 0.15f + (sinf(state.timeRunning * 10.0f + i) * 0.05f));
+                    DrawLineEx(n->position, target->position, 1.0f, glitchLineCol);
+                    continue;
+                }
 
                 Color lineCol = (Color){ 0, 80, 20, 150 };
                 float thickness = 1.5f;
@@ -437,16 +487,14 @@ void DrawMap(void) {
     for (int c = 0; c < Config::totalmapcolumns; c++) {
         for (int r = 0; r < state.columnNodeCounts[c]; r++) {
             MapNode* n = &state.nodes[c][r];
-            if (n->isEncrypted && !state.showEncrypted) continue;
+
+            if (n->isEncrypted && !state.showEncrypted) {
+                DrawEncryptedPlaceholder(n->position, 16.0f, state.timeRunning);
+                continue;
+            }
 
             float radius = (n->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
-            float pulse = 1.0f;
 
-            if (n->alertState > 0.05f) {
-                pulse += sinf(state.timeRunning * 12.0f) * (n->alertState * 0.25f);
-            } else if (n->type == MAINFRAME_GATEWAY) {
-                pulse += sinf(state.timeRunning * 3.0f) * 0.1f;
-            }
 
             Color coreColor = GetNodeColor(n->type, n->alertState);
 
@@ -455,11 +503,11 @@ void DrawMap(void) {
             }
 
             if (state.currentNodeId == n->id) {
-                DrawCircleV(n->position, radius * pulse + 5.0f, WHITE);
+                DrawCircleV(n->position, radius + 5.0f, WHITE);
             }
 
-            DrawCircleV(n->position, radius * pulse, coreColor);
-            DrawCircleLinesV(n->position, radius * pulse, (Color){ 255, 255, 255, 180 });
+            DrawCircleV(n->position, radius, coreColor);
+            DrawCircleLinesV(n->position, radius, (Color){ 255, 255, 255, 180 });
 
             const char* symb = "N";
             if (n->type == MAINFRAME_GATEWAY) symb = "BOSS";
@@ -506,34 +554,46 @@ void DrawMap(void) {
     if (state.selectedNode && GetWorldToScreen2D(state.selectedNode->position, state.camera).x < 800) {
         MapNode* sn = state.selectedNode;
         Vector2 screenPos = GetWorldToScreen2D(sn->position, state.camera);
+        if (sn->isEncrypted && !state.showEncrypted) {
+                const char* lockedText = "[ ENCRYPTED NODE ]";
+                int lockedWidth = MeasureText(lockedText, 11);
 
-        char name_string[64];
-        snprintf(name_string, sizeof(name_string), "%s", GetNodeName(sn->type));
-        std::string reward_string = "REWARD: $" + std::to_string(sn->reward);
-        std::string targetquota_string = "QUOTA: " + FormatByteSize(sn->targetquota);
+                int bg_width = lockedWidth + 20;
+                int bg_height = 30;
+                int bg_x = screenPos.x - bg_width / 2;
+                int bg_y = screenPos.y - 60;
 
-        int nameoffsetx = MeasureText(name_string, 11);
-        int rewardoffsetx = MeasureText(reward_string.c_str(), 11);
-        int quotaoffsetx = MeasureText(targetquota_string.c_str(), 11);
+                DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
+                DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(MAGENTA, 0.5f));
+                DrawText(lockedText, screenPos.x - lockedWidth / 2, bg_y + 9, 11, MAGENTA);
+        } else{
+            char name_string[64];
+            snprintf(name_string, sizeof(name_string), "%s", GetNodeName(sn->type));
+            std::string reward_string = "REWARD: $" + std::to_string(sn->reward);
+            std::string targetquota_string = "QUOTA: " + FormatByteSize(sn->targetquota);
 
-        int max_width = nameoffsetx;
-        if (quotaoffsetx > max_width) max_width = quotaoffsetx;
-        if (rewardoffsetx > max_width) max_width = rewardoffsetx;
+            int nameoffsetx = MeasureText(name_string, 11);
+            int rewardoffsetx = MeasureText(reward_string.c_str(), 11);
+            int quotaoffsetx = MeasureText(targetquota_string.c_str(), 11);
 
-        int padding = 10;
-        int bg_width = max_width + padding * 2;
-        int bg_height = 56;
+            int max_width = nameoffsetx;
+            if (quotaoffsetx > max_width) max_width = quotaoffsetx;
+            if (rewardoffsetx > max_width) max_width = rewardoffsetx;
 
-        int bg_x = screenPos.x - bg_width / 2;
-        int bg_y = screenPos.y - 86;
+            int padding = 10;
+            int bg_width = max_width + padding * 2;
+            int bg_height = 56;
 
-        DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
-        DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(GREEN, 0.5f));
+            int bg_x = screenPos.x - bg_width / 2;
+            int bg_y = screenPos.y - 86;
 
-        DrawText(name_string, screenPos.x - nameoffsetx / 2, bg_y + 6, 11, GetNodeColor(sn->type, 0.0f));
-        DrawText(targetquota_string.c_str(), screenPos.x - quotaoffsetx / 2, bg_y + 22, 11, GREEN);
-        DrawText(reward_string.c_str(), screenPos.x - rewardoffsetx / 2, bg_y + 38, 11, GREEN);
+            DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
+            DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(GREEN, 0.5f));
 
+            DrawText(name_string, screenPos.x - nameoffsetx / 2, bg_y + 6, 11, GetNodeColor(sn->type, 0.0f));
+            DrawText(targetquota_string.c_str(), screenPos.x - quotaoffsetx / 2, bg_y + 22, 11, GREEN);
+            DrawText(reward_string.c_str(), screenPos.x - rewardoffsetx / 2, bg_y + 38, 11, GREEN);
+        }
         float minoffset = (sn->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
         float maxoffset = (sn->type == MAINFRAME_GATEWAY) ? 30.0f : 18.0f;
         float offset = GetPulseOffset(minoffset, maxoffset, 10.0f, Easings::EaseInOutQuad);
