@@ -15,14 +15,15 @@
 #include "raymath.h"
 #include "raymath.h"
 
+//consumables
 //more daemons
 //audio
-//consumables
 //shop polish with hovers
-//buy animation
-//move daemon animation
 //screen shake
 //consumable that turns encrypted off selected map node
+//bullet time maybe
+//make black market a normal shop and add nodes that are black market with special daemons
+//clean up code for more efficiency
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
@@ -612,6 +613,9 @@ void UpdateDrawFrame(void) {
     UpdateTransition();
     UpdateDisplayedBalance();
     UpdateEnergyOrbs();
+    for (auto& d : activedaemoninfo.daemons) {
+        d.UpdateYAnim(GetFrameTime());
+    }
     
     if (gamestate.gamestate==GAME){
         

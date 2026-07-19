@@ -82,23 +82,23 @@ void PrepDrawCyberpunkDaemonSlots(){
 }
 
 void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex) {
-    bool isHovered = CheckCollisionPointRec(mousePos, { d.x, d.y, d.width, d.height });
+    bool isHovered = CheckCollisionPointRec(mousePos, { d.x, d.tempy, d.width, d.height });
     Color currentBg = isHovered ? Color{ 16, 26, 42, 255 } : Color{ 10, 16, 26, 240 };
     Color borderColor = isSelected ? Config::COLOR_UI_AMBER : (isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
     
     Color levelcolor = (d.IsOverclocked()) ? Config::COLOR_OVERCLOCKED : d.GetColor();
 
-    DrawRectangle(d.x, d.y, d.width, d.height, currentBg);
-    DrawRectangleLinesEx({ d.x, d.y, d.width, d.height }, isSelected ? 1.5f : 1.0f, borderColor);
+    DrawRectangle(d.x, d.tempy, d.width, d.height, currentBg);
+    DrawRectangleLinesEx({ d.x, d.tempy, d.width, d.height }, isSelected ? 1.5f : 1.0f, borderColor);
     
-    DrawLineEx({ d.x, d.y }, { d.x + 20, d.y }, 2.5f, d.GetColor());
-    DrawLineEx({ d.x, d.y }, { d.x, d.y + 20 }, 2.5f , d.GetColor());
-    DrawLineEx({ d.x + d.width - 20, d.y + d.height }, { d.x + d.width, d.height + d.y }, 2.5f, d.GetColor());
+    DrawLineEx({ d.x, d.tempy }, { d.x + 20, d.tempy }, 2.5f, d.GetColor());
+    DrawLineEx({ d.x, d.tempy }, { d.x, d.tempy + 20 }, 2.5f , d.GetColor());
+    DrawLineEx({ d.x + d.width - 20, d.tempy + d.height }, { d.x + d.width, d.height + d.tempy }, 2.5f, d.GetColor());
     
     
     //level bar
     const int level_bar_x = d.x + d.width - 85;
-    const int level_bar_y = d.y + 20;
+    const int level_bar_y = d.tempy + 20;
 
     float barW = 70.0f;
     DrawRectangle(level_bar_x, level_bar_y, barW, 7, { 20, 35, 45, 255 });
@@ -115,12 +115,12 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         std::string lvlStr = "LVL " + std::to_string(d.GetLevel());
         DrawText(lvlStr.c_str(), d.x + d.width - 125, level_bar_y-2, 11, Config::COLOR_PROBE);
     }
-    DrawRectangle(d.x + 3, d.y + 3, 5, d.height - 6, levelcolor);
+    DrawRectangle(d.x + 3, d.tempy + 3, 5, d.height - 6, levelcolor);
 
 
     //titles and tech gibberish
-    DrawText(d.GetName().c_str(), d.x + 20, d.y + 16, 15, d.GetColor());
-    DrawText(d.status.c_str(), d.x + 20, d.y + 40, 11, { 110, 140, 160, 255 });
+    DrawText(d.GetName().c_str(), d.x + 20, d.tempy + 16, 15, d.GetColor());
+    DrawText(d.status.c_str(), d.x + 20, d.tempy + 40, 11, { 110, 140, 160, 255 });
 
 
     if (isHovered) {
@@ -157,7 +157,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         float boxH = totalTextHeight + (paddingY * 2.0f);
         
         float boxX = d.x - boxW - 10.0f; 
-        float boxY = d.y + (d.height - boxH) / 2.0f;
+        float boxY = d.tempy + (d.height - boxH) / 2.0f;
 
         DrawRectangle(boxX, boxY, boxW, boxH, { 6, 12, 22, 250 });
         DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, Config::COLOR_UI_GREEN);
@@ -182,7 +182,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         Color borderCol = { Config::COLOR_SHARD_BORDER.r, Config::COLOR_SHARD_BORDER.g, Config::COLOR_SHARD_BORDER.b, alpha };
 
         float slideOffset = (1.0f - easeProgress) * 15.0f;
-        float bY = (d.y + d.height - 32.0f) + slideOffset;
+        float bY = (d.tempy + d.height - 32.0f) + slideOffset;
         
         Rectangle rUp = { d.x + d.width - 150, bY, 30, 22 };
         Rectangle rDown = { d.x + d.width - 115, bY, 30, 22 };
@@ -227,14 +227,10 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         if (targetSlot != -1) {
             for (size_t i = 0; i < activedaemoninfo.daemons.size(); ++i) {
                 if (activedaemoninfo.daemons[i].slot == targetSlot) {
-                    activedaemoninfo.daemons[i].slot = d.slot;
-                    activedaemoninfo.daemons[daemonidx].slot = targetSlot;
-
-                    activedaemoninfo.daemons[i].updateYPosition();
+                    std::swap(activedaemoninfo.daemons[daemonidx].slot, activedaemoninfo.daemons[i].slot);
                     activedaemoninfo.daemons[daemonidx].updateYPosition();
-
-                    std::swap(activedaemoninfo.daemons[daemonidx], activedaemoninfo.daemons[i]);
-                    *selectedDaemonIndex = (int)i;
+                    activedaemoninfo.daemons[i].updateYPosition();
+                    *selectedDaemonIndex = daemonidx;
                     break;
                 }
             }

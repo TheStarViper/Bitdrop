@@ -5,6 +5,7 @@
 #include "variables.hpp"
 #include "easing_functions.hpp"
 #include "shop.hpp"
+#include "raymath.h"
 
 class Probe;
 class Daemon {
@@ -55,6 +56,7 @@ public:
         slot = slott;
         sellval = sellvals;
         y = Config::Daemon_Y_Buffer + ((slot - 1) % 5) * (height + Config::Daemon_Slot_Spacing);
+        tempy = y;
         name = daemonName;
         status = stat;
         price = itemCost;
@@ -83,6 +85,16 @@ public:
             expansionTimer -= dt * 8.0f;
             if (expansionTimer < 0.0f) expansionTimer = 0.0f;
         }
+    }
+
+    void UpdateYAnim(float dt) {
+        float diff = y - tempy;
+        if (fabsf(diff) < 0.5f) {
+            tempy = y;
+            return;
+        }
+        float speed = 10.0f;
+        tempy += diff * Clamp(speed * dt, 0.0f, 1.0f);
     }
 
     void updateYPosition() {
