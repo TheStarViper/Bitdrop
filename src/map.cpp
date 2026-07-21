@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+#include "audio.hpp"
 
 static Mapstate state;
 
@@ -458,7 +459,7 @@ void DrawMap(void) {
                 } else if (n->column < state.currentColumn || (n->column == state.currentColumn && n->id != state.currentNodeId)) {
                     lineCol = (Color){ 0, 60, 20, 100 };
                 }
-
+                
                 DrawLineEx(n->position, target->position, thickness, lineCol);
             }
         }
@@ -555,18 +556,36 @@ void DrawMap(void) {
         MapNode* sn = state.selectedNode;
         Vector2 screenPos = GetWorldToScreen2D(sn->position, state.camera);
         if (sn->isEncrypted && !state.showEncrypted) {
-                const char* lockedText = "[ ENCRYPTED NODE ]";
-                int lockedWidth = MeasureText(lockedText, 11);
+            const char* lockedText = "[ ENCRYPTED NODE ]";
+            int lockedWidth = MeasureText(lockedText, 11);
 
-                int bg_width = lockedWidth + 20;
-                int bg_height = 30;
-                int bg_x = screenPos.x - bg_width / 2;
-                int bg_y = screenPos.y - 60;
+            int bg_width = lockedWidth + 20;
+            int bg_height = 30;
+            int bg_x = screenPos.x - bg_width / 2;
+            int bg_y = screenPos.y - 60;
+            float hoverRadius = 14.5f;
+            Rectangle posthing = {
+                screenPos.x - hoverRadius,
+                screenPos.y - hoverRadius,
+                hoverRadius * 2,
+                hoverRadius * 2
+            };
+            bool isHovering = CheckCollisionPointRec(GetMousePosition(), posthing);
 
-                DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
-                DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(MAGENTA, 0.5f));
-                DrawText(lockedText, screenPos.x - lockedWidth / 2, bg_y + 9, 11, MAGENTA);
-        } else{
+            if (isHovering) {
+                if (!IsSoundPlaying(glitchloopsound)) {
+                    playsoundsmart(glitchloopsound,.35,.9);
+                }
+            } else {
+                if (IsSoundPlaying(glitchloopsound)) {
+                    StopSound(glitchloopsound);
+                }
+            }
+
+            DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
+            DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(MAGENTA, 0.5f));
+            DrawText(lockedText, screenPos.x - lockedWidth / 2, bg_y + 9, 11, MAGENTA);
+        } else {
             char name_string[64];
             snprintf(name_string, sizeof(name_string), "%s", GetNodeName(sn->type));
             std::string reward_string = "REWARD: $" + std::to_string(sn->reward);

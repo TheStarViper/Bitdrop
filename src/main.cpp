@@ -14,15 +14,25 @@
 #include <algorithm>
 #include "raymath.h"
 #include "raymath.h"
-
-//consumables
-//more daemons
+#include "audio.hpp"
+//Update 12:
 //audio
 //shop polish with hovers
-//screen shake
+
+//Update 13:
+//consumables
 //consumable that turns encrypted off selected map node
-//bullet time maybe
+
+//Update 14:
 //make black market a normal shop and add nodes that are black market with special daemons
+
+//Update 15:
+//screen shake
+//more animations
+
+
+//General
+//more daemons
 //clean up code for more efficiency
 
 #if defined(PLATFORM_WEB)
@@ -372,7 +382,6 @@ void UpdatePhysics(float dt) {
     for (auto& node : engine.nodes){
         if (node.pulseAnimTimer > 0.0f) {
             node.pulseAnimTimer -= dt * 6.0f;
-        
             node.currentRadius = node.baseRadius + (sinf(node.pulseAnimTimer * 3.14159f) * 4.0f);
         } else {
             node.pulseAnimTimer = 0.0f;
@@ -465,6 +474,7 @@ void UpdatePhysics(float dt) {
                     p.lastHitNodeIndex = (int)nIdx; 
                     node.pulseAnimTimer = 1.0f;
                     
+                    playsoundsmart(nodehitsound,.3,2.4); //node hit sound comment here so i can find easily
                     p.hitCount++;
                     for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
                         if (activedaemoninfo.daemons[i].triggertype == PINS){
@@ -718,6 +728,8 @@ void UpdateDrawFrame(void) {
 
 int main() { 
     InitWindow(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, "BITDROP");
+    InitAudioDevice();
+    init_sounds();
     InitGame();
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
