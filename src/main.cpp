@@ -147,6 +147,8 @@ void RequestGameStateChange(State newState) {
     transition.phase = TRANS_GLITCH_OUT;
     transition.timer = 0.0f;
     transition.pendingState = newState;
+    float pitch = GetRandomValue(80,120)/100;
+    playsoundsmart(transitionsound,.8,pitch);
 }
 float GetTransitionProgress(void) {
     if (transition.phase == TRANS_GLITCH_OUT) {

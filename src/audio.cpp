@@ -13,4 +13,5 @@ void init_sounds(){
     nodehitsound = LoadSound("assets/sfx/nodehit.ogg");
     hoversound = LoadSound("assets/sfx/hover.ogg");
     glitchloopsound = LoadSound("assets/sfx/glitchloop.ogg");
+    transitionsound = LoadSound("assets/sfx/transition.ogg");
 }
