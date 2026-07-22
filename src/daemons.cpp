@@ -6,6 +6,7 @@
 #include <utility>
 #include <sstream>
 #include <ctime>
+#include "audio.hpp"
 
 void DrawCyberpunkEmptySlot(int slotIndex) {
     float x = 830.0f;
@@ -81,10 +82,10 @@ void PrepDrawCyberpunkDaemonSlots(){
     }
 }
 
-void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex) {
-    bool isHovered = CheckCollisionPointRec(mousePos, { d.x, d.tempy, d.width, d.height });
-    Color currentBg = isHovered ? Color{ 16, 26, 42, 255 } : Color{ 10, 16, 26, 240 };
-    Color borderColor = isSelected ? Config::COLOR_UI_AMBER : (isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
+void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex) {
+    d.isHovered = CheckCollisionPointRec(mousePos, { d.x, d.tempy, d.width, d.height });
+    Color currentBg = d.isHovered ? Color{ 16, 26, 42, 255 } : Color{ 10, 16, 26, 240 };
+    Color borderColor = isSelected ? Config::COLOR_UI_AMBER : (d.isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
     
     Color levelcolor = (d.IsOverclocked()) ? Config::COLOR_OVERCLOCKED : d.GetColor();
 
@@ -95,7 +96,9 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
     DrawLineEx({ d.x, d.tempy }, { d.x, d.tempy + 20 }, 2.5f , d.GetColor());
     DrawLineEx({ d.x + d.width - 20, d.tempy + d.height }, { d.x + d.width, d.height + d.tempy }, 2.5f, d.GetColor());
     
-    
+    if (d.isHovered.is_new_true()){
+        playsoundsmart(hoversound,.5,1.6);
+    }
     //level bar
     const int level_bar_x = d.x + d.width - 85;
     const int level_bar_y = d.tempy + 20;
@@ -123,7 +126,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
     DrawText(d.status.c_str(), d.x + 20, d.tempy + 40, 11, { 110, 140, 160, 255 });
 
 
-    if (isHovered) {
+    if (d.isHovered) {
         float boxW = 280.0f;
         float paddingX = 12.0f;
         float paddingY = 14.0f;
@@ -191,7 +194,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
         Color baseBg = Color{20, 32, 42, 255};
         int targetSlot = -1;
 
-        
+            
         // Up Button
         if (DrawButton(rUp, ButtonType::ArrowUp, alpha, baseBg, Config::COLOR_GRID_LINE, borderCol, textCol)) {
             if (d.slot > 0) targetSlot = d.slot - 1;
@@ -236,6 +239,7 @@ void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected,
             }
         }
     }
+    d.isHovered.update();
 }
 
 

@@ -90,8 +90,6 @@ bool IsNodeSelectable(MapNode* target) {
     MapNode* current = FindNodeById(state.currentNodeId);
     if (!current) return false;
     
-    if (target->isEncrypted && !state.showEncrypted) return false;
-    
     if (state.spoofActive) {
         return (target->column == current->column && target->id != current->id);
     }
@@ -335,9 +333,7 @@ void DrawMap(void) {
             if (CheckCollisionPointCircle(worldMousePos, n->position, 22.0f)) {
                 state.selectedNode = n;
 
-                if (n->isEncrypted && !state.showEncrypted) {
-                    continue;
-                }
+                //if (n->isEncrypted && !state.showEncrypted) {continue;}
 
                 if (!IsTransitioning() && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     if (state.ddosTargetMode) {
@@ -470,7 +466,7 @@ void DrawMap(void) {
         bool columnHasSelectable = false;
         for (int r = 0; r < state.columnNodeCounts[c]; r++) {
             MapNode* n = &state.nodes[c][r];
-            if (n->isEncrypted && !state.showEncrypted) continue;
+            //if (n->isEncrypted && !state.showEncrypted) continue;
             if (IsNodeSelectable(n)) { columnHasSelectable = true; break; }
         }
 
@@ -493,10 +489,7 @@ void DrawMap(void) {
                 DrawEncryptedPlaceholder(n->position, 16.0f, state.timeRunning);
                 continue;
             }
-
             float radius = (n->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
-
-
             Color coreColor = GetNodeColor(n->type, n->alertState);
 
             if (n->type == RAW_PACKET_STREAM && !n->isRevealed) {
@@ -576,12 +569,10 @@ void DrawMap(void) {
                 if (!IsSoundPlaying(glitchloopsound)) {
                     playsoundsmart(glitchloopsound,.35,.9);
                 }
-            } else {
-                if (IsSoundPlaying(glitchloopsound)) {
-                    StopSound(glitchloopsound);
-                }
             }
-
+            if (!isHovering){
+                StopSound(glitchloopsound);
+            }
             DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
             DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(MAGENTA, 0.5f));
             DrawText(lockedText, screenPos.x - lockedWidth / 2, bg_y + 9, 11, MAGENTA);

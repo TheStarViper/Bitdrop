@@ -36,7 +36,8 @@ public:
     int price;
     const IconGrid* iconMatrix;
     DaemonTriggersType triggertype;
-
+    smartbool isHovered;
+    
     //daemon tools
     int counterState = 0;
     float multiplierState = 1.0f;
@@ -127,12 +128,11 @@ public:
 };
 
 void PrepDrawCyberpunkDaemonSlots();
-void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
+void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
 void initdaemons();
 void ProcessLineFades(GameEngine& eng);
 void DrawFadingLines(const GameEngine& eng);
 void PrepDrawCyberpunkDaemonSlots();
-void DrawCyberpunkDaemonSlot(const Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex);
 void initdaemons();
 void ProcessLineFades(GameEngine& eng);
 void DrawFadingLines(const GameEngine& eng);

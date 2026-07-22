@@ -15,25 +15,21 @@
 #include "raymath.h"
 #include "raymath.h"
 #include "audio.hpp"
-//Update 12:
-//audio
-//shop polish with hovers
-
 //Update 13:
 //consumables
 //consumable that turns encrypted off selected map node
 
 //Update 14:
-//make black market a normal shop and add nodes that are black market with special daemons
-
-//Update 15:
 //screen shake
 //more animations
-
 
 //General
 //more daemons
 //clean up code for more efficiency
+
+
+//Update eventually:
+//make black market a normal shop and add nodes that are black market with special daemons
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
@@ -143,6 +139,7 @@ void InjectProbeFromTurret() {
 }
 
 void RequestGameStateChange(State newState) {
+    StopSound(glitchloopsound);
     if (transition.phase != TRANS_NONE) return;
     transition.phase = TRANS_GLITCH_OUT;
     transition.timer = 0.0f;
@@ -150,6 +147,7 @@ void RequestGameStateChange(State newState) {
     float pitch = GetRandomValue(80,120)/100;
     playsoundsmart(transitionsound,.8,pitch);
 }
+
 float GetTransitionProgress(void) {
     if (transition.phase == TRANS_GLITCH_OUT) {
         return Clamp(transition.timer / transition.duration, 0.0f, 1.0f);

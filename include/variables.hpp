@@ -90,6 +90,8 @@ struct smartbool { //from my other project
 
     State state = False;
 
+    smartbool() = default;
+    smartbool(bool value) { set(value); }
     void operator=(bool value) {this->set(value);}
     operator bool() const {return state != False; }
     bool is_new_true() const { return state == NewTrue; }
@@ -181,6 +183,7 @@ struct ShopState {
     bool sold[5] = { false, false, false, false, false };
     bool needsRefresh;
     int rerolls = 1;
+    smartbool hoverStates[5];
 };
 
 struct GameEngine {

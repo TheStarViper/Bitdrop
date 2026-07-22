@@ -7,7 +7,7 @@
 #include "variables.hpp"
 #include "button.hpp"
 #include "main.hpp"
-
+#include "audio.hpp"
 struct RerollGlitchState {
     float timer = 0.0f;
     float duration = 0.25f;
@@ -26,26 +26,34 @@ void UpdateRerollGlitch(void) {
     if (!rerollGlitch.active) return;
     rerollGlitch.timer += GetFrameTime();
     if (rerollGlitch.timer >= rerollGlitch.duration) {
+        
         rerollGlitch.active = false;
         rerollGlitch.timer = 0.0f;
     }
 }
 
-void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold) {
+void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbool& hoverState) {
     const float gap = 8.0f;
     const float mainBoxWidth = Config::shopitemtotalWidth - Config::shopbuyitembuttonWidth - gap;
     Color mainColor   = iteminfo.GetColor();
     Color dimColor    = (Color){ static_cast<unsigned char>(mainColor.r * 0.4f), static_cast<unsigned char>(mainColor.g * 0.4f), static_cast<unsigned char>(mainColor.b * 0.4f), 255 };
     Color textDim     = (Color){ static_cast<unsigned char>(mainColor.r * 0.7f), static_cast<unsigned char>(mainColor.g * 0.7f), static_cast<unsigned char>(mainColor.b * 0.7f), 255 };
-    
+
     Rectangle btnRect = { pos.x+Config::shopitemtotalWidth-Config::shopbuyitembuttonWidth, pos.y, Config::shopbuyitembuttonWidth, Config::shopitemtotalHeight };
     Rectangle mainRect = { pos.x, pos.y, mainBoxWidth, Config::shopitemtotalHeight };
 
+    Vector2 mousePos = GetMousePosition();
+    bool rawHover = CheckCollisionPointRec(mousePos, mainRect) && !isSlotSold;
+    hoverState = rawHover;
+    if (hoverState.is_new_true()) {
+        PlaySound(hoversound);
+    }
+
+    bool isHovered = hoverState;
     Rectangle innerBtn = { btnRect.x + 8, btnRect.y + 14, btnRect.width - 16, btnRect.height - 36 };
     bool hasFunds = (gamestate.balance >= iteminfo.price);
-
     bool buyClicked = false;
-    unsigned char alpha = 255; 
+    unsigned char alpha = 255;
 
     if (isSlotSold) {
         Color soldBg = { 20, 20, 20, 255 };
@@ -78,39 +86,57 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold) {
         stagingbuy.updateYPosition();
         activedaemoninfo.daemons.push_back(stagingbuy);
         gamestate.balance -= iteminfo.price;
-        
-        isSlotSold = true; 
+
+        isSlotSold = true;
     }
-    // if (iteminfo.iconMatrix != nullptr) {
-    //     const IconGrid& grid = *iteminfo.iconMatrix;
-    //     for (int y = 0; y < 16; ++y) {
-    //         for (int x = 0; x < 16; ++x) {
-    //             if (grid[y][x]) {
-    //                 DrawRectangle(
-    //                     iconPos.x + (x * pixelScale),
-    //                     iconPos.y + (y * pixelScale),
-    //                     pixelScale,
-    //                     pixelScale,
-    //                     mainColor
-    //                 );
-    //             }
-    //         }
-    //     }
-    // }
-    DrawRectangleRec(mainRect, Config::colorBg);
+
+    Color mainFillColor = Config::colorBg;
+    if (isHovered) {
+        mainFillColor = (Color){
+            static_cast<unsigned char>(Config::colorBg.r + (255 - Config::colorBg.r) * 0.15f),
+            static_cast<unsigned char>(Config::colorBg.g + (255 - Config::colorBg.g) * 0.15f),
+            static_cast<unsigned char>(Config::colorBg.b + (255 - Config::colorBg.b) * 0.15f),
+            255
+        };
+    }
+
+    DrawRectangleRec(mainRect, mainFillColor);
     DrawRectangleLinesEx(mainRect, 1, dimColor);
+    if (isHovered) {
+        DrawRectangleLinesEx(mainRect, 2, mainColor);
+    }
     DrawRectangle(mainRect.x, mainRect.y, 10, 3, mainColor);
     DrawRectangle(mainRect.x, mainRect.y, 3, 10, mainColor);
     DrawRectangle(mainRect.x + mainRect.width - 10, mainRect.y + mainRect.height - 3, 10, 3, mainColor);
-    const float targetIconSize = 48.0f; 
+    const float targetIconSize = 48.0f;
     Vector2 iconPos = { mainRect.x + 14, mainRect.y + (mainRect.height - targetIconSize) / 2 };
 
     DrawRectangleLinesEx((Rectangle){ iconPos.x, iconPos.y, targetIconSize, targetIconSize }, 2, mainColor);
+
+    if (iteminfo.iconMatrix != nullptr) {
+        const IconGrid& grid = *iteminfo.iconMatrix;
+        const float pixelScale = targetIconSize / 16.0f;
+
+        for (int y = 0; y < 16; ++y) {
+            for (int x = 0; x < 16; ++x) {
+                if (grid[y][x]) {
+                    DrawRectangle(
+                        (int)roundf(iconPos.x + (x * pixelScale)),
+                        (int)roundf(iconPos.y + (y * pixelScale)),
+                        (int)ceilf(pixelScale),
+                        (int)ceilf(pixelScale),
+                        mainColor
+                    );
+                }
+            }
+        }
+    }
+
     float textStartX = iconPos.x + targetIconSize + 16;
 
     DrawText(iteminfo.GetName().c_str(), textStartX, mainRect.y + 12, 20, mainColor);
     DrawText(iteminfo.GetDesc().c_str(), textStartX, mainRect.y + 40, 11, textDim);
-    
+
     int lvlWidth = MeasureText(std::to_string(iteminfo.GetLevel()).c_str(), 13);
     DrawText(std::to_string(iteminfo.GetLevel()).c_str(), mainRect.x + mainRect.width - lvlWidth - 14, mainRect.y + 12, 13, textDim);
 
@@ -125,7 +151,10 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold) {
         DrawRectangle(mainRect.x + 12, mainRect.y + (mainRect.height - 24) / 2, bannerWidth + 16, 24, (Color){ 45, 12, 12, 230 });
         DrawText("OUT OF STOCK", mainRect.x + 20, mainRect.y + (mainRect.height - 16) / 2, 16, Config::colorRedAlert);
     }
+
+    hoverState.update();
 }
+
 
 void GenerateShopPool() {
     std::vector<int> pool;
@@ -183,9 +212,10 @@ void drawshop() {
         int daemonIdx = shopstate.slots[i];
         if (daemonIdx != -1) {
             DrawShopItem(
-                (Vector2){ 75, Config::shopitemsYbuffer + (80 * i) }, 
-                engine.daemons[daemonIdx], 
-                shopstate.sold[i]
+                (Vector2){ 75, Config::shopitemsYbuffer + (80 * i) },
+                engine.daemons[daemonIdx],
+                shopstate.sold[i],
+                shopstate.hoverStates[i]
             );
         }
     }
