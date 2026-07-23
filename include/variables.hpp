@@ -44,6 +44,10 @@ namespace Config {
     constexpr int totalmapcolumns = 16;
     constexpr float mapscrollspeed = 50.0f;
 
+    //consumables
+
+
+    
     constexpr float exponentialmapscoregrowth = 0.30f;
     //colors
     const Color COLOR_BG = { 4, 8, 12, 255 };

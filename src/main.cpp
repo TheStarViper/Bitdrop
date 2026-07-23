@@ -15,6 +15,7 @@
 #include "raymath.h"
 #include "raymath.h"
 #include "audio.hpp"
+#include "consumables.hpp"
 //Update 13:
 //consumables
 //consumable that turns encrypted off selected map node
@@ -711,14 +712,15 @@ void UpdateDrawFrame(void) {
     if (gamestate.gamestate==MAP){
         DrawMap();
     }
-    PrepDrawCyberpunkDaemonSlots();
-
-    //float walletY = gamestate.gamestate==GAME ? 565.0f : 450.0f;
     DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });
     DrawRectangleLines(Config::walletX, Config::walletY, 420, 65, Config::COLOR_SHARD_BORDER);
     DrawText("ACCOUNT STANDALONE BALANCE LEDGER:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
     std::string walletStr = "CREDITS: $ " + formatWithSpaces((long long)displayedBalance);
     DrawText(walletStr.c_str(), Config::walletX+15, Config::walletY + 26, 22, Config::COLOR_UI_GREEN);
+
+    PrepDrawCyberpunkDaemonSlots();
+    PrepDrawConsumableSlots();
+
     DrawEnergyOrbs();
     EndTextureMode();
     BeginDrawing();

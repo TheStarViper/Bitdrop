@@ -261,9 +261,9 @@ void drawshop() {
         return;
     }
     
-    const static int rerollsprice = 100;
+    const static int rerollsprice = 500;
     bool affordable = false;
-    if (100+shopstate.rerolls*rerollsprice<=gamestate.balance){
+    if (1000+shopstate.rerolls*rerollsprice<=gamestate.balance){
         affordable = true;
     }
     std::string rerollstring ="Reroll $" + std::to_string(100+(shopstate.rerolls*rerollsprice));
