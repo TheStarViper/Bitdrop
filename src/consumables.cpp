@@ -15,6 +15,7 @@ namespace {
     constexpr float SLOT_TOP_MARGIN = 12.0f;
     constexpr float PANEL_CUT = 14.0f;
     int pendingIndex = -1;
+    void* pendingContext = nullptr;
 
     void GetPanelPoints(Rectangle r, float cut, Vector2 out[6]) {
         out[0] = { r.x, r.y };
@@ -73,6 +74,15 @@ int GetPendingConsumableIndex() {
 
 void CancelPendingConsumable() {
     pendingIndex = -1;
+    pendingContext = nullptr;
+}
+
+void SetPendingConsumableContext(void* context) {
+    pendingContext = context;
+}
+
+void* GetPendingConsumableContext() {
+    return pendingContext;
 }
 
 void ResolvePendingConsumable() {
@@ -84,6 +94,7 @@ void ResolvePendingConsumable() {
     if (c.useFn) c.useFn(c);
     activeconsumableinfo.consumables.erase(activeconsumableinfo.consumables.begin() + pendingIndex);
     pendingIndex = -1;
+    pendingContext = nullptr;
     for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
         activeconsumableinfo.consumables[i].slot = (int)i + 1;
         activeconsumableinfo.consumables[i].updatePosition();
@@ -258,8 +269,8 @@ void PrepDrawConsumableSlots() {
         activeconsumableinfo.consumables.push_back(Consumable("Reroll", "Reroll all shop offers once", Config::COLOR_UI_AMBER, 120, ConsumableEffectType::INSTANT, UseRerollCharge));
         activeconsumableinfo.consumables.push_back(Consumable("Overclock", "Temporarily overclock a random daemon", Config::MAGENTA_DAEMON, 180, ConsumableEffectType::INSTANT, UseOverclockBooster));
         activeconsumableinfo.consumables.push_back(Consumable("Board Wipe", "Clear all active glitch modifiers from the board", Config::COLOR_UI_GREEN, 200, ConsumableEffectType::BOARD_TARGET, UseBoardWipeCharge));
-        activeconsumableinfo.consumables.push_back(Consumable("Fire Sale", "Liquidate every daemon in your hand for its full sell value", Config::COLOR_UI_AMBER, 60, ConsumableEffectType::INSTANT, UseLiquidateAssets));
-
+        activeconsumableinfo.consumables.push_back(Consumable("Fire Sale", "every daemon in your hand adds its full sell value to your balance", Config::COLOR_UI_AMBER, 60, ConsumableEffectType::INSTANT, firesale));
+        activeconsumableinfo.consumables.push_back(Consumable("Decrypt", "Select an encrypted node on the map to reveal it", Config::MAGENTA_DAEMON, 150, ConsumableEffectType::BOARD_TARGET, UseDecryptNode));
         for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
             activeconsumableinfo.consumables[i].slot = (int)i + 1;
             activeconsumableinfo.consumables[i].updatePosition();
@@ -344,7 +355,7 @@ void UseOverclockBooster(Consumable&) {
 void UseBoardWipeCharge(Consumable&) {
 }
 
-void UseLiquidateAssets(Consumable& self) {
+void firesale(Consumable& self) {
     Vector2 walletTarget = { Config::walletX + 210.0f, Config::walletY + 32.0f };
     Vector2 consumableOrigin = { self.x + self.width / 2.0f, self.y + self.height / 2.0f };
     float staggerDelay = 0.0f;

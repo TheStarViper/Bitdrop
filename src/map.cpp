@@ -14,8 +14,16 @@
 #include <algorithm>
 #include "audio.hpp"
 #include "transition.hpp"
+#include "consumables.hpp"
 
 static Mapstate state;
+constexpr float DECRYPT_FADE_DURATION = 0.6f;
+
+Color ScaleAlpha(Color c, float mul) {
+    c.a = (unsigned char)(c.a * mul);
+    return c;
+}
+
 
 int ClampInteger(int value, int min, int max) {
     if (value < min) return min;
@@ -83,6 +91,15 @@ void SimulateNodeClear(MapNode* node, float tracePercentage) {
     }
 }
 
+void UseDecryptNode(Consumable&) {
+    MapNode* target = static_cast<MapNode*>(GetPendingConsumableContext());
+    if (target && target->isEncrypted && !target->isDecrypting) {
+        target->isDecrypting = true;
+        target->decryptTimer = DECRYPT_FADE_DURATION;
+    }
+}
+
+
 bool IsNodeSelectable(MapNode* target) {
     if (state.currentNodeId == -1) {
         return (target->column == 0);
@@ -124,6 +141,8 @@ void GenerateTopologyMap() {
             n->alertState = 0.0f;
             n->connectionCount = 0;
             n->isRevealed = false;
+            n->isDecrypting = false;
+            n->decryptTimer = 0.0f;
             static float baseScore = 204800.0f;
             float exponentVariance = GetRandomValue(70, 130) / 100.0f;
             float randomizedExponent = (float)c * exponentVariance;
@@ -241,7 +260,7 @@ void GenerateTopologyMap() {
     }
 }
 
-void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time) {
+void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time, float alphaMul) {
     float flicker = (sinf(time * 17.0f) * 0.5f + 0.5f) * (sinf(time * 6.3f) * 0.5f + 0.5f);
     bool visibleFrame = (GetRandomValue(0, 100) < 85);
 
@@ -249,8 +268,8 @@ void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time) {
 
     Color staticColor = (Color){ 0, 255, 140, (unsigned char)(120 + flicker * 100) };
 
-    DrawCircleV(pos, radius, Fade((Color){ 20, 30, 25, 255 }, 0.6f));
-    DrawCircleLinesV(pos, radius, Fade(staticColor, 0.5f));
+    DrawCircleV(pos, radius, ScaleAlpha(Fade((Color){ 20, 30, 25, 255 }, 0.6f), alphaMul));
+    DrawCircleLinesV(pos, radius, ScaleAlpha(Fade(staticColor, 0.5f), alphaMul));
 
     int barCount = GetRandomValue(2, 5);
     for (int i = 0; i < barCount; i++) {
@@ -264,14 +283,14 @@ void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time) {
             (int)barY,
             (int)barWidth,
             (int)barHeight,
-            Fade(staticColor, 0.5f + flicker * 0.5f)
+            ScaleAlpha(Fade(staticColor, 0.5f + flicker * 0.5f), alphaMul)
         );
     }
 
     if (GetRandomValue(0, 100) < 8) {
         Vector2 spikePos = { pos.x + GetRandomValue(-(int)radius, (int)radius) * 0.6f,
                               pos.y + GetRandomValue(-(int)radius, (int)radius) * 0.6f };
-        DrawCircleV(spikePos, 2.0f, Fade(WHITE, 0.8f));
+        DrawCircleV(spikePos, 2.0f, ScaleAlpha(Fade(WHITE, 0.8f), alphaMul));
     }
 
     const char* symb = "?";
@@ -280,7 +299,7 @@ void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time) {
     int jitterX = GetRandomValue(-1, 1);
     int jitterY = GetRandomValue(-1, 1);
     DrawText(symb, (int)(pos.x - textW / 2 + jitterX), (int)(pos.y - fontSize / 2 + jitterY),
-        fontSize, Fade(staticColor, 0.7f));
+        fontSize, ScaleAlpha(Fade(staticColor, 0.7f), alphaMul));
 }
 
 void InitMap() {
@@ -343,6 +362,12 @@ void DrawMap(void) {
                             n->revealedType = SYS_WORKSTATION;
                             state.ddosAttacks--;
                             state.ddosTargetMode = false;
+                        }
+                    }
+                    else if (IsConsumablePending()) {
+                        if (n->isEncrypted) {
+                            SetPendingConsumableContext(n);
+                            ResolvePendingConsumable();
                         }
                     }
                     else if (IsNodeSelectable(n)) {
@@ -486,8 +511,19 @@ void DrawMap(void) {
         for (int r = 0; r < state.columnNodeCounts[c]; r++) {
             MapNode* n = &state.nodes[c][r];
 
-            if (n->isEncrypted && !state.showEncrypted) {
-                DrawEncryptedPlaceholder(n->position, 16.0f, state.timeRunning);
+            bool glitchOverlayActive = n->isDecrypting;
+            float glitchAlpha = 1.0f;
+
+            if (glitchOverlayActive) {
+                n->decryptTimer -= GetFrameTime();
+                glitchAlpha = std::max(0.0f, n->decryptTimer / DECRYPT_FADE_DURATION);
+                if (n->decryptTimer <= 0.0f) {
+                    n->isDecrypting = false;
+                    n->isEncrypted = false;
+                    n->isRevealed = true;
+                }
+            } else if (n->isEncrypted && !state.showEncrypted) {
+                DrawEncryptedPlaceholder(n->position, 16.0f, state.timeRunning, 1.0f);
                 continue;
             }
             float radius = (n->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
@@ -519,6 +555,10 @@ void DrawMap(void) {
 
             if (n->isEncrypted) {
                 DrawText("[ENC]", (int)n->position.x, (int)n->position.y - (int)radius - 14, 9, MAGENTA);
+            }
+
+            if (glitchOverlayActive && glitchAlpha > 0.01f) {
+                DrawEncryptedPlaceholder(n->position, 16.0f, state.timeRunning, glitchAlpha);
             }
         }
     }
@@ -567,9 +607,12 @@ void DrawMap(void) {
             static bool wasHoveringGlitch = false;
             bool isHovering = CheckCollisionPointRec(GetMousePosition(), posthing) && IsWindowFocused();
 
-            if (isHovering && !wasHoveringGlitch) {
+            if (isHovering && !wasHoveringGlitch && !IsConsumablePending()) {
                 playsoundsmart(glitchloopsound, .35f, .9f);
             } else if (!isHovering && wasHoveringGlitch) {
+                StopSound(glitchloopsound);
+            }
+            if (IsConsumablePending()){
                 StopSound(glitchloopsound);
             }
             wasHoveringGlitch = isHovering;
@@ -607,7 +650,7 @@ void DrawMap(void) {
         float minoffset = (sn->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
         float maxoffset = (sn->type == MAINFRAME_GATEWAY) ? 30.0f : 18.0f;
         float offset = GetPulseOffset(minoffset, maxoffset, 10.0f, Easings::EaseInOutQuad);
-        Color pulseColor = Fade(GREEN, 255);
+        Color pulseColor = Fade(IsConsumablePending() ? ORANGE : GREEN, 255);
 
         float bracketSize = 6.0f;
         float thickness = 2.0f;

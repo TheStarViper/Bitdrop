@@ -23,6 +23,8 @@ typedef struct MapNode {
     float alertState;      
     bool isEncrypted;
     bool isRevealed;       
+    bool isDecrypting;
+    float decryptTimer;     
     
     int connections[Config::maxmapconnections];
     int connectionCount;

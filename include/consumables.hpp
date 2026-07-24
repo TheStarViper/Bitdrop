@@ -51,8 +51,11 @@ bool IsConsumablePending();
 int GetPendingConsumableIndex();
 void CancelPendingConsumable();
 void ResolvePendingConsumable();
+void SetPendingConsumableContext(void* context);
+void* GetPendingConsumableContext();
 
 void UseRerollCharge(Consumable& self);
 void UseOverclockBooster(Consumable& self);
 void UseBoardWipeCharge(Consumable& self);
-void UseLiquidateAssets(Consumable& self);
+void firesale(Consumable& self);
+void UseDecryptNode(Consumable& self);

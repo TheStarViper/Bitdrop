@@ -19,7 +19,6 @@
 #include "payout.hpp"
 #include "transition.hpp"
 //Update 14:
-//consumables
 //consumable that turns encrypted off selected map node
 //move cursor over glitched node a bunch of times it gets stuck
 
@@ -59,6 +58,25 @@ std::string FormatByteSize(long double bytes) {
     }
     return stream.str();
 }
+
+std::string formatWithSpaces(long long int num) {
+    std::string str = std::to_string(num);
+    std::string result = "";
+    int count = 0;
+
+    for (int i = str.length() - 1; i >= 0; i--) {
+        if (count == 3) {
+            result += " ";
+            count = 0;
+        }
+        result += str[i];
+        count++;
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
 
 void InitGame() {
     InitMap();
@@ -162,23 +180,6 @@ void UpdateDisplayedBalance() {
     }
 }
 
-std::string formatWithSpaces(long long int num) {
-    std::string str = std::to_string(num);
-    std::string result = "";
-    int count = 0;
-
-    for (int i = str.length() - 1; i >= 0; i--) {
-        if (count == 3) {
-            result += " ";
-            count = 0;
-        }
-        result += str[i];
-        count++;
-    }
-
-    std::reverse(result.begin(), result.end());
-    return result;
-}
 
 void UpdatePhysics(float dt) {
     
