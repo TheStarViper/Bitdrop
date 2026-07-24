@@ -46,7 +46,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     bool rawHover = CheckCollisionPointRec(mousePos, mainRect) && !isSlotSold;
     hoverState = rawHover;
     if (hoverState.is_new_true()) {
-        PlaySound(hoversound);
+        playsoundsmart(hoversound,.1,1.6);
     }
 
     bool isHovered = hoverState;

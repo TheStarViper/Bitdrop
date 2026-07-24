@@ -563,16 +563,15 @@ void DrawMap(void) {
                 hoverRadius * 2,
                 hoverRadius * 2
             };
-            bool isHovering = CheckCollisionPointRec(GetMousePosition(), posthing);
+            static bool wasHoveringGlitch = false;
+            bool isHovering = CheckCollisionPointRec(GetMousePosition(), posthing) && IsWindowFocused();
 
-            if (isHovering) {
-                if (!IsSoundPlaying(glitchloopsound)) {
-                    playsoundsmart(glitchloopsound,.35,.9);
-                }
-            }
-            if (!isHovering){
+            if (isHovering && !wasHoveringGlitch) {
+                playsoundsmart(glitchloopsound, .35f, .9f);
+            } else if (!isHovering && wasHoveringGlitch) {
                 StopSound(glitchloopsound);
             }
+            wasHoveringGlitch = isHovering;
             DrawRectangle(bg_x, bg_y, bg_width, bg_height, Fade(BLACK, 0.7f));
             DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(MAGENTA, 0.5f));
             DrawText(lockedText, screenPos.x - lockedWidth / 2, bg_y + 9, 11, MAGENTA);

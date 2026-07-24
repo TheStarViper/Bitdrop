@@ -97,7 +97,7 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
     DrawLineEx({ d.x + d.width - 20, d.tempy + d.height }, { d.x + d.width, d.height + d.tempy }, 2.5f, d.GetColor());
     
     if (d.isHovered.is_new_true()){
-        playsoundsmart(hoversound,.5,1.6);
+        playsoundsmart(hoversound,.1,1.6);
     }
     //level bar
     const int level_bar_x = d.x + d.width - 85;

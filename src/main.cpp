@@ -19,10 +19,12 @@
 //Update 13:
 //consumables
 //consumable that turns encrypted off selected map node
+//move cursor over glitched node a bunch of times it gets stuck
 
 //Update 14:
 //screen shake
 //more animations
+//map cooler node graphics
 
 //General
 //more daemons
@@ -633,7 +635,7 @@ void UpdateDrawFrame(void) {
         for (const auto& basket : engine.baskets) {
             DrawRectangleRec(basket.bounds, Config::COLOR_BASKET);
             DrawRectangleLinesEx(basket.bounds, 1.0f, Config::COLOR_GRID_LINE);
-            std::string txt = std::to_string(basket.multiplier).substr(0, 3) + "x";
+            std::string txt = std::to_string(basket.multiplierwa).substr(0, 3) + "x";
             DrawText(txt.c_str(), basket.bounds.x + ((basket.bounds.width - MeasureText(txt.c_str(), 10)) / 2), basket.bounds.y + 5, 10, Config::COLOR_UI_AMBER);
         }
         for (const auto& node : engine.nodes) { 

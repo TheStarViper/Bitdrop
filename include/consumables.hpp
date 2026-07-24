@@ -25,7 +25,7 @@ struct Consumable {
 
     bool isHovered = false;
     bool wasHovered = false;
-    float expansion = 0.0f;
+    float expansionTimer = 0.0f;
 
     Consumable(std::string n, std::string desc, Color c, int sellVal, ConsumableEffectType type,
                void (*fn)(Consumable&), Texture2D* ic = nullptr)
@@ -33,6 +33,8 @@ struct Consumable {
           effectType(type), useFn(fn), icon(ic) {}
 
     void updatePosition();
+    void UpdateExpansion(float dt, bool isSelected);
+    float GetExpansion() const;
 };
 
 struct ConsumableInventory {

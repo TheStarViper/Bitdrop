@@ -2,6 +2,7 @@
 #include "variables.hpp"
 #include "button.hpp"
 #include "audio.hpp"
+#include "easing_functions.hpp"
 #include <sstream>
 #include <vector>
 #include <algorithm>
@@ -48,6 +49,20 @@ void Consumable::updatePosition() {
     y = Config::walletY + 65.0f + SLOT_TOP_MARGIN;
 }
 
+void Consumable::UpdateExpansion(float dt, bool isSelected) {
+    if (isSelected) {
+        expansionTimer += dt * 8.0f;
+        if (expansionTimer > 1.0f) expansionTimer = 1.0f;
+    } else {
+        expansionTimer -= dt * 8.0f;
+        if (expansionTimer < 0.0f) expansionTimer = 0.0f;
+    }
+}
+
+float Consumable::GetExpansion() const {
+    return Easings::EaseInOutQuart(expansionTimer);
+}
+
 bool IsConsumablePending() {
     return pendingIndex != -1;
 }
@@ -63,7 +78,7 @@ void CancelPendingConsumable() {
 void ResolvePendingConsumable() {
     if (pendingIndex < 0 || pendingIndex >= (int)activeconsumableinfo.consumables.size()) {
         pendingIndex = -1;
-        return;
+        return; 
     }
     auto& c = activeconsumableinfo.consumables[pendingIndex];
     if (c.useFn) c.useFn(c);
@@ -93,7 +108,7 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
     c.isHovered = CheckCollisionPointRec(mousePos, { c.x, c.y, c.width, c.height });
 
     if (c.isHovered && !c.wasHovered) {
-        playsoundsmart(hoversound, .5f, 1.6f);
+        playsoundsmart(hoversound, .1,2.5);
     }
     c.wasHovered = c.isHovered;
 
@@ -151,13 +166,13 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
     }
 
     int action = 0;
-    float easeProgress = 1.0f - powf(1.0f - c.expansion, 3.0f);
+    float easeProgress = c.GetExpansion();
 
     if (isPendingThis) {
         Rectangle cancelBtn = { c.x + 8, c.y + c.height - 24, c.width - 16, 16 };
         bool cancelClicked = DrawButton(cancelBtn, ButtonType::TextGeneric, 255, Color{ 45, 15, 20, 255 }, Color{ 180, 40, 40, 255 }, Config::COLOR_UI_AMBER, WHITE, "CANCEL", 10);
         if (cancelClicked) action = -1;
-    } else if (c.expansion > 0.01f && !otherPending) {
+    } else if (c.expansionTimer > 0.01f && !otherPending) {
         unsigned char alpha = (unsigned char)(easeProgress * 255);
         float slideOffset = (1.0f - easeProgress) * 12.0f;
         float bY = (c.y + c.height - 28.0f) + slideOffset;
@@ -179,8 +194,11 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
         Color sellHoverBg = Color{ 180, 40, 40, 255 };
         bool sellClicked = DrawButton(sellBtn, ButtonType::TextGeneric, alpha, sellNormalBg, sellHoverBg, amberCol, textCol, sellText.c_str(), 10);
 
-        if (useClicked) action = 1;
-        else if (sellClicked) action = 2;
+        bool buttonsInteractive = c.expansionTimer >= 0.9f;
+        if (buttonsInteractive) {
+            if (useClicked) action = 1;
+            else if (sellClicked) action = 2;
+        }
     }
 
     if (c.isHovered && !c.description.empty()) {
@@ -268,7 +286,6 @@ void PrepDrawConsumableSlots() {
     }
 
     float dt = GetFrameTime() * Config::GAME_SPEED;
-    float expansionSpeed = 6.0f;
 
     int actedIndex = -1;
     int actedAction = 0;
@@ -276,8 +293,7 @@ void PrepDrawConsumableSlots() {
     for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
         auto& c = activeconsumableinfo.consumables[i];
         bool isSelected = (selectedIndex == (int)i);
-        c.expansion = isSelected ? std::min(1.0f, c.expansion + dt * expansionSpeed)
-                                  : std::max(0.0f, c.expansion - dt * expansionSpeed);
+        c.UpdateExpansion(dt, isSelected);
 
         int action = DrawConsumableSlot(c, mPos, (int)i, isSelected);
         if (action != 0 && actedIndex == -1) {
