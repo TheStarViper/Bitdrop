@@ -47,7 +47,7 @@ namespace Config {
     //consumables
 
 
-    
+
     constexpr float exponentialmapscoregrowth = 0.30f;
     //colors
     const Color COLOR_BG = { 4, 8, 12, 255 };
@@ -171,10 +171,6 @@ struct CashoutParticle {
     Color color;
 };
 
-struct DaemonsDisplayInfo {
-    std::vector<Daemon> daemons;
-    int page;
-};
 
 struct PendingTrigger {
     int daemonIndex;
@@ -220,6 +216,11 @@ struct LevelState{
     long double TARGET_QUOTA_BYTES; 
     long double scoredbytes;
     int reward;
+};
+
+struct DaemonsDisplayInfo {
+    std::vector<Daemon> daemons;
+    int page;
 };
 
 inline DaemonsDisplayInfo activedaemoninfo;

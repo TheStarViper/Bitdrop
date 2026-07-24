@@ -55,3 +55,4 @@ void ResolvePendingConsumable();
 void UseRerollCharge(Consumable& self);
 void UseOverclockBooster(Consumable& self);
 void UseBoardWipeCharge(Consumable& self);
+void UseLiquidateAssets(Consumable& self);

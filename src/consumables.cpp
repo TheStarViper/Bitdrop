@@ -2,15 +2,15 @@
 #include "variables.hpp"
 #include "button.hpp"
 #include "audio.hpp"
-#include "easing_functions.hpp"
 #include <sstream>
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <cctype>
+#include "payout.hpp"
 
 namespace {
-    constexpr int MAX_CONSUMABLE_SLOTS = 2;
+    constexpr int MAX_CONSUMABLE_SLOTS = 4;
     constexpr float SLOT_GAP = 8.0f;
     constexpr float SLOT_TOP_MARGIN = 12.0f;
     constexpr float PANEL_CUT = 14.0f;
@@ -78,7 +78,7 @@ void CancelPendingConsumable() {
 void ResolvePendingConsumable() {
     if (pendingIndex < 0 || pendingIndex >= (int)activeconsumableinfo.consumables.size()) {
         pendingIndex = -1;
-        return; 
+        return;
     }
     auto& c = activeconsumableinfo.consumables[pendingIndex];
     if (c.useFn) c.useFn(c);
@@ -108,7 +108,7 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
     c.isHovered = CheckCollisionPointRec(mousePos, { c.x, c.y, c.width, c.height });
 
     if (c.isHovered && !c.wasHovered) {
-        playsoundsmart(hoversound, .1,2.5);
+        playsoundsmart(hoversound, .5f, 1.6f);
     }
     c.wasHovered = c.isHovered;
 
@@ -180,6 +180,7 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
         DrawLineEx({ c.x + 8, bY - 6 }, { c.x + c.width - 8, bY - 6 }, 1.0f, Fade(WHITE, 0.08f * easeProgress));
 
         Color amberCol = { Config::COLOR_UI_AMBER.r, Config::COLOR_UI_AMBER.g, Config::COLOR_UI_AMBER.b, alpha };
+        Color greenCol = { Config::COLOR_UI_GREEN.r, Config::COLOR_UI_GREEN.g, Config::COLOR_UI_GREEN.b, alpha };
         Color textCol = { 255, 255, 255, alpha };
 
         Rectangle useBtn = { c.x + 8, bY, (c.width - 24) / 2.0f, 20 };
@@ -187,7 +188,7 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
 
         Color useNormalBg = Color{ 15, 35, 20, 255 };
         Color useHoverBg = Color{ 40, 140, 60, 255 };
-        bool useClicked = DrawButton(useBtn, ButtonType::TextGeneric, alpha, useNormalBg, useHoverBg, Config::COLOR_UI_GREEN, textCol, "USE", 10);
+        bool useClicked = DrawButton(useBtn, ButtonType::TextGeneric, alpha, useNormalBg, useHoverBg, greenCol, textCol, "USE", 10);
 
         std::string sellText = "$" + std::to_string(c.sellValue);
         Color sellNormalBg = Color{ 45, 15, 20, 255 };
@@ -257,6 +258,7 @@ void PrepDrawConsumableSlots() {
         activeconsumableinfo.consumables.push_back(Consumable("Reroll", "Reroll all shop offers once", Config::COLOR_UI_AMBER, 120, ConsumableEffectType::INSTANT, UseRerollCharge));
         activeconsumableinfo.consumables.push_back(Consumable("Overclock", "Temporarily overclock a random daemon", Config::MAGENTA_DAEMON, 180, ConsumableEffectType::INSTANT, UseOverclockBooster));
         activeconsumableinfo.consumables.push_back(Consumable("Board Wipe", "Clear all active glitch modifiers from the board", Config::COLOR_UI_GREEN, 200, ConsumableEffectType::BOARD_TARGET, UseBoardWipeCharge));
+        activeconsumableinfo.consumables.push_back(Consumable("Fire Sale", "Liquidate every daemon in your hand for its full sell value", Config::COLOR_UI_AMBER, 60, ConsumableEffectType::INSTANT, UseLiquidateAssets));
 
         for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
             activeconsumableinfo.consumables[i].slot = (int)i + 1;
@@ -340,4 +342,19 @@ void UseOverclockBooster(Consumable&) {
 }
 
 void UseBoardWipeCharge(Consumable&) {
+}
+
+void UseLiquidateAssets(Consumable&) {
+    Vector2 walletTarget = { Config::walletX + 210.0f, Config::walletY + 32.0f };
+    float staggerDelay = 0.0f;
+
+    for (auto& d : activedaemoninfo.daemons) {
+        Vector2 daemonCenter = { d.x + d.width / 2.0f, d.tempy + d.height / 2.0f };
+        int value = d.getsellval();
+        gamestate.balance += value;
+        SpawnEnergyOrb(daemonCenter, walletTarget, value, staggerDelay);
+        staggerDelay += 0.12f;
+    }
+
+    activedaemoninfo.daemons.clear();
 }
