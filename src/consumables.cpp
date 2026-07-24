@@ -108,7 +108,7 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
     c.isHovered = CheckCollisionPointRec(mousePos, { c.x, c.y, c.width, c.height });
 
     if (c.isHovered && !c.wasHovered) {
-        playsoundsmart(hoversound, .5f, 1.6f);
+        playsoundsmart(hoversound, .1f, 1.6f);
     }
     c.wasHovered = c.isHovered;
 
@@ -344,17 +344,14 @@ void UseOverclockBooster(Consumable&) {
 void UseBoardWipeCharge(Consumable&) {
 }
 
-void UseLiquidateAssets(Consumable&) {
+void UseLiquidateAssets(Consumable& self) {
     Vector2 walletTarget = { Config::walletX + 210.0f, Config::walletY + 32.0f };
+    Vector2 consumableOrigin = { self.x + self.width / 2.0f, self.y + self.height / 2.0f };
     float staggerDelay = 0.0f;
 
     for (auto& d : activedaemoninfo.daemons) {
-        Vector2 daemonCenter = { d.x + d.width / 2.0f, d.tempy + d.height / 2.0f };
         int value = d.getsellval();
-        gamestate.balance += value;
-        SpawnEnergyOrb(daemonCenter, walletTarget, value, staggerDelay);
+        SpawnEnergyOrb(consumableOrigin, walletTarget, value, staggerDelay);
         staggerDelay += 0.12f;
     }
-
-    activedaemoninfo.daemons.clear();
 }

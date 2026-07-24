@@ -230,18 +230,7 @@ inline ShopState shopstate;
 inline LevelState levelstate;
 
 
-enum TransitionPhase {
-    TRANS_NONE,
-    TRANS_GLITCH_OUT,
-    TRANS_GLITCH_IN
-};
 
-struct TransitionState {
-    TransitionPhase phase = TRANS_NONE;
-    float timer = 0.0f;
-    float duration = 0.16f;
-    State pendingState;
-};
 
 struct EnergyTrailPoint {
     Vector2 pos;
@@ -264,5 +253,4 @@ struct EnergyOrbInstance {
 
 inline std::vector<EnergyOrbInstance> activeOrbs;
 
-inline TransitionState transition;
 inline RenderTexture2D sceneTarget;

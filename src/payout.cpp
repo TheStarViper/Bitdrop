@@ -1,5 +1,6 @@
 #include "variables.hpp"
 #include <algorithm>
+#include "payout.hpp"
 
 void SpawnEnergyOrb(Vector2 from, Vector2 to, int value, float startDelay) {
     EnergyOrbInstance orb;

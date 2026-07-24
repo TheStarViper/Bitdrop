@@ -8,6 +8,7 @@
 #include "button.hpp"
 #include "main.hpp"
 #include "audio.hpp"
+#include "transition.hpp"
 struct RerollGlitchState {
     float timer = 0.0f;
     float duration = 0.25f;
@@ -263,10 +264,11 @@ void drawshop() {
     
     const static int rerollsprice = 500;
     bool affordable = false;
-    if (1000+shopstate.rerolls*rerollsprice<=gamestate.balance){
+    int currentrerollprice= 900+shopstate.rerolls*rerollsprice;
+    if (currentrerollprice<=gamestate.balance){
         affordable = true;
     }
-    std::string rerollstring ="Reroll $" + std::to_string(100+(shopstate.rerolls*rerollsprice));
+    std::string rerollstring ="Reroll $" + std::to_string(currentrerollprice);
     
     //reroll
     if (DrawButton({830, Config::walletY - 77, 205, 65},
@@ -276,7 +278,7 @@ void drawshop() {
                     Config::COLOR_UI_GREEN, WHITE, 
                     rerollstring.c_str(), 35)) {
         if (affordable){
-            gamestate.balance -=100+shopstate.rerolls*rerollsprice;
+            gamestate.balance -=currentrerollprice;
             shopstate.rerolls +=1;
             GenerateShopPool();
             rerollGlitch.active = true;

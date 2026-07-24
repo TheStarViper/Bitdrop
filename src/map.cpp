@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include "audio.hpp"
+#include "transition.hpp"
 
 static Mapstate state;
 
