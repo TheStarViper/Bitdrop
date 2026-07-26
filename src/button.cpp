@@ -25,7 +25,7 @@ bool DrawButton(Rectangle rect, ButtonType type, unsigned char alpha, Color bgNo
         DrawTriangle(v1, v2, v3, contentCol);
     } 
     else if (type == ButtonType::TextGeneric && text != nullptr) {
-        int textWidth = MeasureText(text, fontSize);
+        int textWidth = MeasureText(text, fontSize); 
         float textX = rect.x + (rect.width - textWidth) / 2.0f;
         float textY = rect.y + (rect.height - fontSize) / 2.0f;
         

@@ -10,7 +10,7 @@
 #include "payout.hpp"
 
 namespace {
-    constexpr int MAX_CONSUMABLE_SLOTS = 4;
+    constexpr int MAX_CONSUMABLE_SLOTS = 2;
     constexpr float SLOT_GAP = 8.0f;
     constexpr float SLOT_TOP_MARGIN = 12.0f;
     constexpr float PANEL_CUT = 14.0f;
@@ -104,7 +104,7 @@ void ResolvePendingConsumable() {
 void DrawConsumableEmptySlot(int slotIndex) {
     Consumable dummy("", "", BLANK, 0, ConsumableEffectType::INSTANT, nullptr);
     dummy.slot = slotIndex;
-    dummy.updatePosition();
+    dummy.updatePosition(); 
 
     Rectangle r = { dummy.x, dummy.y, dummy.width, dummy.height };
     DrawTechPanelFill(r, PANEL_CUT, Color{ 10, 16, 26, 90 });
@@ -353,6 +353,22 @@ void UseOverclockBooster(Consumable&) {
 }
 
 void UseBoardWipeCharge(Consumable&) {
+}
+
+int GetMaxConsumableSlots() {
+    return MAX_CONSUMABLE_SLOTS;
+}
+
+bool TryAddConsumable(const Consumable& tmpl) {
+    if ((int)activeconsumableinfo.consumables.size() >= MAX_CONSUMABLE_SLOTS) {
+        return false;
+    }
+    activeconsumableinfo.consumables.push_back(tmpl);
+    for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
+        activeconsumableinfo.consumables[i].slot = (int)i + 1;
+        activeconsumableinfo.consumables[i].updatePosition();
+    }
+    return true;
 }
 
 void firesale(Consumable& self) {

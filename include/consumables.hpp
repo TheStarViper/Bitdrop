@@ -59,3 +59,6 @@ void UseOverclockBooster(Consumable& self);
 void UseBoardWipeCharge(Consumable& self);
 void firesale(Consumable& self);
 void UseDecryptNode(Consumable& self);
+
+int GetMaxConsumableSlots();
+bool TryAddConsumable(const Consumable& tmpl);

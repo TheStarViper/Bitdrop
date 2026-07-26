@@ -36,7 +36,9 @@ namespace Config {
     constexpr float shopitemtotalHeight = 80.0f;
     constexpr float shopbuyitembuttonWidth = 140.0f;
 
-
+    constexpr float consumablesgap = 14.0f;
+    constexpr float consumableitemsize = shopitemtotalWidth/4-consumablesgap;
+    
     //map
     constexpr int maxmapcolumns = 16;
     constexpr int maxnodespermapcolumn = 4;

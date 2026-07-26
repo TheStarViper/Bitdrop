@@ -18,11 +18,10 @@
 #include "consumables.hpp"
 #include "payout.hpp"
 #include "transition.hpp"
-//Update 14:
-//consumable that turns encrypted off selected map node
-//move cursor over glitched node a bunch of times it gets stuck
-
 //Update 15:
+//consumables shop
+
+//update 16:
 //screen shake
 //more animations
 //map cooler node graphics
@@ -107,7 +106,7 @@ void InitGame() {
     }
     
     float finalRowStartX = 400.0f - (((Config::basketmults.size()-1)*2 - 1) * Config::PegspacingX) / 2.0f;
-    float basketY = 600.0f; 
+    float basketY = 600.0f;
     float basketW = Config::PegspacingX - 8.0f; 
 
     for (int i = 0; i < (Config::basketmults.size()-1)*2 + 1; ++i) {
@@ -341,7 +340,7 @@ void UpdatePhysics(float dt) {
                 i--;
                 absorbed = true;
                 break;
-            }
+            }   
         }
 
         if (absorbed) continue;
