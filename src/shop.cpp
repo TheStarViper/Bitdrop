@@ -427,7 +427,7 @@ void drawshop() {
         int clipX = 70;
         int clipY = (int)Config::shopitemsYbuffer - 5;
         int clipW = Config::shopitemtotalWidth + 15;
-        int clipH = (80 * 5) + 10;
+        int clipH = (int)(consumableRowY + Config::consumableitemsize - clipY) + 10;
 
         BeginScissorMode(clipX, clipY, clipW, clipH);
 

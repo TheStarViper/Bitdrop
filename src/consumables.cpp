@@ -264,24 +264,9 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
 }
 
 void PrepDrawConsumableSlots() {
-    static bool isInitialized = false;
-    if (!isInitialized) {
-        activeconsumableinfo.consumables.push_back(Consumable("Reroll", "Reroll all shop offers once", Config::COLOR_UI_AMBER, 120, ConsumableEffectType::INSTANT, UseRerollCharge));
-        activeconsumableinfo.consumables.push_back(Consumable("Overclock", "Temporarily overclock a random daemon", Config::MAGENTA_DAEMON, 180, ConsumableEffectType::INSTANT, UseOverclockBooster));
-        activeconsumableinfo.consumables.push_back(Consumable("Board Wipe", "Clear all active glitch modifiers from the board", Config::COLOR_UI_GREEN, 200, ConsumableEffectType::BOARD_TARGET, UseBoardWipeCharge));
-        activeconsumableinfo.consumables.push_back(Consumable("Fire Sale", "every daemon in your hand adds its full sell value to your balance", Config::COLOR_UI_AMBER, 60, ConsumableEffectType::INSTANT, firesale));
-        activeconsumableinfo.consumables.push_back(Consumable("Decrypt", "Select an encrypted node on the map to reveal it", Config::MAGENTA_DAEMON, 150, ConsumableEffectType::BOARD_TARGET, UseDecryptNode));
-        for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
-            activeconsumableinfo.consumables[i].slot = (int)i + 1;
-            activeconsumableinfo.consumables[i].updatePosition();
-        }
-        isInitialized = true;
-    }
-
     if (pendingIndex != -1 && IsKeyPressed(KEY_ESCAPE)) {
         pendingIndex = -1;
     }
-
     static int selectedIndex = -1;
     Vector2 mPos = GetMousePosition();
 
