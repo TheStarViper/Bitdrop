@@ -18,9 +18,6 @@
 #include "consumables.hpp"
 #include "payout.hpp"
 #include "transition.hpp"
-//Update 15:
-//consumables shop
-
 //update 16:
 //screen shake
 //more animations
@@ -282,7 +279,7 @@ void UpdatePhysics(float dt) {
                     p.lastHitNodeIndex = (int)nIdx; 
                     node.pulseAnimTimer = 1.0f;
                     
-                    playsoundsmart(nodehitsound,.3,2.4); //node hit sound comment here so i can find easily
+                    playsoundsmart(nodehitsound,.05,3); //node hit sound comment here so i can find easily
                     p.hitCount++;
                     for (size_t i = 0; i < activedaemoninfo.daemons.size(); i++) {
                         if (activedaemoninfo.daemons[i].triggertype == PINS){
