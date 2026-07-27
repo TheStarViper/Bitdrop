@@ -163,6 +163,14 @@ Color ScaleAlpha(Color c, float mul) {
     return c;
 }
 
+Color DarkenColor(Color c, float factor) {
+    return Color{
+        (unsigned char)(c.r * (1.0f - factor)),
+        (unsigned char)(c.g * (1.0f - factor)),
+        (unsigned char)(c.b * (1.0f - factor)),
+        c.a
+    };
+}
 
 int ClampInteger(int value, int min, int max) {
     if (value < min) return min;
@@ -408,7 +416,27 @@ void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time, float alpha
     Color staticColor = (Color){ 0, 255, 140, (unsigned char)(120 + flicker * 100) };
 
     DrawCircleV(pos, radius, ScaleAlpha(Fade((Color){ 20, 30, 25, 255 }, 0.6f), alphaMul));
+
+    float jitterAngle = (GetRandomValue(-15, 15)) * DEG2RAD;
+    float scanAngle = fmodf(time * 55.0f, 360.0f) + jitterAngle * 20.0f;
+    int scanSegments = (GetRandomValue(0, 100) < 70) ? 3 : 2;
+    for (int seg = 0; seg < scanSegments; seg++) {
+        float segStart = scanAngle + seg * (360.0f / scanSegments);
+        float segLen = 20.0f + GetRandomValue(-6, 6);
+        DrawRing(pos, radius + 5.0f, radius + 6.5f, segStart, segStart + segLen, 6, ScaleAlpha(Fade(staticColor, 0.75f), alphaMul));
+    }
+
     DrawCircleLinesV(pos, radius, ScaleAlpha(Fade(staticColor, 0.5f), alphaMul));
+    DrawCircleLinesV(pos, radius - 3.0f, ScaleAlpha(Fade(staticColor, 0.25f + flicker * 0.2f), alphaMul));
+
+    for (int t = 0; t < 4; t++) {
+        if (GetRandomValue(0, 100) < 20) continue;
+        float tickAngle = (45.0f + t * 90.0f + GetRandomValue(-4, 4)) * DEG2RAD;
+        Vector2 tickDir = { cosf(tickAngle), sinf(tickAngle) };
+        Vector2 tickStart = { pos.x + tickDir.x * (radius + 8.0f), pos.y + tickDir.y * (radius + 8.0f) };
+        Vector2 tickEnd = { pos.x + tickDir.x * (radius + 13.0f), pos.y + tickDir.y * (radius + 13.0f) };
+        DrawLineEx(tickStart, tickEnd, 1.5f, ScaleAlpha(Fade(staticColor, 0.5f + flicker * 0.3f), alphaMul));
+    }
 
     int barCount = GetRandomValue(2, 5);
     for (int i = 0; i < barCount; i++) {
@@ -598,7 +626,7 @@ void DrawMap(void) {
                     continue;
                 }
 
-                Color lineCol = (Color){ 0, 80, 20, 150 };
+                Color lineCol = (Color){ 0, 80, 20, 225 };
                 float thickness = 1.5f;
 
                 bool nodeIsCurrent = (state.currentNodeId == n->id);
@@ -673,11 +701,34 @@ void DrawMap(void) {
             }
 
             if (state.currentNodeId == n->id) {
-                DrawCircleV(n->position, radius + 5.0f, WHITE);
+                float ringPulse = (sinf(state.timeRunning * 5.0f) * 0.5f + 0.5f);
+                DrawCircleLinesV(n->position, radius + 6.0f + ringPulse * 2.0f, Fade(WHITE, 0.5f + ringPulse * 0.3f));
+                DrawCircleLinesV(n->position, radius + 9.0f + ringPulse * 2.0f, Fade(WHITE, 0.2f));
             }
 
-            DrawCircleV(n->position, radius, coreColor);
-            DrawCircleLinesV(n->position, radius, (Color){ 255, 255, 255, 180 });
+            if (n->alertState > 0.15f) {
+                float pingT = fmodf(state.timeRunning * 1.5f, 1.0f);
+                float pingRadius = radius + 2.0f + pingT * 14.0f;
+                DrawRing(n->position, pingRadius, pingRadius + 1.5f, 0.0f, 360.0f, 24, Fade((Color){ 255, 40, 40, 255 }, (1.0f - pingT) * n->alertState * 0.8f));
+            }
+
+            DrawCircleV(n->position, radius, DarkenColor(coreColor, 0.75f));
+
+            float scanAngle = fmodf(state.timeRunning * 40.0f, 360.0f);
+            for (int seg = 0; seg < 3; seg++) {
+                float segStart = scanAngle + seg * 120.0f;
+                DrawRing(n->position, radius + 5.0f, radius + 6.5f, segStart, segStart + 28.0f, 8, Fade(coreColor, 0.85f));
+            }
+
+            DrawCircleLinesV(n->position, radius, coreColor);
+
+            for (int t = 0; t < 4; t++) {
+                float tickAngle = (45.0f + t * 90.0f) * DEG2RAD;
+                Vector2 tickDir = { cosf(tickAngle), sinf(tickAngle) };
+                Vector2 tickStart = { n->position.x + tickDir.x * (radius + 8.0f), n->position.y + tickDir.y * (radius + 8.0f) };
+                Vector2 tickEnd = { n->position.x + tickDir.x * (radius + 13.0f), n->position.y + tickDir.y * (radius + 13.0f) };
+                DrawLineEx(tickStart, tickEnd, 1.5f, Fade(coreColor, 0.6f));
+            }
 
             const IconGrid& iconGrid = GetNodeIconGrid(n->type, n->isRevealed);
             float iconSize = radius * 1.3f;
@@ -692,15 +743,15 @@ void DrawMap(void) {
                             (int)roundf(iconTopLeft.y + iy * pixelScale),
                             (int)ceilf(pixelScale),
                             (int)ceilf(pixelScale),
-                            BLACK
+                            Fade(WHITE,.75)
                         );
                     }
                 }
             }
 
-            if (n->isEncrypted) {
-                DrawText("[ENC]", (int)n->position.x, (int)n->position.y - (int)radius - 14, 9, MAGENTA);
-            }
+            // if (n->isEncrypted) {
+            //     DrawText("[ENC]", (int)n->position.x, (int)n->position.y - (int)radius - 14, 9, MAGENTA);
+            // }
 
             if (glitchOverlayActive && glitchAlpha > 0.01f) {
                 DrawEncryptedPlaceholder(n->position, 16.0f, state.timeRunning, glitchAlpha);

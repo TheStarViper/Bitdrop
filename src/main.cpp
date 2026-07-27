@@ -18,10 +18,9 @@
 #include "consumables.hpp"
 #include "payout.hpp"
 #include "transition.hpp"
-//update 16:
+//update 17:
 //screen shake
 //more animations
-//map cooler node graphics
 
 //General
 //more daemons
@@ -30,6 +29,7 @@
 
 //Update eventually:
 //make black market a normal shop and add nodes that are black market with special daemons
+//add insufficient funds and consumables slots full above buy button instead of description box
 
 #if defined(PLATFORM_WEB)
     #include <emscripten.h>
