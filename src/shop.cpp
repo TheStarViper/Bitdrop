@@ -29,6 +29,16 @@ struct ShopConsumableEntry {
     int price;
 };
 
+Texture2D GetShopItemSprite() {
+    static Texture2D tex;
+    static bool loaded = false;
+    if (!loaded) {
+        tex = LoadTexture("assets/shop-item.png");
+        loaded = true;
+    }
+    return tex;
+}
+
 static std::vector<ShopConsumableEntry> consumableShopPool = {
     { "Reroll", "Reroll all shop offers once", Config::COLOR_UI_AMBER, ConsumableEffectType::INSTANT, UseRerollCharge, 120, 250 },
     { "Overclock", "Temporarily overclock a random daemon", Config::MAGENTA_DAEMON, ConsumableEffectType::INSTANT, UseOverclockBooster, 180, 350 },

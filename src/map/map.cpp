@@ -816,6 +816,7 @@ void DrawMap(void) {
             DrawRectangleLines(bg_x, bg_y, bg_width, bg_height, Fade(MAGENTA, 0.5f));
             DrawText(lockedText, screenPos.x - lockedWidth / 2, bg_y + 9, 11, MAGENTA);
         } else {
+            StopSound(glitchloopsound);
             char name_string[64];
             snprintf(name_string, sizeof(name_string), "%s", GetNodeName(sn->type));
             std::string reward_string = "REWARD: $" + std::to_string(sn->reward);

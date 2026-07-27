@@ -71,7 +71,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\andre\AppData\Local\Temp\tmpc7jjj6yl.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpjlrzwc4c.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -201,25 +201,25 @@ Module['FS_createPath']("/assets", "sfx", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/assets/sfx/glitchloop.ogg", "start": 0, "end": 436830}, {"filename": "/assets/sfx/hover.ogg", "start": 436830, "end": 445087}, {"filename": "/assets/sfx/nodehit.ogg", "start": 445087, "end": 511472}, {"filename": "/assets/sfx/transition.ogg", "start": 511472, "end": 540613}], "remote_package_size": 540613});
+    loadPackage({"files": [{"filename": "/assets/consumable-shop-item.png", "start": 0, "end": 16251}, {"filename": "/assets/consumables-shop-bg.png", "start": 16251, "end": 29666}, {"filename": "/assets/empty-consumable-slot.png", "start": 29666, "end": 39840}, {"filename": "/assets/sfx/glitchloop.ogg", "start": 39840, "end": 476670}, {"filename": "/assets/sfx/hover.ogg", "start": 476670, "end": 484927}, {"filename": "/assets/sfx/nodehit.ogg", "start": 484927, "end": 551312}, {"filename": "/assets/sfx/transition.ogg", "start": 551312, "end": 580453}, {"filename": "/assets/shop-item.png", "start": 580453, "end": 624680}, {"filename": "/assets/used-consumable-slot.png", "start": 624680, "end": 632342}], "remote_package_size": 632342});
 
   })();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmpc7jjj6yl.js
-// include: C:\Users\andre\AppData\Local\Temp\tmp1t_jxx8z.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmpjlrzwc4c.js
+// include: C:\Users\andre\AppData\Local\Temp\tmps17e7bg3.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\andre\AppData\Local\Temp\tmp1t_jxx8z.js
-// include: C:\Users\andre\AppData\Local\Temp\tmp1uslobb7.js
+  // end include: C:\Users\andre\AppData\Local\Temp\tmps17e7bg3.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpj6jhrdwk.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\andre\AppData\Local\Temp\tmp1uslobb7.js
+  // end include: C:\Users\andre\AppData\Local\Temp\tmpj6jhrdwk.js
 
 
 var programArgs = [];
@@ -10055,8 +10055,8 @@ var dynCall_iiiji = makeInvalidEarlyAccess('dynCall_iiiji');
 var dynCall_iiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiii');
 var dynCall_jii = makeInvalidEarlyAccess('dynCall_jii');
 var dynCall_v = makeInvalidEarlyAccess('dynCall_v');
-var dynCall_ff = makeInvalidEarlyAccess('dynCall_ff');
 var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
+var dynCall_ff = makeInvalidEarlyAccess('dynCall_ff');
 var dynCall_vffff = makeInvalidEarlyAccess('dynCall_vffff');
 var dynCall_vf = makeInvalidEarlyAccess('dynCall_vf');
 var dynCall_viiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiii');
@@ -10123,8 +10123,8 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_iiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiii');
   assert(typeof wasmExports['dynCall_jii'] != 'undefined', 'missing Wasm export: dynCall_jii');
   assert(typeof wasmExports['dynCall_v'] != 'undefined', 'missing Wasm export: dynCall_v');
-  assert(typeof wasmExports['dynCall_ff'] != 'undefined', 'missing Wasm export: dynCall_ff');
   assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
+  assert(typeof wasmExports['dynCall_ff'] != 'undefined', 'missing Wasm export: dynCall_ff');
   assert(typeof wasmExports['dynCall_vffff'] != 'undefined', 'missing Wasm export: dynCall_vffff');
   assert(typeof wasmExports['dynCall_vf'] != 'undefined', 'missing Wasm export: dynCall_vf');
   assert(typeof wasmExports['dynCall_viiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiii');
@@ -10188,8 +10188,8 @@ function assignWasmExports(wasmExports) {
   dynCall_iiiiiii = dynCalls['iiiiiii'] = createExportWrapper('dynCall_iiiiiii', 7);
   dynCall_jii = dynCalls['jii'] = createExportWrapper('dynCall_jii', 3);
   dynCall_v = dynCalls['v'] = createExportWrapper('dynCall_v', 1);
-  dynCall_ff = dynCalls['ff'] = createExportWrapper('dynCall_ff', 2);
   dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', 2);
+  dynCall_ff = dynCalls['ff'] = createExportWrapper('dynCall_ff', 2);
   dynCall_vffff = dynCalls['vffff'] = createExportWrapper('dynCall_vffff', 5);
   dynCall_vf = dynCalls['vf'] = createExportWrapper('dynCall_vf', 2);
   dynCall_viiiiiiii = dynCalls['viiiiiiii'] = createExportWrapper('dynCall_viiiiiiii', 9);
