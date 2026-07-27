@@ -20,7 +20,13 @@
 #include "transition.hpp"
 //update 17:
 //screen shake
+//split map.cpp into more files
+
+//update 18:
 //more animations
+// - sell animation daemons
+// - sell animation consumables
+// - buy animation consumables
 
 //General
 //more daemons

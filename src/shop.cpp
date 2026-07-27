@@ -58,6 +58,7 @@ void UpdateRerollGlitch(void) {
     }
 }
 
+
 void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbool& hoverState) {
     const float gap = 8.0f;
     const float mainBoxWidth = Config::shopitemtotalWidth - Config::shopbuyitembuttonWidth - gap;
