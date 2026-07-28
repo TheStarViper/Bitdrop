@@ -32,7 +32,7 @@ namespace Config {
 
     //shop
     constexpr float shopitemsYbuffer = 110.0f;
-    constexpr float shopitemsXbuffer = 60.0f;
+    constexpr float shopitemsXbuffer = 52.0f;
     constexpr float shopitemtotalWidth = 705.0f;
     constexpr float shopitemtotalHeight = 85.0f;
     constexpr float shopbuyitembuttonWidth = 140.0f;

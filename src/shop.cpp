@@ -82,7 +82,6 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     Texture2D sprite = GetShopItemSprite();
     Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
     DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
-
     // if (isHovered) {
     //     Vector2 hoverPts[4] = {
     //         { destRect.x, destRect.y },
@@ -94,48 +93,58 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     //     DrawTriangleFan(hoverPts, 4, Fade(WHITE, 0.12f));
     //     EndBlendMode();
     // }
+    Vector2 points[] = {
+        (Vector2){ 400, 100 },
+        (Vector2){ 250, 200 },
+        (Vector2){ 200, 350 },
+        (Vector2){ 400, 400 },
+        (Vector2){ 600, 350 },
+        (Vector2){ 550, 200 }
+    };
+    int pointCount = sizeof(points) / sizeof(points[0]);
+    DrawTriangleFan(points, pointCount, MAROON);
+    
+    Color mainColor = iteminfo.GetColor();
+    const float targetIconSize = 48.0f;
+    Vector2 iconPos = { destRect.x + 14, destRect.y + (destRect.height - targetIconSize) / 2 };
 
-    // Color mainColor = iteminfo.GetColor();
-    // const float targetIconSize = 48.0f;
-    // Vector2 iconPos = { destRect.x + 14, destRect.y + (destRect.height - targetIconSize) / 2 };
+    if (iteminfo.iconMatrix != nullptr) {
+        const IconGrid& grid = *iteminfo.iconMatrix;
+        const float pixelScale = targetIconSize / 16.0f;
 
-    // if (iteminfo.iconMatrix != nullptr) {
-    //     const IconGrid& grid = *iteminfo.iconMatrix;
-    //     const float pixelScale = targetIconSize / 16.0f;
+        for (int y = 0; y < 16; ++y) {
+            for (int x = 0; x < 16; ++x) {
+                if (grid[y][x]) {
+                    DrawRectangle(
+                        (int)roundf(iconPos.x + (x * pixelScale)),
+                        (int)roundf(iconPos.y + (y * pixelScale)),
+                        (int)ceilf(pixelScale),
+                        (int)ceilf(pixelScale),
+                        mainColor
+                    );
+                }
+            }
+        }
+    }
 
-    //     for (int y = 0; y < 16; ++y) {
-    //         for (int x = 0; x < 16; ++x) {
-    //             if (grid[y][x]) {
-    //                 DrawRectangle(
-    //                     (int)roundf(iconPos.x + (x * pixelScale)),
-    //                     (int)roundf(iconPos.y + (y * pixelScale)),
-    //                     (int)ceilf(pixelScale),
-    //                     (int)ceilf(pixelScale),
-    //                     mainColor
-    //                 );
-    //             }
-    //         }
-    //     }
-    // }
+    float textStartX = iconPos.x + targetIconSize + 16;
+    DrawText(iteminfo.GetName().c_str(), textStartX, destRect.y + 12, 20, WHITE);
+    DrawText(iteminfo.GetDesc().c_str(), textStartX, destRect.y + 40, 11, Fade(WHITE, 0.6f));
 
-    // float textStartX = iconPos.x + targetIconSize + 16;
-    // DrawText(iteminfo.GetName().c_str(), textStartX, destRect.y + 12, 20, WHITE);
-    // DrawText(iteminfo.GetDesc().c_str(), textStartX, destRect.y + 40, 11, Fade(WHITE, 0.6f));
+    std::string lvlStr = std::to_string(iteminfo.GetLevel());
+    DrawText(lvlStr.c_str(), destRect.x + destRect.width - 160, destRect.y + 8, 13, Fade(WHITE,.5));
 
-    // std::string lvlStr = std::to_string(iteminfo.GetLevel());
-    // DrawText(lvlStr.c_str(), destRect.x + destRect.width * 0.645f + 4, destRect.y + 8, 13, WHITE);
+    char costTxt[16];
+    sprintf(costTxt, "$%d", iteminfo.price);
+    int costWidth = MeasureText(costTxt, 22);
+    DrawText(costTxt, destRect.x + destRect.width - 185 - costWidth, destRect.y + destRect.height - 35, 25, WHITE);
 
-    // char costTxt[16];
-    // sprintf(costTxt, "$%d", iteminfo.price);
-    // int costWidth = MeasureText(costTxt, 22);
-    // DrawText(costTxt, destRect.x + destRect.width * 0.60f - costWidth, destRect.y + destRect.height * 0.5f - 5, 22, WHITE);
-
-    // Rectangle buyRegion = {
-    //     destRect.x + destRect.width * 0.777f,
-    //     destRect.y + destRect.height * 0.094f,
-    //     destRect.width * (1.0f - 0.777f),
-    //     destRect.height * (1.0f - 0.094f - 0.094f)
-    // };
+    Rectangle buyRegion = {
+        destRect.x + destRect.width * 0.777f,
+        destRect.y + destRect.height * 0.094f,
+        destRect.width * (1.0f - 0.777f),
+        destRect.height * (1.0f - 0.094f - 0.094f)
+    };
 
     // bool hasFunds = (gamestate.balance >= iteminfo.price);
     // bool hasRoom = activedaemoninfo.daemons.size() < 5;
