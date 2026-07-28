@@ -61,5 +61,15 @@ const IconGrid ICON_CROSSHAIR = {
     {0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0}
 };
 #include "daemons.hpp"
+
+struct ShopState {
+    int slots[5] = { -1, -1, -1, -1, -1};
+    bool sold[5] = { false, false, false, false, false};
+    bool needsRefresh;
+    int rerolls = 1;
+    smartbool hoverStates[5];
+};
+
+inline ShopState shopstate;
 void drawshop();
 void GenerateShopPool() ;

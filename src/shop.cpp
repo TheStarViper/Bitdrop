@@ -69,8 +69,8 @@ void UpdateRerollGlitch(void) {
 }
 
 void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbool& hoverState) {
-    // Rectangle destRect = { pos.x, pos.y, Config::shopitemtotalWidth, Config::shopitemtotalHeight };
-    // Vector2 mousePos = GetMousePosition();
+    Rectangle destRect = { pos.x, pos.y, Config::shopitemtotalWidth, Config::shopitemtotalHeight };
+    Vector2 mousePos = GetMousePosition();
 
     // bool rawHover = CheckCollisionPointRec(mousePos, destRect) && !isSlotSold;
     // hoverState = rawHover;
@@ -79,9 +79,9 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     // }
     // bool isHovered = hoverState;
 
-    // Texture2D sprite = GetShopItemSprite();
-    // Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
-    // DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
+    Texture2D sprite = GetShopItemSprite();
+    Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
+    DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
 
     // if (isHovered) {
     //     Vector2 hoverPts[4] = {
@@ -212,13 +212,13 @@ void GenerateShopPool() {
         pool.push_back(static_cast<int>(i));
     }
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         shopstate.slots[i] = -1;
         shopstate.sold[i] = false;
     }
     if (pool.empty()) return;
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         int randomIndex = GetRandomValue(0, static_cast<int>(pool.size()) - 1);
         shopstate.slots[i] = pool[randomIndex];
         if (!gamestate.allowduplicateshopitems && pool.size() > 1 && static_cast<int>(pool.size()) > (5 - i)) {
@@ -383,11 +383,11 @@ void drawshop() {
         consumableShopSlots[2] == -1 && consumableShopSlots[3] == -1) {
         GenerateConsumableShopPool();
     }
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 4; ++i) {
         int daemonIdx = shopstate.slots[i];
         if (daemonIdx != -1) {
             DrawShopItem(
-                (Vector2){ 75, Config::shopitemsYbuffer + (82 * i) },
+                (Vector2){ Config::shopitemsXbuffer, Config::shopitemsYbuffer + (96 * i) },
                 engine.daemons[daemonIdx],
                 shopstate.sold[i],
                 shopstate.hoverStates[i]
@@ -398,7 +398,7 @@ void drawshop() {
     float footprintWidth = Config::shopitemtotalWidth;
     float rawSlotSize = (footprintWidth - Config::consumablesgap * (consumableSlotCount - 1)) / consumableSlotCount;
     float usedWidth = Config::consumableitemsize * consumableSlotCount + Config::consumablesgap * (consumableSlotCount - 1);
-    float startX = 75 + (footprintWidth - usedWidth) / 2.0f;
+    float startX = Config::shopitemsXbuffer + (footprintWidth - usedWidth) / 2.0f;
     float consumableRowY = Config::shopitemsYbuffer + (80 * 5) + 50.0f;
 
     for (int i = 0; i < consumableSlotCount; ++i) {

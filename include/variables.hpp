@@ -31,9 +31,10 @@ namespace Config {
     constexpr int extraballsreward = 80;
 
     //shop
-    constexpr float shopitemsYbuffer = 100.0f;
-    constexpr float shopitemtotalWidth = 640.0f;
-    constexpr float shopitemtotalHeight = 80.0f;
+    constexpr float shopitemsYbuffer = 110.0f;
+    constexpr float shopitemsXbuffer = 60.0f;
+    constexpr float shopitemtotalWidth = 705.0f;
+    constexpr float shopitemtotalHeight = 85.0f;
     constexpr float shopbuyitembuttonWidth = 140.0f;
 
     constexpr float consumablesgap = 14.0f;
@@ -180,13 +181,6 @@ struct PendingTrigger {
     int frameDelay;
 };
 
-struct ShopState {
-    int slots[5] = { -1, -1, -1, -1, -1 };
-    bool sold[5] = { false, false, false, false, false };
-    bool needsRefresh;
-    int rerolls = 1;
-    smartbool hoverStates[5];
-};
 
 struct GameEngine {
     std::vector<Probe> activeProbes;
@@ -228,7 +222,6 @@ struct DaemonsDisplayInfo {
 inline DaemonsDisplayInfo activedaemoninfo;
 inline GameEngine engine;
 inline GameState gamestate;
-inline ShopState shopstate;
 inline LevelState levelstate;
 
 
