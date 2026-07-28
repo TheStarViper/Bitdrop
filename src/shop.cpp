@@ -96,100 +96,279 @@ bool CheckCollisionPointPolyCUstom(Vector2 point, const Vector2 *points, int poi
     
     return inside;
 }
+
+
+void DrawSpriteWithHueShader(Texture2D texture, Rectangle srcRect, Rectangle destRect, Color baseColor, Shader shader, int hueLoc) {
+    Vector3 hsv = ColorToHSV(baseColor);
+    float hue = 0.2f + hsv.x / 360.0f;
+    SetShaderValue(shader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
+
+    BeginShaderMode(shader);
+    DrawTexturePro(texture, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
+    EndShaderMode();
+}
+
+void HandleHoverSoundTrigger(smartbool& hoverState, bool rawHover, bool conditionsMet = true) {
+    hoverState = rawHover;
+    if (hoverState.is_new_true() && conditionsMet) {
+        playsoundsmart(hoversound, 0.1f, 1.6f);
+    }
+}
+
+std::string ToUpperString(std::string text) {
+    for (auto& ch : text) {
+        ch = (char)toupper((unsigned char)ch);
+    }
+    return text;
+}
+
+void DrawIconMatrix(const IconGrid& grid, Vector2 position, float targetSize, Color color) {
+    const float pixelScale = targetSize / 16.0f;
+    for (int y = 0; y < 16; ++y) {
+        for (int x = 0; x < 16; ++x) {
+            if (grid[y][x]) {
+                DrawRectangle(
+                    (int)roundf(position.x + (x * pixelScale)),
+                    (int)roundf(position.y + (y * pixelScale)),
+                    (int)ceilf(pixelScale),
+                    (int)ceilf(pixelScale),
+                    color
+                );
+            }
+        }
+    }
+}
+
+static std::vector<std::string> WrapText(const std::string& text, Font font, float fontSize, float maxWidth) {
+    std::vector<std::string> lines;
+    std::string currentLine;
+    std::string word;
+    std::stringstream ss(text);
+
+    while (ss >> word) {
+        std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
+        Vector2 size = MeasureTextEx(font, testLine.c_str(), fontSize, 1.0f);
+        if (size.x > maxWidth) {
+            if (!currentLine.empty()) lines.push_back(currentLine);
+            currentLine = word;
+        } else {
+            currentLine = testLine;
+        }
+    }
+    if (!currentLine.empty()) lines.push_back(currentLine);
+    return lines;
+}
+
+static void DrawConsumableTooltip(Rectangle slotRect, const ShopConsumableEntry& item, bool isSlotSold, bool hasFunds, bool hasRoom, Color mainColor, Color textDim) {
+    float boxW = 200.0f;
+    float paddingX = 8.0f;
+    float paddingY = 8.0f;
+    float fontSize = 10.0f;
+    float screenMargin = 8.0f;
+
+    std::string status = item.description;
+    if (isSlotSold) status += "  [ALREADY OWNED]";
+    else if (!hasFunds) status += "  [INSUFFICIENT FUNDS]";
+    else if (!hasRoom) status += "  [CONSUMABLE SLOTS FULL]";
+
+    Font font = GetFontDefault();
+    float maxTextWidth = boxW - (paddingX * 2.0f);
+    std::vector<std::string> lines = WrapText(status, font, fontSize, maxTextWidth);
+
+    float lineHeight = fontSize * 1.5f;
+    float boxH = (lines.size() * lineHeight) + (paddingY * 2.0f) - (lineHeight - fontSize);
+
+    float boxX = slotRect.x + slotRect.width / 2.0f - boxW / 2.0f;
+    if (boxX + boxW > GetScreenWidth() - screenMargin) boxX = GetScreenWidth() - screenMargin - boxW;
+    if (boxX < screenMargin) boxX = screenMargin;
+
+    float boxY = slotRect.y - boxH - 8.0f;
+    if (boxY < screenMargin) boxY = slotRect.y + slotRect.height + 8.0f;
+
+    DrawRectangle((int)boxX, (int)boxY, (int)boxW, (int)boxH, Color{ 6, 12, 22, 250 });
+    DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, mainColor);
+
+    float lineY = boxY + paddingY;
+    for (const auto& line : lines) {
+        DrawTextEx(font, line.c_str(), { boxX + paddingX, lineY }, fontSize, 1.0f, textDim);
+        lineY += lineHeight;
+    }
+}
+
+
+void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item, bool& isSlotSold, smartbool& hoverState) {
+    Color mainColor = item.color;
+    Color textDim   = { (unsigned char)(mainColor.r * 0.7f), (unsigned char)(mainColor.g * 0.7f), (unsigned char)(mainColor.b * 0.7f), 255 };
+
+    Vector2 mousePos = GetMousePosition();
+    bool rawHover = CheckCollisionPointRec(mousePos, slotRect) && !isSlotSold;
+    bool isHovered = hoverState;
+    bool isbtnhovered;
+    bool hasFunds = (gamestate.balance >= item.price);
+    bool hasRoom = (int)activeconsumableinfo.consumables.size() < GetMaxConsumableSlots();
+    bool canBuy = hasFunds && hasRoom && !isSlotSold;
+    HandleHoverSoundTrigger(hoverState, rawHover, hasRoom&&hasFunds);
+
+    Texture2D slotSprite = GetConsumableSlotSprite();
+    Rectangle spriteSrc = { 0, 0, (float)slotSprite.width, (float)slotSprite.height };
+    DrawSpriteWithHueShader(slotSprite, spriteSrc, slotRect, mainColor, hueShader, hueLoc);
+
+    Vector2 itempoints[] = {
+        (Vector2){ slotRect.x, slotRect.y },
+        (Vector2){ slotRect.x, slotRect.y + 134 },
+        (Vector2){ slotRect.x + slotRect.width, slotRect.y + 134 },
+        (Vector2){ slotRect.x + slotRect.width, slotRect.y + 23 },
+        (Vector2){ slotRect.x + 127, slotRect.y }
+    };
+
+    Vector2 btnpoints[] = {
+        (Vector2){ slotRect.x, slotRect.y },
+        (Vector2){ slotRect.x, slotRect.y + 134 },
+        (Vector2){ slotRect.x + slotRect.width, slotRect.y + 134 },
+        (Vector2){ slotRect.x + slotRect.width, slotRect.y + 23 },
+        (Vector2){ slotRect.x + 127, slotRect.y }
+    };
+    
+    int btnpointCount = sizeof(itempoints) / sizeof(itempoints[0]);
+    int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
+    if (isHovered&&hasFunds&&hasRoom) {
+        DrawTriangleFan(itempoints, itempointCount, Fade(WHITE, 0.35f));
+    }
+
+    float badgeRadius = slotRect.width * 0.2f;
+    Vector2 badgeCenter = { slotRect.x + slotRect.width / 2.0f, slotRect.y + slotRect.height * 0.32f };
+    DrawPoly(badgeCenter, 4, badgeRadius, 45.0f, Fade(mainColor, 0.18f));
+    DrawPolyLines(badgeCenter, 4, badgeRadius, 45.0f, Fade(mainColor, 0.6f));
+
+    std::string monogram = item.name.empty() ? "" : std::string(1, (char)toupper((unsigned char)item.name[0]));
+    int monoSize = (int)(badgeRadius * 0.9f);
+    int monoW = MeasureText(monogram.c_str(), monoSize);
+    DrawText(monogram.c_str(), badgeCenter.x - monoW / 2.0f, badgeCenter.y - monoSize / 2.0f, monoSize, mainColor);
+
+    std::string displayName = ToUpperString(item.name);
+    int nameFontSize = 11;
+    int nameW = MeasureText(displayName.c_str(), nameFontSize);
+    while (nameW > slotRect.width - 10 && nameFontSize > 7) {
+        nameFontSize--;
+        nameW = MeasureText(displayName.c_str(), nameFontSize);
+    }
+    float nameY = slotRect.y + slotRect.height * 0.58f;
+    DrawText(displayName.c_str(), slotRect.x + (slotRect.width - nameW) / 2.0f, nameY, nameFontSize, mainColor);
+
+    Rectangle priceBtn = { slotRect.x + 6, slotRect.y + slotRect.height - 28, slotRect.width - 12, 22 };
+    char priceTxt[16];
+    sprintf(priceTxt, "$%d", item.price);
+
+    bool buyClicked = false;
+
+    if (isSlotSold) {
+        DrawText("Owned", slotRect.x + 6, slotRect.y + slotRect.height - 28, 11, WHITE);
+    } else if (!hasFunds) {
+        DrawText(priceTxt, slotRect.x + 6, slotRect.y + slotRect.height - 28, 11, WHITE);
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.35f));
+        Vector2 textSize = MeasureTextEx(GetFontDefault(), "$", 60.0f,2.0f);
+        DrawText("$", slotRect.x + slotRect.width/2-textSize.x/2, slotRect.y + slotRect.height/2-textSize.y/2-20, 60, Config::colorRedAlert);
+    } else if (!hasRoom){
+        DrawText(priceTxt, slotRect.x + 6, slotRect.y + slotRect.height - 28, 11, WHITE);
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.35f));
+        Vector2 textSize = MeasureTextEx(GetFontDefault(), "FULL", 50.0f,2.0f);
+        DrawText("FULL", slotRect.x + slotRect.width/2-textSize.x/2, slotRect.y + slotRect.height/2-textSize.y/2-20, 50, (Color){150,150,150,255});
+    } else{
+        DrawText(priceTxt, slotRect.x + 6, slotRect.y + slotRect.height - 28, 11, mainColor);
+        //buyClicked = isbtnhovered && IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
+    }
+
+    if (buyClicked) {
+        Consumable purchased(item.name, item.description, item.color, item.sellValue, item.effectType, item.useFn);
+        if (TryAddConsumable(purchased)) {
+            gamestate.balance -= item.price;
+            isSlotSold = true;
+        }
+    }
+
+    if (isHovered&&hasFunds&&hasRoom) {
+        DrawConsumableTooltip(slotRect, item, isSlotSold, hasFunds, hasRoom, mainColor, textDim);
+    }
+
+    hoverState.update();
+}
+
 void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbool& hoverState) {
     Rectangle destRect = { pos.x, pos.y, Config::shopitemtotalWidth, Config::shopitemtotalHeight };
     Vector2 mousePos = GetMousePosition();
 
     Vector2 btnpoints[] = {
-        (Vector2){ Config::shopitemsXbuffer+692, pos.y+2+15 },
-        (Vector2){ Config::shopitemsXbuffer+581, pos.y+2+15 },
-        (Vector2){ Config::shopitemsXbuffer+559, pos.y+2+36 },
-        (Vector2){ Config::shopitemsXbuffer+559, pos.y+2+59 },
-        (Vector2){ Config::shopitemsXbuffer+671, pos.y+2+59 },
-        (Vector2){ Config::shopitemsXbuffer+692, pos.y+2+38 }
+        (Vector2){ Config::shopitemsXbuffer + 692, pos.y + 2 + 15 },
+        (Vector2){ Config::shopitemsXbuffer + 581, pos.y + 2 + 15 },
+        (Vector2){ Config::shopitemsXbuffer + 559, pos.y + 2 + 36 },
+        (Vector2){ Config::shopitemsXbuffer + 559, pos.y + 2 + 59 },
+        (Vector2){ Config::shopitemsXbuffer + 671, pos.y + 2 + 59 },
+        (Vector2){ Config::shopitemsXbuffer + 692, pos.y + 2 + 38 }
     };
 
     Vector2 btnpointspressed[] = {
-        (Vector2){ Config::shopitemsXbuffer+692-8, pos.y+2+15+7 },
-        (Vector2){ Config::shopitemsXbuffer+581-8, pos.y+2+15+7 },
-        (Vector2){ Config::shopitemsXbuffer+559-8, pos.y+2+36+7 },
-        (Vector2){ Config::shopitemsXbuffer+559-8, pos.y+2+59+7 },
-        (Vector2){ Config::shopitemsXbuffer+671-8, pos.y+2+59+7 },
-        (Vector2){ Config::shopitemsXbuffer+692-8, pos.y+2+38+7 }
+        (Vector2){ Config::shopitemsXbuffer + 692 - 8, pos.y + 2 + 15 + 7 },
+        (Vector2){ Config::shopitemsXbuffer + 581 - 8, pos.y + 2 + 15 + 7 },
+        (Vector2){ Config::shopitemsXbuffer + 559 - 8, pos.y + 2 + 36 + 7 },
+        (Vector2){ Config::shopitemsXbuffer + 559 - 8, pos.y + 2 + 59 + 7 },
+        (Vector2){ Config::shopitemsXbuffer + 671 - 8, pos.y + 2 + 59 + 7 },
+        (Vector2){ Config::shopitemsXbuffer + 692 - 8, pos.y + 2 + 38 + 7 }
     };
 
     Vector2 itempoints[] = {
         (Vector2){ Config::shopitemsXbuffer, pos.y },
-        (Vector2){ Config::shopitemsXbuffer, pos.y+Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer+678, pos.y+Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer+Config::shopitemtotalWidth, pos.y+56},
-        (Vector2){ Config::shopitemsXbuffer+Config::shopitemtotalWidth, pos.y }
+        (Vector2){ Config::shopitemsXbuffer, pos.y + Config::shopitemtotalHeight },
+        (Vector2){ Config::shopitemsXbuffer + 678, pos.y + Config::shopitemtotalHeight },
+        (Vector2){ Config::shopitemsXbuffer + Config::shopitemtotalWidth, pos.y + 56 },
+        (Vector2){ Config::shopitemsXbuffer + Config::shopitemtotalWidth, pos.y }
     };
 
     Vector2 hoverpointsmain[] = {
         (Vector2){ Config::shopitemsXbuffer, pos.y },
-        (Vector2){ Config::shopitemsXbuffer, pos.y+Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer+371, pos.y+Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer+455, pos.y }
+        (Vector2){ Config::shopitemsXbuffer, pos.y + Config::shopitemtotalHeight },
+        (Vector2){ Config::shopitemsXbuffer + 371, pos.y + Config::shopitemtotalHeight },
+        (Vector2){ Config::shopitemsXbuffer + 455, pos.y }
     };
+
     int pointsmaincount = sizeof(hoverpointsmain) / sizeof(hoverpointsmain[0]);
     int btnpointCount = sizeof(btnpoints) / sizeof(btnpoints[0]);
     int btnpointCountpressed = sizeof(btnpointspressed) / sizeof(btnpointspressed[0]);
     int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
-    bool rawHover = (CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount)||CheckCollisionPointPolyCUstom(mousePos, hoverpointsmain, pointsmaincount))&& !isSlotSold;
+
+    bool isBtnHovered = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount);
+    bool isMainHovered = CheckCollisionPointPolyCUstom(mousePos, hoverpointsmain, pointsmaincount);
+    bool rawHover = (isBtnHovered || isMainHovered) && !isSlotSold;
+    
     bool hasFunds = (gamestate.balance >= iteminfo.price);
     bool hasRoom = activedaemoninfo.daemons.size() < 5;
     bool buyClicked = false;
 
-    hoverState = rawHover;
-    if (hoverState.is_new_true()&& hasFunds && hasRoom) {
-        playsoundsmart(hoversound, .1, 1.6);
-    }
+    HandleHoverSoundTrigger(hoverState, rawHover, hasFunds && hasRoom);
 
-    
-    Texture2D shopitemsprite = GetShopItemSprite(CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount)&&IsMouseButtonDown(MOUSE_BUTTON_LEFT)&&hasFunds&&hasRoom?true:false);
+    bool isMouseDown = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    Texture2D shopitemsprite = GetShopItemSprite(isBtnHovered && isMouseDown && hasFunds && hasRoom);
     Rectangle srcRect = { 0, 0, (float)shopitemsprite.width, (float)shopitemsprite.height };
-    
-    Vector3 hsv = ColorToHSV(iteminfo.GetColor());
-    float hue = .2+hsv.x/360; 
-    SetShaderValue(hueShader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
-    BeginShaderMode(hueShader);
-    DrawTexturePro(shopitemsprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
-    EndShaderMode();
 
-    if (CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && hasFunds && hasRoom) {
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-            DrawTriangleFan(btnpointspressed, btnpointCountpressed, Fade(WHITE, .35));
-        } else {
-            DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE, .35));
-        }
-        
-    }
-
-    if (CheckCollisionPointPolyCUstom(mousePos, hoverpointsmain, pointsmaincount)&& hasFunds && hasRoom){
-        DrawTriangleFan(hoverpointsmain, pointsmaincount, Fade(WHITE, .35));
-    }
     Color mainColor = iteminfo.GetColor();
+    DrawSpriteWithHueShader(shopitemsprite, srcRect, destRect, mainColor, hueShader, hueLoc);
+
+    if (isBtnHovered && hasFunds && hasRoom) {
+        if (isMouseDown) {
+            DrawTriangleFan(btnpointspressed, btnpointCountpressed, Fade(WHITE, 0.35f));
+        } else {
+            DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE, 0.35f));
+        }
+    }
+
+    if (isMainHovered && hasFunds && hasRoom) {
+        DrawTriangleFan(hoverpointsmain, pointsmaincount, Fade(WHITE, 0.35f));
+    }
+
     const float targetIconSize = 48.0f;
-    Vector2 iconPos = { destRect.x + 14, destRect.y + (destRect.height - targetIconSize) / 2 };
+    Vector2 iconPos = { destRect.x + 14, destRect.y + (destRect.height - targetIconSize) / 2.0f };
 
     if (iteminfo.iconMatrix != nullptr) {
-        const IconGrid& grid = *iteminfo.iconMatrix;
-        const float pixelScale = targetIconSize / 16.0f;
-
-        for (int y = 0; y < 16; ++y) {
-            for (int x = 0; x < 16; ++x) {
-                if (grid[y][x]) {
-                    DrawRectangle(
-                        (int)roundf(iconPos.x + (x * pixelScale)),
-                        (int)roundf(iconPos.y + (y * pixelScale)),
-                        (int)ceilf(pixelScale),
-                        (int)ceilf(pixelScale),
-                        mainColor
-                    );
-                }
-            }
-        }
+        DrawIconMatrix(*iteminfo.iconMatrix, iconPos, targetIconSize, mainColor);
     }
 
     float textStartX = iconPos.x + targetIconSize + 16;
@@ -197,7 +376,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     DrawText(iteminfo.GetDesc().c_str(), textStartX, destRect.y + 40, 11, Fade(WHITE, 0.6f));
 
     std::string lvlStr = std::to_string(iteminfo.GetLevel());
-    DrawText(lvlStr.c_str(), destRect.x + destRect.width - 160, destRect.y + 8, 13, Fade(WHITE, .5));
+    DrawText(lvlStr.c_str(), destRect.x + destRect.width - 160, destRect.y + 8, 13, Fade(WHITE, 0.5f));
 
     char costTxt[16];
     sprintf(costTxt, "$%d", iteminfo.price);
@@ -205,14 +384,13 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     DrawText(costTxt, destRect.x + destRect.width - 185 - costWidth, destRect.y + destRect.height - 35, 25, WHITE);
 
     if (isSlotSold) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, .8));
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.9f));
     } else if (!hasFunds || !hasRoom) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, .5));
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.7f));
         const char* reasonTxt = !hasFunds ? "INSUFFICIENT FUNDS" : "MAX SLOTS REACHED";
-        int reasonW = MeasureText(reasonTxt, 9);
-        DrawText(reasonTxt, destRect.x + Config::shopitemtotalWidth/2 - 200, destRect.y + Config::shopitemtotalHeight/2-15, 20, !hasFunds ? Config::colorRedAlert : (Color){150,150,150,255});
+        DrawText(reasonTxt, destRect.x + Config::shopitemtotalWidth / 2 - 200, destRect.y + Config::shopitemtotalHeight / 2 - 15, 35, !hasFunds ? Config::colorRedAlert : Color{ 150, 150, 150, 255 });
     } else {
-        buyClicked = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && !isSlotSold && IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
+        buyClicked = isBtnHovered && !isSlotSold && IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
     }
 
     if (buyClicked) {
@@ -288,144 +466,6 @@ void GenerateShopPool() {
     }
 }
 
-void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item, bool& isSlotSold, smartbool& hoverState) {
-    Color mainColor = item.color;
-    Color dimColor  = { (unsigned char)(mainColor.r * 0.4f), (unsigned char)(mainColor.g * 0.4f), (unsigned char)(mainColor.b * 0.4f), 255 };
-    Color textDim   = { (unsigned char)(mainColor.r * 0.7f), (unsigned char)(mainColor.g * 0.7f), (unsigned char)(mainColor.b * 0.7f), 255 };
-
-    Vector2 mousePos = GetMousePosition();
-    bool rawHover = CheckCollisionPointRec(mousePos, slotRect) && !isSlotSold;
-    hoverState = rawHover;
-    if (hoverState.is_new_true()) {
-        playsoundsmart(hoversound, .1, 1.6);
-    }
-    bool isHovered = hoverState;
-
-    bool hasFunds = (gamestate.balance >= item.price);
-    bool hasRoom = (int)activeconsumableinfo.consumables.size() < GetMaxConsumableSlots();
-    bool canBuy = hasFunds && hasRoom && !isSlotSold;
-
-    Texture2D slotSprite = GetConsumableSlotSprite();
-    Rectangle spriteSrc = { 0, 0, (float)slotSprite.width, (float)slotSprite.height };
-
-    Vector3 hsv = ColorToHSV(mainColor);
-    float hue = .2f + hsv.x / 360.0f;
-    SetShaderValue(hueShader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
-    BeginShaderMode(hueShader);
-    DrawTexturePro(slotSprite, spriteSrc, slotRect, { 0, 0 }, 0.0f, WHITE);
-    EndShaderMode();
-
-    Vector2 itempoints[] = {
-        (Vector2){ slotRect.x, slotRect.y },
-        (Vector2){ slotRect.x, slotRect.y+134 },
-        (Vector2){ slotRect.x+slotRect.width,slotRect.y+134 },
-        (Vector2){ slotRect.x+slotRect.width,slotRect.y+23},
-        (Vector2){ slotRect.x+127, slotRect.y }
-    };
-    int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
-    if (isHovered) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(WHITE, .35));
-    }
-
-    float badgeRadius = slotRect.width * 0.2f;
-    Vector2 badgeCenter = { slotRect.x + slotRect.width / 2.0f, slotRect.y + slotRect.height * 0.32f };
-    DrawPoly(badgeCenter, 4, badgeRadius, 45.0f, Fade(mainColor, 0.18f));
-    DrawPolyLines(badgeCenter, 4, badgeRadius, 45.0f, Fade(mainColor, 0.6f));
-
-    std::string monogram = item.name.empty() ? "" : std::string(1, (char)toupper((unsigned char)item.name[0]));
-    int monoSize = (int)(badgeRadius * 0.9f);
-    int monoW = MeasureText(monogram.c_str(), monoSize);
-    DrawText(monogram.c_str(), badgeCenter.x - monoW / 2.0f, badgeCenter.y - monoSize / 2.0f, monoSize, mainColor);
-
-    std::string displayName = item.name;
-    for (auto& ch : displayName) ch = (char)toupper((unsigned char)ch);
-    int nameFontSize = 11;
-    int nameW = MeasureText(displayName.c_str(), nameFontSize);
-    while (nameW > slotRect.width - 10 && nameFontSize > 7) {
-        nameFontSize--;
-        nameW = MeasureText(displayName.c_str(), nameFontSize);
-    }
-    float nameY = slotRect.y + slotRect.height * 0.58f;
-    DrawText(displayName.c_str(), slotRect.x + (slotRect.width - nameW) / 2.0f, nameY, nameFontSize, mainColor);
-
-    Rectangle priceBtn = { slotRect.x + 6, slotRect.y + slotRect.height - 28, slotRect.width - 12, 22 };
-    char priceTxt[16];
-    sprintf(priceTxt, "$%d", item.price);
-
-    bool buyClicked = false;
-    if (isSlotSold) {
-        //DrawButton(priceBtn, ButtonType::TextGeneric, 255, Color{ 20, 20, 20, 255 }, Color{ 20, 20, 20, 255 }, Color{ 100, 40, 40, 255 }, Color{ 100, 40, 40, 255 }, "OWNED", 11);
-        DrawText("Owned",slotRect.x + 6,slotRect.y + slotRect.height - 28,11,WHITE);
-    } else if (canBuy) {
-        buyClicked = DrawButton(priceBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, mainColor, mainColor, priceTxt, 12);
-    } else {
-        Color lockedBg = { 30, 30, 30, 255 };
-        Color lockedText = { 65, 65, 65, 255 };
-        DrawText(priceTxt,slotRect.x + 6,slotRect.y + slotRect.height - 28,11,WHITE);
-        //DrawButton(priceBtn, ButtonType::TextGeneric, 255, lockedBg, lockedBg, lockedText, lockedText, priceTxt, 12);
-    }
-
-    if (buyClicked) {
-        Consumable purchased(item.name, item.description, item.color, item.sellValue, item.effectType, item.useFn);
-        if (TryAddConsumable(purchased)) {
-            gamestate.balance -= item.price;
-            isSlotSold = true;
-        }
-    }
-
-    if (isHovered) {
-        float boxW = 200.0f;
-        float paddingX = 8.0f;
-        float paddingY = 8.0f;
-        float fontSize = 10.0f;
-        float screenMargin = 8.0f;
-
-        std::string status = item.description;
-        if (isSlotSold) status += "  [ALREADY OWNED]";
-        else if (!hasFunds) status += "  [INSUFFICIENT FUNDS]";
-        else if (!hasRoom) status += "  [CONSUMABLE SLOTS FULL]";
-
-        Font font = GetFontDefault();
-        float maxTextWidth = boxW - (paddingX * 2.0f);
-        std::vector<std::string> lines;
-        std::string currentLine;
-        std::string word;
-        std::stringstream ss(status);
-
-        while (ss >> word) {
-            std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
-            Vector2 size = MeasureTextEx(font, testLine.c_str(), fontSize, 1.0f);
-            if (size.x > maxTextWidth) {
-                if (!currentLine.empty()) lines.push_back(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = testLine;
-            }
-        }
-        if (!currentLine.empty()) lines.push_back(currentLine);
-
-        float lineHeight = fontSize * 1.5f;
-        float boxH = (lines.size() * lineHeight) + (paddingY * 2.0f) - (lineHeight - fontSize);
-
-        float boxX = slotRect.x + slotRect.width / 2.0f - boxW / 2.0f;
-        if (boxX + boxW > GetScreenWidth() - screenMargin) boxX = GetScreenWidth() - screenMargin - boxW;
-        if (boxX < screenMargin) boxX = screenMargin;
-
-        float boxY = slotRect.y - boxH - 8.0f;
-        if (boxY < screenMargin) boxY = slotRect.y + slotRect.height + 8.0f;
-
-        DrawRectangle(boxX, boxY, boxW, boxH, Color{ 6, 12, 22, 250 });
-        DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, mainColor);
-
-        float lineY = boxY + paddingY;
-        for (const auto& line : lines) {
-            DrawTextEx(font, line.c_str(), { boxX + paddingX, lineY }, fontSize, 1.0f, textDim);
-            lineY += lineHeight;
-        }
-    }
-
-    hoverState.update();
-}
 
 void drawshop() {
     UpdateRerollGlitch();
