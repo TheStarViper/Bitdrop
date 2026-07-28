@@ -79,25 +79,6 @@ void UpdateRerollGlitch(void) {
     }
 }
 
-bool CheckCollisionPointPolyCUstom(Vector2 point, const Vector2 *points, int pointCount) {
-    bool inside = false;
-    
-    for (int i = 0, j = pointCount - 1; i < pointCount; j = i++) {
-        bool intersectY = ((points[i].y > point.y) != (points[j].y > point.y));
-        
-        if (intersectY) {
-            float intersectX = (points[j].x - points[i].x) * (point.y - points[i].y) / 
-                               (points[j].y - points[i].y) + points[i].x;
-            if (point.x < intersectX) {
-                inside = !inside;
-            }
-        }
-    }
-    
-    return inside;
-}
-
-
 void DrawSpriteWithHueShader(Texture2D texture, Rectangle srcRect, Rectangle destRect, Color baseColor, Shader shader, int hueLoc) {
     Vector3 hsv = ColorToHSV(baseColor);
     float hue = 0.2f + hsv.x / 360.0f;
@@ -203,7 +184,6 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     Vector2 mousePos = GetMousePosition();
     bool rawHover = CheckCollisionPointRec(mousePos, slotRect) && !isSlotSold;
     bool isHovered = hoverState;
-    bool isbtnhovered;
     bool hasFunds = (gamestate.balance >= item.price);
     bool hasRoom = (int)activeconsumableinfo.consumables.size() < GetMaxConsumableSlots();
     bool canBuy = hasFunds && hasRoom && !isSlotSold;
@@ -222,19 +202,23 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     };
 
     Vector2 btnpoints[] = {
-        (Vector2){ slotRect.x, slotRect.y },
-        (Vector2){ slotRect.x, slotRect.y + 134 },
-        (Vector2){ slotRect.x + slotRect.width, slotRect.y + 134 },
-        (Vector2){ slotRect.x + slotRect.width, slotRect.y + 23 },
-        (Vector2){ slotRect.x + 127, slotRect.y }
+        (Vector2){ slotRect.x+6, slotRect.y + 139 },
+        (Vector2){ slotRect.x+8, slotRect.y + 158 },
+        (Vector2){ slotRect.x+12, slotRect.y + 164 },
+        (Vector2){ slotRect.x + 130, slotRect.y + 164 },
+        (Vector2){ slotRect.x + 138, slotRect.y + 158 },
+        (Vector2){ slotRect.x + 138, slotRect.y + 139 }
     };
-    
-    int btnpointCount = sizeof(itempoints) / sizeof(itempoints[0]);
+
+    int btnpointCount = 6;
     int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
-    if (isHovered&&hasFunds&&hasRoom) {
+    bool isbtnhovered =CheckCollisionPointPoly(mousePos,btnpoints,btnpointCount);
+    if (CheckCollisionPointPoly(mousePos,itempoints,itempointCount)&&hasFunds&&hasRoom&&!isSlotSold) {
         DrawTriangleFan(itempoints, itempointCount, Fade(WHITE, 0.35f));
     }
-
+    if (isbtnhovered&&hasFunds&&hasRoom&&!isSlotSold) {
+        DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE, 0.35f));
+    }
     float badgeRadius = slotRect.width * 0.2f;
     Vector2 badgeCenter = { slotRect.x + slotRect.width / 2.0f, slotRect.y + slotRect.height * 0.32f };
     DrawPoly(badgeCenter, 4, badgeRadius, 45.0f, Fade(mainColor, 0.18f));
@@ -260,22 +244,26 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     sprintf(priceTxt, "$%d", item.price);
 
     bool buyClicked = false;
-
+    float txtW = MeasureText(priceTxt,12);
     if (isSlotSold) {
-        DrawText("Owned", slotRect.x + 6, slotRect.y + slotRect.height - 28, 11, WHITE);
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, .75f));
+        DrawTriangleFan(btnpoints, btnpointCount, Fade(BLACK, 0.75f));
+        DrawText("Owned", slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
     } else if (!hasFunds) {
-        DrawText(priceTxt, slotRect.x + 6, slotRect.y + slotRect.height - 28, 11, WHITE);
+        DrawText(priceTxt, slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
         DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.35f));
+        DrawTriangleFan(btnpoints, btnpointCount, Fade(BLACK, 0.35f));
         Vector2 textSize = MeasureTextEx(GetFontDefault(), "$", 60.0f,2.0f);
         DrawText("$", slotRect.x + slotRect.width/2-textSize.x/2, slotRect.y + slotRect.height/2-textSize.y/2-20, 60, Config::colorRedAlert);
     } else if (!hasRoom){
-        DrawText(priceTxt, slotRect.x + 6, slotRect.y + slotRect.height - 28, 11, WHITE);
+        DrawText(priceTxt, slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
         DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.35f));
+        DrawTriangleFan(btnpoints, btnpointCount, Fade(BLACK, 0.35f));
         Vector2 textSize = MeasureTextEx(GetFontDefault(), "FULL", 50.0f,2.0f);
         DrawText("FULL", slotRect.x + slotRect.width/2-textSize.x/2, slotRect.y + slotRect.height/2-textSize.y/2-20, 50, (Color){150,150,150,255});
     } else{
-        DrawText(priceTxt, slotRect.x + 6, slotRect.y + slotRect.height - 28, 11, mainColor);
-        //buyClicked = isbtnhovered && IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
+        DrawText(priceTxt, slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
+        buyClicked = isbtnhovered && IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
     }
 
     if (buyClicked) {
@@ -335,8 +323,8 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     int btnpointCountpressed = sizeof(btnpointspressed) / sizeof(btnpointspressed[0]);
     int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
 
-    bool isBtnHovered = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount);
-    bool isMainHovered = CheckCollisionPointPolyCUstom(mousePos, hoverpointsmain, pointsmaincount);
+    bool isBtnHovered = CheckCollisionPointPoly(mousePos, btnpoints, btnpointCount);
+    bool isMainHovered = CheckCollisionPointPoly(mousePos, hoverpointsmain, pointsmaincount);
     bool rawHover = (isBtnHovered || isMainHovered) && !isSlotSold;
     
     bool hasFunds = (gamestate.balance >= iteminfo.price);
