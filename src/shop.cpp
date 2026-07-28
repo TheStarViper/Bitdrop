@@ -40,6 +40,16 @@ Texture2D GetShopItemSprite(bool pressed) {
     return !pressed ? tex : texpressed;
 }
 
+Texture2D GetConsumableSlotSprite() {
+    static Texture2D tex;
+    static bool loaded = false;
+    if (!loaded) {
+        tex = LoadTexture("assets/consumable-shop-item.png");
+        loaded = true;
+    }
+    return tex;
+}
+
 static std::vector<ShopConsumableEntry> consumableShopPool = {
     { "Reroll", "Reroll all shop offers once", Config::COLOR_UI_AMBER, ConsumableEffectType::INSTANT, UseRerollCharge, 120, 250 },
     { "Overclock", "Temporarily overclock a random daemon", Config::MAGENTA_DAEMON, ConsumableEffectType::INSTANT, UseOverclockBooster, 180, 350 },
@@ -132,20 +142,19 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     bool buyClicked = false;
 
     hoverState = rawHover;
-    if (hoverState.is_new_true()) {
+    if (hoverState.is_new_true()&& hasFunds && hasRoom) {
         playsoundsmart(hoversound, .1, 1.6);
     }
 
     
-    Texture2D sprite = GetShopItemSprite(CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount)&&IsMouseButtonDown(MOUSE_BUTTON_LEFT)?true:false);
-    Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
-
+    Texture2D shopitemsprite = GetShopItemSprite(CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount)&&IsMouseButtonDown(MOUSE_BUTTON_LEFT)&&hasFunds&&hasRoom?true:false);
+    Rectangle srcRect = { 0, 0, (float)shopitemsprite.width, (float)shopitemsprite.height };
+    
     Vector3 hsv = ColorToHSV(iteminfo.GetColor());
     float hue = .2+hsv.x/360; 
     SetShaderValue(hueShader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
-
     BeginShaderMode(hueShader);
-    DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
+    DrawTexturePro(shopitemsprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
     EndShaderMode();
 
     if (CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && hasFunds && hasRoom) {
@@ -157,7 +166,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
         
     }
 
-    if (CheckCollisionPointPolyCUstom(mousePos, hoverpointsmain, pointsmaincount)){
+    if (CheckCollisionPointPolyCUstom(mousePos, hoverpointsmain, pointsmaincount)&& hasFunds && hasRoom){
         DrawTriangleFan(hoverpointsmain, pointsmaincount, Fade(WHITE, .35));
     }
     Color mainColor = iteminfo.GetColor();
@@ -217,6 +226,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
 
     hoverState.update();
 }
+
 void GenerateConsumableShopPool() {
     std::vector<int> pool;
     for (int i = 0; i < (int)consumableShopPool.size(); i++) {
@@ -295,32 +305,27 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     bool hasRoom = (int)activeconsumableinfo.consumables.size() < GetMaxConsumableSlots();
     bool canBuy = hasFunds && hasRoom && !isSlotSold;
 
-    Color fillColor = Config::colorBg;
-    if (isHovered) {
-        fillColor = {
-            (unsigned char)(Config::colorBg.r + (255 - Config::colorBg.r) * 0.15f),
-            (unsigned char)(Config::colorBg.g + (255 - Config::colorBg.g) * 0.15f),
-            (unsigned char)(Config::colorBg.b + (255 - Config::colorBg.b) * 0.15f),
-            255
-        };
-    }
+    Texture2D slotSprite = GetConsumableSlotSprite();
+    Rectangle spriteSrc = { 0, 0, (float)slotSprite.width, (float)slotSprite.height };
 
-    float cut = slotRect.width * 0.18f;
-    Vector2 pts[5] = {
-        { slotRect.x, slotRect.y },
-        { slotRect.x + slotRect.width - cut, slotRect.y },
-        { slotRect.x + slotRect.width, slotRect.y + cut },
-        { slotRect.x + slotRect.width, slotRect.y + slotRect.height },
-        { slotRect.x, slotRect.y + slotRect.height }
+    Vector3 hsv = ColorToHSV(mainColor);
+    float hue = .2f + hsv.x / 360.0f;
+    SetShaderValue(hueShader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
+    BeginShaderMode(hueShader);
+    DrawTexturePro(slotSprite, spriteSrc, slotRect, { 0, 0 }, 0.0f, WHITE);
+    EndShaderMode();
+
+    Vector2 itempoints[] = {
+        (Vector2){ slotRect.x, slotRect.y },
+        (Vector2){ slotRect.x, slotRect.y+134 },
+        (Vector2){ slotRect.x+slotRect.width,slotRect.y+134 },
+        (Vector2){ slotRect.x+slotRect.width,slotRect.y+23},
+        (Vector2){ slotRect.x+127, slotRect.y }
     };
-
-    DrawTriangleFan(pts, 5, fillColor);
-    for (int i = 0; i < 5; i++) {
-        DrawLineEx(pts[i], pts[(i + 1) % 5], isHovered ? 2.0f : 1.0f, isHovered ? mainColor : dimColor);
+    int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
+    if (isHovered) {
+        DrawTriangleFan(itempoints, itempointCount, Fade(WHITE, .35));
     }
-
-    DrawRectangle(slotRect.x, slotRect.y + slotRect.height - 3, 10, 3, mainColor);
-    DrawRectangle(slotRect.x, slotRect.y + slotRect.height - 10, 3, 10, mainColor);
 
     float badgeRadius = slotRect.width * 0.2f;
     Vector2 badgeCenter = { slotRect.x + slotRect.width / 2.0f, slotRect.y + slotRect.height * 0.32f };
@@ -349,13 +354,15 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
 
     bool buyClicked = false;
     if (isSlotSold) {
-        DrawButton(priceBtn, ButtonType::TextGeneric, 255, Color{ 20, 20, 20, 255 }, Color{ 20, 20, 20, 255 }, Color{ 100, 40, 40, 255 }, Color{ 100, 40, 40, 255 }, "OWNED", 11);
+        //DrawButton(priceBtn, ButtonType::TextGeneric, 255, Color{ 20, 20, 20, 255 }, Color{ 20, 20, 20, 255 }, Color{ 100, 40, 40, 255 }, Color{ 100, 40, 40, 255 }, "OWNED", 11);
+        DrawText("Owned",slotRect.x + 6,slotRect.y + slotRect.height - 28,11,WHITE);
     } else if (canBuy) {
         buyClicked = DrawButton(priceBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, mainColor, mainColor, priceTxt, 12);
     } else {
         Color lockedBg = { 30, 30, 30, 255 };
         Color lockedText = { 65, 65, 65, 255 };
-        DrawButton(priceBtn, ButtonType::TextGeneric, 255, lockedBg, lockedBg, lockedText, lockedText, priceTxt, 12);
+        DrawText(priceTxt,slotRect.x + 6,slotRect.y + slotRect.height - 28,11,WHITE);
+        //DrawButton(priceBtn, ButtonType::TextGeneric, 255, lockedBg, lockedBg, lockedText, lockedText, priceTxt, 12);
     }
 
     if (buyClicked) {
@@ -452,10 +459,36 @@ void drawshop() {
     float startX = Config::shopitemsXbuffer + (footprintWidth - usedWidth) / 2.0f;
     float consumableRowY = Config::shopitemsYbuffer + (80 * 5) + 50.0f;
 
+        
+    static Texture2D consumablesbgshop = LoadTexture("assets/consumables-shop-bg.png");
+    Rectangle srcRect = {0,0,544,61};
+    const float baseWidth = 544.0f;
+    const float baseHeight = 61.0f;
+
+    float newWidth = static_cast<float>(Config::shopitemtotalWidth) + 10.0f;
+
+    float scale = newWidth / baseWidth;
+    float newHeight = baseHeight * scale;
+
+    Rectangle destRect = {
+        static_cast<float>(Config::shopitemsXbuffer),
+        575.0f,
+        newWidth,
+        newHeight
+    };
+    DrawTexturePro(consumablesbgshop,srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
+
     for (int i = 0; i < consumableSlotCount; ++i) {
         int poolIdx = consumableShopSlots[i];
         if (poolIdx == -1) continue;
-        Rectangle slotRect = { startX + i * (Config::consumableitemsize + Config::consumablesgap), consumableRowY, Config::consumableitemsize, Config::consumableitemsize };
+
+        Rectangle slotRect = {
+            Config::consumables_slots_locations[i],
+            545,
+            112 * scale,
+            126 * scale
+        };
+
         DrawShopConsumableItem(slotRect, consumableShopPool[poolIdx], consumableSold[i], consumableHoverStates[i]);
     }
     float glitchIntensity = GetRerollGlitchIntensity();

@@ -14,7 +14,7 @@ namespace Config {
     constexpr float FRICTION_DAMPING = 0.95f;
     constexpr float Daemon_Y_Buffer = 20.0f;
     constexpr float Daemon_Slot_Spacing = 10.0f;
-
+    constexpr float Daemon_side_seperator = 810.0f;
     
     constexpr int numberofrowsofpegs = 10;
     constexpr float PegspacingY = 48.0f; 
@@ -32,16 +32,19 @@ namespace Config {
     constexpr int extraballsreward = 80;
 
     //shop
-    constexpr float shopitemsYbuffer = 110.0f;
-    constexpr float shopitemsXbuffer = 52.0f;
     constexpr float shopitemtotalWidth = 705.0f;
+    constexpr float shopitemsYbuffer = 110.0f;
+    constexpr float shopitemsXbuffer = (Daemon_side_seperator-shopitemtotalWidth)/2;
     constexpr float shopitemtotalHeight = 85.0f;
     constexpr float shopbuyitembuttonWidth = 140.0f;
 
     constexpr float consumablesgap = 14.0f;
     constexpr float consumableitemsize = shopitemtotalWidth/4-consumablesgap;
-    
-    //map
+    constexpr float consumables_slots_locations[4]={69,
+                                                    234,
+                                                    434,
+                                                    603};
+    //maps
     constexpr int maxmapcolumns = 16;
     constexpr int maxnodespermapcolumn = 4;
     constexpr int maxmapconnections = 4;

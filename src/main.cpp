@@ -480,11 +480,11 @@ void UpdateDrawFrame() {
         DrawText(dataProgressText.c_str(), 835, Config::scoreBlockY + 40, 24, targetMet ? Config::COLOR_UI_GREEN : WHITE);
         
         DrawLineEx({ 0, 630 }, { 810, 630 }, 2.0f, Config::COLOR_SHARD_BORDER);
-        DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
+        DrawLineEx({ Config::Daemon_side_seperator, 0 }, { Config::Daemon_side_seperator, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
         DrawFadingLines(engine);
     }
     if (gamestate.gamestate==SHOP){
-        DrawLineEx({ 810, 0 }, { 810, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
+        DrawLineEx({ Config::Daemon_side_seperator, 0 }, { Config::Daemon_side_seperator, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
         DrawLineEx({ 0, 530 }, { 810, 530 }, 2.0f, Config::COLOR_SHARD_BORDER);
         drawshop();
     }

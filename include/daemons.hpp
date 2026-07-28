@@ -6,7 +6,7 @@
 #include "easing_functions.hpp"
 #include "shop.hpp"
 #include "raymath.h"
-
+class GameEngine;//hopefully this doesnt break everything pls pls pls pls pls lps pls plspl s
 class Probe;
 class Daemon {
 public:
