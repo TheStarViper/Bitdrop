@@ -68,128 +68,102 @@ void UpdateRerollGlitch(void) {
     }
 }
 
-
 void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbool& hoverState) {
-    const float gap = 8.0f;
-    const float mainBoxWidth = Config::shopitemtotalWidth - Config::shopbuyitembuttonWidth - gap;
-    Color mainColor   = iteminfo.GetColor();
-    Color dimColor    = (Color){ static_cast<unsigned char>(mainColor.r * 0.4f), static_cast<unsigned char>(mainColor.g * 0.4f), static_cast<unsigned char>(mainColor.b * 0.4f), 255 };
-    Color textDim     = (Color){ static_cast<unsigned char>(mainColor.r * 0.7f), static_cast<unsigned char>(mainColor.g * 0.7f), static_cast<unsigned char>(mainColor.b * 0.7f), 255 };
+    // Rectangle destRect = { pos.x, pos.y, Config::shopitemtotalWidth, Config::shopitemtotalHeight };
+    // Vector2 mousePos = GetMousePosition();
 
-    Rectangle btnRect = { pos.x+Config::shopitemtotalWidth-Config::shopbuyitembuttonWidth, pos.y, Config::shopbuyitembuttonWidth, Config::shopitemtotalHeight };
-    Rectangle mainRect = { pos.x, pos.y, mainBoxWidth, Config::shopitemtotalHeight };
+    // bool rawHover = CheckCollisionPointRec(mousePos, destRect) && !isSlotSold;
+    // hoverState = rawHover;
+    // if (hoverState.is_new_true()) {
+    //     playsoundsmart(hoversound, .1, 1.6);
+    // }
+    // bool isHovered = hoverState;
 
-    Vector2 mousePos = GetMousePosition();
-    bool rawHover = CheckCollisionPointRec(mousePos, mainRect) && !isSlotSold;
-    hoverState = rawHover;
-    if (hoverState.is_new_true()) {
-        playsoundsmart(hoversound,.1,1.6);
-    }
+    // Texture2D sprite = GetShopItemSprite();
+    // Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
+    // DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
 
-    bool isHovered = hoverState;
-    Rectangle innerBtn = { btnRect.x + 8, btnRect.y + 14, btnRect.width - 16, btnRect.height - 36 };
-    bool hasFunds = (gamestate.balance >= iteminfo.price);
-    bool buyClicked = false;
-    unsigned char alpha = 255;
+    // if (isHovered) {
+    //     Vector2 hoverPts[4] = {
+    //         { destRect.x, destRect.y },
+    //         { destRect.x + destRect.width * 0.645f, destRect.y },
+    //         { destRect.x + destRect.width * 0.528f, destRect.y + destRect.height },
+    //         { destRect.x, destRect.y + destRect.height }
+    //     };
+    //     BeginBlendMode(BLEND_ADDITIVE);
+    //     DrawTriangleFan(hoverPts, 4, Fade(WHITE, 0.12f));
+    //     EndBlendMode();
+    // }
 
-    if (isSlotSold) {
-        Color soldBg = { 20, 20, 20, 255 };
-        Color soldText = { 100, 40, 40, 255 };
-        DrawRectangleRec(btnRect, Config::colorBg);
-        DrawRectangleLinesEx(btnRect, 1, dimColor);
-        DrawButton(innerBtn, ButtonType::TextGeneric, alpha, soldBg, soldBg, soldText, soldText, "SOLD", 18);
-    } else {
-        DrawRectangleRec(btnRect, Config::colorBg);
-        DrawRectangleLinesEx(btnRect, 1, dimColor);
+    // Color mainColor = iteminfo.GetColor();
+    // const float targetIconSize = 48.0f;
+    // Vector2 iconPos = { destRect.x + 14, destRect.y + (destRect.height - targetIconSize) / 2 };
 
-        if (hasFunds && activedaemoninfo.daemons.size()<5) {
-            buyClicked = DrawButton(innerBtn, ButtonType::TextGeneric, alpha, Config::colorButtonBg, Config::COLOR_GRID_LINE, mainColor, mainColor, "BUY", 18);
-        } else if (!hasFunds) {
-            Color lockedBg = { 30, 30, 30, 255 };
-            Color lockedText = { 65, 65, 65, 255 };
-            DrawButton(innerBtn, ButtonType::TextGeneric, alpha, lockedBg, lockedBg, lockedText, lockedText, "BUY", 18);
-            DrawText("INSUFFICIENT FUNDS", btnRect.x + (btnRect.width - MeasureText("INSUFFICIENT FUNDS", 10)) / 2, btnRect.y + 60, 10, Config::colorRedAlert);
-        } else {
-            Color lockedBg = { 30, 30, 30, 255 };
-            Color lockedText = { 65, 65, 65, 255 };
-            DrawButton(innerBtn, ButtonType::TextGeneric, alpha, lockedBg, lockedBg, lockedText, lockedText, "BUY", 18);
-            DrawText("MAX SLOTS REACHED", btnRect.x + (btnRect.width - MeasureText("INSUFFICIENT FUNDS", 10)) / 2, btnRect.y + 60, 10, (Color){150,150,150,255});
-        }
-    }
+    // if (iteminfo.iconMatrix != nullptr) {
+    //     const IconGrid& grid = *iteminfo.iconMatrix;
+    //     const float pixelScale = targetIconSize / 16.0f;
 
-    if (buyClicked && !isSlotSold && activedaemoninfo.daemons.size()<5) {
-        Daemon stagingbuy = iteminfo;
-        stagingbuy.slot = activedaemoninfo.daemons.size()+1;
-        stagingbuy.updateYPosition();
-        activedaemoninfo.daemons.push_back(stagingbuy);
-        gamestate.balance -= iteminfo.price;
+    //     for (int y = 0; y < 16; ++y) {
+    //         for (int x = 0; x < 16; ++x) {
+    //             if (grid[y][x]) {
+    //                 DrawRectangle(
+    //                     (int)roundf(iconPos.x + (x * pixelScale)),
+    //                     (int)roundf(iconPos.y + (y * pixelScale)),
+    //                     (int)ceilf(pixelScale),
+    //                     (int)ceilf(pixelScale),
+    //                     mainColor
+    //                 );
+    //             }
+    //         }
+    //     }
+    // }
 
-        isSlotSold = true;
-    }
+    // float textStartX = iconPos.x + targetIconSize + 16;
+    // DrawText(iteminfo.GetName().c_str(), textStartX, destRect.y + 12, 20, WHITE);
+    // DrawText(iteminfo.GetDesc().c_str(), textStartX, destRect.y + 40, 11, Fade(WHITE, 0.6f));
 
-    Color mainFillColor = Config::colorBg;
-    if (isHovered) {
-        mainFillColor = (Color){
-            static_cast<unsigned char>(Config::colorBg.r + (255 - Config::colorBg.r) * 0.15f),
-            static_cast<unsigned char>(Config::colorBg.g + (255 - Config::colorBg.g) * 0.15f),
-            static_cast<unsigned char>(Config::colorBg.b + (255 - Config::colorBg.b) * 0.15f),
-            255
-        };
-    }
+    // std::string lvlStr = std::to_string(iteminfo.GetLevel());
+    // DrawText(lvlStr.c_str(), destRect.x + destRect.width * 0.645f + 4, destRect.y + 8, 13, WHITE);
 
-    DrawRectangleRec(mainRect, mainFillColor);
-    DrawRectangleLinesEx(mainRect, 1, dimColor);
-    if (isHovered) {
-        DrawRectangleLinesEx(mainRect, 2, mainColor);
-    }
-    DrawRectangle(mainRect.x, mainRect.y, 10, 3, mainColor);
-    DrawRectangle(mainRect.x, mainRect.y, 3, 10, mainColor);
-    DrawRectangle(mainRect.x + mainRect.width - 10, mainRect.y + mainRect.height - 3, 10, 3, mainColor);
-    const float targetIconSize = 48.0f;
-    Vector2 iconPos = { mainRect.x + 14, mainRect.y + (mainRect.height - targetIconSize) / 2 };
+    // char costTxt[16];
+    // sprintf(costTxt, "$%d", iteminfo.price);
+    // int costWidth = MeasureText(costTxt, 22);
+    // DrawText(costTxt, destRect.x + destRect.width * 0.60f - costWidth, destRect.y + destRect.height * 0.5f - 5, 22, WHITE);
 
-    DrawRectangleLinesEx((Rectangle){ iconPos.x, iconPos.y, targetIconSize, targetIconSize }, 2, mainColor);
+    // Rectangle buyRegion = {
+    //     destRect.x + destRect.width * 0.777f,
+    //     destRect.y + destRect.height * 0.094f,
+    //     destRect.width * (1.0f - 0.777f),
+    //     destRect.height * (1.0f - 0.094f - 0.094f)
+    // };
 
-    if (iteminfo.iconMatrix != nullptr) {
-        const IconGrid& grid = *iteminfo.iconMatrix;
-        const float pixelScale = targetIconSize / 16.0f;
+    // bool hasFunds = (gamestate.balance >= iteminfo.price);
+    // bool hasRoom = activedaemoninfo.daemons.size() < 5;
+    // bool buyClicked = false;
 
-        for (int y = 0; y < 16; ++y) {
-            for (int x = 0; x < 16; ++x) {
-                if (grid[y][x]) {
-                    DrawRectangle(
-                        (int)roundf(iconPos.x + (x * pixelScale)),
-                        (int)roundf(iconPos.y + (y * pixelScale)),
-                        (int)ceilf(pixelScale),
-                        (int)ceilf(pixelScale),
-                        mainColor
-                    );
-                }
-            }
-        }
-    }
+    // if (isSlotSold) {
+    //     DrawRectangleRec(buyRegion, Fade(BLACK, 0.6f));
+    //     int soldW = MeasureText("SOLD", 14);
+    //     DrawText("SOLD", buyRegion.x + buyRegion.width / 2 - soldW / 2, buyRegion.y + buyRegion.height / 2 - 7, 14, Config::colorRedAlert);
+    // } else if (!hasFunds || !hasRoom) {
+    //     DrawRectangleRec(buyRegion, Fade(BLACK, 0.55f));
+    //     const char* reasonTxt = !hasFunds ? "INSUFFICIENT FUNDS" : "MAX SLOTS REACHED";
+    //     int reasonW = MeasureText(reasonTxt, 9);
+    //     DrawText(reasonTxt, buyRegion.x + buyRegion.width / 2 - reasonW / 2, buyRegion.y + buyRegion.height + 4, 9, Config::colorRedAlert);
+    // } else {
+    //     buyClicked = CheckCollisionPointRec(mousePos, buyRegion) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+    // }
 
-    float textStartX = iconPos.x + targetIconSize + 16;
+    // if (buyClicked) {
+    //     Daemon stagingbuy = iteminfo;
+    //     stagingbuy.slot = activedaemoninfo.daemons.size() + 1;
+    //     stagingbuy.updateYPosition();
+    //     activedaemoninfo.daemons.push_back(stagingbuy);
+    //     gamestate.balance -= iteminfo.price;
+    //     isSlotSold = true;
+    // }
 
-    DrawText(iteminfo.GetName().c_str(), textStartX, mainRect.y + 12, 20, mainColor);
-    DrawText(iteminfo.GetDesc().c_str(), textStartX, mainRect.y + 40, 11, textDim);
-
-    int lvlWidth = MeasureText(std::to_string(iteminfo.GetLevel()).c_str(), 13);
-    DrawText(std::to_string(iteminfo.GetLevel()).c_str(), mainRect.x + mainRect.width - lvlWidth - 14, mainRect.y + 12, 13, textDim);
-
-    char costTxt[16];
-    sprintf(costTxt, "$%d", iteminfo.price);
-    int costWidth = MeasureText(costTxt, 22);
-    DrawText(costTxt, mainRect.x + mainRect.width - costWidth - 14, mainRect.y + 44, 22, mainColor);
-
-    if (isSlotSold) {
-        DrawRectangleRec(mainRect, (Color){ 10, 10, 10, 170 });
-        int bannerWidth = MeasureText("OUT OF STOCK", 16);
-        DrawRectangle(mainRect.x + 12, mainRect.y + (mainRect.height - 24) / 2, bannerWidth + 16, 24, (Color){ 45, 12, 12, 230 });
-        DrawText("OUT OF STOCK", mainRect.x + 20, mainRect.y + (mainRect.height - 16) / 2, 16, Config::colorRedAlert);
-    }
-
-    hoverState.update();
+    // hoverState.update();
 }
 
 void GenerateConsumableShopPool() {
@@ -413,7 +387,7 @@ void drawshop() {
         int daemonIdx = shopstate.slots[i];
         if (daemonIdx != -1) {
             DrawShopItem(
-                (Vector2){ 75, Config::shopitemsYbuffer + (80 * i) },
+                (Vector2){ 75, Config::shopitemsYbuffer + (82 * i) },
                 engine.daemons[daemonIdx],
                 shopstate.sold[i],
                 shopstate.hoverStates[i]
