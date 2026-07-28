@@ -28,14 +28,16 @@ struct ShopConsumableEntry {
     int price;
 };
 
-Texture2D GetShopItemSprite() {
+Texture2D GetShopItemSprite(bool pressed) {
     static Texture2D tex;
+    static Texture2D texpressed;
     static bool loaded = false;
     if (!loaded) {
         tex = LoadTexture("assets/shop-item.png");
+        texpressed = LoadTexture("assets/shop-item-pressed.png");
         loaded = true;
     }
-    return tex;
+    return !pressed ? tex : texpressed;
 }
 
 static std::vector<ShopConsumableEntry> consumableShopPool = {
@@ -97,17 +99,34 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
         (Vector2){ Config::shopitemsXbuffer+692, pos.y+2+38 }
     };
 
+    Vector2 btnpointspressed[] = {
+        (Vector2){ Config::shopitemsXbuffer+692-8, pos.y+2+15+7 },
+        (Vector2){ Config::shopitemsXbuffer+581-8, pos.y+2+15+7 },
+        (Vector2){ Config::shopitemsXbuffer+559-8, pos.y+2+36+7 },
+        (Vector2){ Config::shopitemsXbuffer+559-8, pos.y+2+59+7 },
+        (Vector2){ Config::shopitemsXbuffer+671-8, pos.y+2+59+7 },
+        (Vector2){ Config::shopitemsXbuffer+692-8, pos.y+2+38+7 }
+    };
+
     Vector2 itempoints[] = {
         (Vector2){ Config::shopitemsXbuffer, pos.y },
         (Vector2){ Config::shopitemsXbuffer, pos.y+Config::shopitemtotalHeight },
         (Vector2){ Config::shopitemsXbuffer+678, pos.y+Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer+Config::shopitemtotalWidth, pos.y+55 },
+        (Vector2){ Config::shopitemsXbuffer+Config::shopitemtotalWidth, pos.y+56},
         (Vector2){ Config::shopitemsXbuffer+Config::shopitemtotalWidth, pos.y }
     };
 
+    Vector2 hoverpointsmain[] = {
+        (Vector2){ Config::shopitemsXbuffer, pos.y },
+        (Vector2){ Config::shopitemsXbuffer, pos.y+Config::shopitemtotalHeight },
+        (Vector2){ Config::shopitemsXbuffer+371, pos.y+Config::shopitemtotalHeight },
+        (Vector2){ Config::shopitemsXbuffer+455, pos.y }
+    };
+    int pointsmaincount = sizeof(hoverpointsmain) / sizeof(hoverpointsmain[0]);
     int btnpointCount = sizeof(btnpoints) / sizeof(btnpoints[0]);
+    int btnpointCountpressed = sizeof(btnpointspressed) / sizeof(btnpointspressed[0]);
     int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
-    bool rawHover = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && !isSlotSold;
+    bool rawHover = (CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount)||CheckCollisionPointPolyCUstom(mousePos, hoverpointsmain, pointsmaincount))&& !isSlotSold;
     bool hasFunds = (gamestate.balance >= iteminfo.price);
     bool hasRoom = activedaemoninfo.daemons.size() < 5;
     bool buyClicked = false;
@@ -116,22 +135,31 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     if (hoverState.is_new_true()) {
         playsoundsmart(hoversound, .1, 1.6);
     }
-    bool isHovered = hoverState;
 
-    Texture2D sprite = GetShopItemSprite();
+    
+    Texture2D sprite = GetShopItemSprite(CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount)&&IsMouseButtonDown(MOUSE_BUTTON_LEFT)?true:false);
     Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
 
-    float hue = 0.5f; 
+    Vector3 hsv = ColorToHSV(iteminfo.GetColor());
+    float hue = .2+hsv.x/360; 
     SetShaderValue(hueShader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
 
     BeginShaderMode(hueShader);
     DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
     EndShaderMode();
 
-    if (isHovered && hasFunds && hasRoom) {
-        DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE, .35));
+    if (CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && hasFunds && hasRoom) {
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
+            DrawTriangleFan(btnpointspressed, btnpointCountpressed, Fade(WHITE, .35));
+        } else {
+            DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE, .35));
+        }
+        
     }
 
+    if (CheckCollisionPointPolyCUstom(mousePos, hoverpointsmain, pointsmaincount)){
+        DrawTriangleFan(hoverpointsmain, pointsmaincount, Fade(WHITE, .35));
+    }
     Color mainColor = iteminfo.GetColor();
     const float targetIconSize = 48.0f;
     Vector2 iconPos = { destRect.x + 14, destRect.y + (destRect.height - targetIconSize) / 2 };
@@ -175,7 +203,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
         int reasonW = MeasureText(reasonTxt, 9);
         DrawText(reasonTxt, destRect.x + Config::shopitemtotalWidth/2 - 200, destRect.y + Config::shopitemtotalHeight/2-15, 20, !hasFunds ? Config::colorRedAlert : (Color){150,150,150,255});
     } else {
-        buyClicked = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && !isSlotSold && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+        buyClicked = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && !isSlotSold && IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
     }
 
     if (buyClicked) {
