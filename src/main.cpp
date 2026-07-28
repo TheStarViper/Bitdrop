@@ -45,6 +45,9 @@
 
 void InitGame() {
     InitMap();
+    hueShader = LoadShader(0, "assets/shaders/hueshift.fs");
+    hueLoc = GetShaderLocation(hueShader, "hueShift");
+    TraceLog(LOG_INFO, "hueLoc = %d, shader.id = %d", hueLoc, hueShader.id);
     sceneTarget = LoadRenderTexture(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT);
     levelstate.scoredbytes = 0.0;
     engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
@@ -517,6 +520,7 @@ int main() {
         UpdateDrawFrame();
     }
 #endif
+    UnloadShader(hueShader);
     CloseWindow();
     return 0;
 }

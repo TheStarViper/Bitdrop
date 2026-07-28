@@ -12,7 +12,6 @@
 #include "audio.hpp"
 #include "transition.hpp"
 #include "consumables.hpp"
-
 struct RerollGlitchState {
     float timer = 0.0f;
     float duration = 0.25f;
@@ -85,12 +84,11 @@ bool CheckCollisionPointPolyCUstom(Vector2 point, const Vector2 *points, int poi
     
     return inside;
 }
-
 void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbool& hoverState) {
     Rectangle destRect = { pos.x, pos.y, Config::shopitemtotalWidth, Config::shopitemtotalHeight };
     Vector2 mousePos = GetMousePosition();
 
-    Vector2 btnpoints[] = {    //hover button points
+    Vector2 btnpoints[] = {
         (Vector2){ Config::shopitemsXbuffer+692, pos.y+2+15 },
         (Vector2){ Config::shopitemsXbuffer+581, pos.y+2+15 },
         (Vector2){ Config::shopitemsXbuffer+559, pos.y+2+36 },
@@ -99,7 +97,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
         (Vector2){ Config::shopitemsXbuffer+692, pos.y+2+38 }
     };
 
-    Vector2 itempoints[] = {    //entire shape points
+    Vector2 itempoints[] = {
         (Vector2){ Config::shopitemsXbuffer, pos.y },
         (Vector2){ Config::shopitemsXbuffer, pos.y+Config::shopitemtotalHeight },
         (Vector2){ Config::shopitemsXbuffer+678, pos.y+Config::shopitemtotalHeight },
@@ -122,11 +120,18 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
 
     Texture2D sprite = GetShopItemSprite();
     Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
+
+    float hue = 0.5f; 
+    SetShaderValue(hueShader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
+
+    BeginShaderMode(hueShader);
     DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
-    if (isHovered&&hasFunds&&hasRoom) {
-        DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE,.35));
+    EndShaderMode();
+
+    if (isHovered && hasFunds && hasRoom) {
+        DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE, .35));
     }
-    
+
     Color mainColor = iteminfo.GetColor();
     const float targetIconSize = 48.0f;
     Vector2 iconPos = { destRect.x + 14, destRect.y + (destRect.height - targetIconSize) / 2 };
@@ -155,21 +160,20 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     DrawText(iteminfo.GetDesc().c_str(), textStartX, destRect.y + 40, 11, Fade(WHITE, 0.6f));
 
     std::string lvlStr = std::to_string(iteminfo.GetLevel());
-    DrawText(lvlStr.c_str(), destRect.x + destRect.width - 160, destRect.y + 8, 13, Fade(WHITE,.5));
+    DrawText(lvlStr.c_str(), destRect.x + destRect.width - 160, destRect.y + 8, 13, Fade(WHITE, .5));
 
     char costTxt[16];
     sprintf(costTxt, "$%d", iteminfo.price);
     int costWidth = MeasureText(costTxt, 22);
     DrawText(costTxt, destRect.x + destRect.width - 185 - costWidth, destRect.y + destRect.height - 35, 25, WHITE);
 
-
     if (isSlotSold) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK,.8));
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, .8));
     } else if (!hasFunds || !hasRoom) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK,.5));
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, .5));
         const char* reasonTxt = !hasFunds ? "INSUFFICIENT FUNDS" : "MAX SLOTS REACHED";
         int reasonW = MeasureText(reasonTxt, 9);
-        DrawText(reasonTxt, destRect.x + Config::shopitemtotalWidth/2 - 200, destRect.y + Config::shopitemtotalHeight/2-15, 20, !hasFunds?Config::colorRedAlert:(Color){150,150,150,255});
+        DrawText(reasonTxt, destRect.x + Config::shopitemtotalWidth/2 - 200, destRect.y + Config::shopitemtotalHeight/2-15, 20, !hasFunds ? Config::colorRedAlert : (Color){150,150,150,255});
     } else {
         buyClicked = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && !isSlotSold && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     }
@@ -185,7 +189,6 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
 
     hoverState.update();
 }
-
 void GenerateConsumableShopPool() {
     std::vector<int> pool;
     for (int i = 0; i < (int)consumableShopPool.size(); i++) {

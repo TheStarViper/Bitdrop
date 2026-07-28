@@ -5,7 +5,7 @@ INC = -Isrc -Iinclude -Iinclude/graphics -Iinclude/map -Iinclude/tools -I"C:/ray
 
 BUILD_DIR = build
 
-EMFLAGS = -o $(BUILD_DIR)/index.html -L"C:/raylib/raylib/src" -lraylib -flto -DPLATFORM_WEB -sUSE_GLFW=3 -sASYNCIFY -sALLOW_MEMORY_GROWTH=1 -sEXPORTED_RUNTIME_METHODS="['HEAPF32']" --shell-file "C:/raylib/raylib/src/shell.html" --preload-file assets
+EMFLAGS = -o $(BUILD_DIR)/index.html -L"C:/raylib/raylib/src" -lraylib -flto -DPLATFORM_WEB -sUSE_GLFW=3 -sASYNCIFY -sALLOW_MEMORY_GROWTH=1 -sEXPORTED_RUNTIME_METHODS="['HEAPF32']" --shell-file "C:/raylib/raylib/src/shell.html" --preload-file assets -sASSERTIONS=2 -sSAFE_HEAP=1 -gsource-map
 echo_color = powershell -Command "Write-Host $(1) -ForegroundColor $(2)"
 
 .PHONY: all setup build inject run clean

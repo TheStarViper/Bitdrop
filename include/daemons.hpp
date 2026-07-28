@@ -68,6 +68,7 @@ public:
         fillPct = 0;
         triggertype = trigger;
         actionCallback = action;
+        iconMatrix = icon;
         overclocked = 0;
         systemPatch = nullptr;
     }
