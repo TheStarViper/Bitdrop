@@ -90,17 +90,29 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     Rectangle destRect = { pos.x, pos.y, Config::shopitemtotalWidth, Config::shopitemtotalHeight };
     Vector2 mousePos = GetMousePosition();
 
-    Vector2 points[] = {    //hover button points
-        (Vector2){ 744, pos.y+2+15 },
-        (Vector2){ 633, pos.y+2+15 },
-        (Vector2){ 611, pos.y+2+36 },
-        (Vector2){ 611, pos.y+2+59 },
-        (Vector2){ 723, pos.y+2+59 },
-        (Vector2){ 744, pos.y+2+38 }
+    Vector2 btnpoints[] = {    //hover button points
+        (Vector2){ Config::shopitemsXbuffer+692, pos.y+2+15 },
+        (Vector2){ Config::shopitemsXbuffer+581, pos.y+2+15 },
+        (Vector2){ Config::shopitemsXbuffer+559, pos.y+2+36 },
+        (Vector2){ Config::shopitemsXbuffer+559, pos.y+2+59 },
+        (Vector2){ Config::shopitemsXbuffer+671, pos.y+2+59 },
+        (Vector2){ Config::shopitemsXbuffer+692, pos.y+2+38 }
     };
-    int pointCount = sizeof(points) / sizeof(points[0]);
 
-    bool rawHover = CheckCollisionPointPolyCUstom(mousePos, points, pointCount) && !isSlotSold;
+    Vector2 itempoints[] = {    //entire shape points
+        (Vector2){ Config::shopitemsXbuffer, pos.y },
+        (Vector2){ Config::shopitemsXbuffer, pos.y+Config::shopitemtotalHeight },
+        (Vector2){ Config::shopitemsXbuffer+678, pos.y+Config::shopitemtotalHeight },
+        (Vector2){ Config::shopitemsXbuffer+Config::shopitemtotalWidth, pos.y+55 },
+        (Vector2){ Config::shopitemsXbuffer+Config::shopitemtotalWidth, pos.y }
+    };
+
+    int btnpointCount = sizeof(btnpoints) / sizeof(btnpoints[0]);
+    int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
+    bool rawHover = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && !isSlotSold;
+    bool hasFunds = (gamestate.balance >= iteminfo.price);
+    bool hasRoom = activedaemoninfo.daemons.size() < 5;
+    bool buyClicked = false;
 
     hoverState = rawHover;
     if (hoverState.is_new_true()) {
@@ -111,8 +123,8 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     Texture2D sprite = GetShopItemSprite();
     Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
     DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
-    if (isHovered) {
-        DrawTriangleFan(points, pointCount, Fade(WHITE,.2));
+    if (isHovered&&hasFunds&&hasRoom) {
+        DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE,.35));
     }
     
     Color mainColor = iteminfo.GetColor();
@@ -150,38 +162,26 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     int costWidth = MeasureText(costTxt, 22);
     DrawText(costTxt, destRect.x + destRect.width - 185 - costWidth, destRect.y + destRect.height - 35, 25, WHITE);
 
-    Rectangle buyRegion = {
-        destRect.x + destRect.width * 0.777f,
-        destRect.y + destRect.height * 0.094f,
-        destRect.width * (1.0f - 0.777f),
-        destRect.height * (1.0f - 0.094f - 0.094f)
-    };
 
-    // bool hasFunds = (gamestate.balance >= iteminfo.price);
-    // bool hasRoom = activedaemoninfo.daemons.size() < 5;
-    // bool buyClicked = false;
+    if (isSlotSold) {
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK,.8));
+    } else if (!hasFunds || !hasRoom) {
+        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK,.5));
+        const char* reasonTxt = !hasFunds ? "INSUFFICIENT FUNDS" : "MAX SLOTS REACHED";
+        int reasonW = MeasureText(reasonTxt, 9);
+        DrawText(reasonTxt, destRect.x + Config::shopitemtotalWidth/2 - 200, destRect.y + Config::shopitemtotalHeight/2-15, 20, !hasFunds?Config::colorRedAlert:(Color){150,150,150,255});
+    } else {
+        buyClicked = CheckCollisionPointPolyCUstom(mousePos, btnpoints, btnpointCount) && !isSlotSold && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+    }
 
-    // if (isSlotSold) {
-    //     DrawRectangleRec(buyRegion, Fade(BLACK, 0.6f));
-    //     int soldW = MeasureText("SOLD", 14);
-    //     DrawText("SOLD", buyRegion.x + buyRegion.width / 2 - soldW / 2, buyRegion.y + buyRegion.height / 2 - 7, 14, Config::colorRedAlert);
-    // } else if (!hasFunds || !hasRoom) {
-    //     DrawRectangleRec(buyRegion, Fade(BLACK, 0.55f));
-    //     const char* reasonTxt = !hasFunds ? "INSUFFICIENT FUNDS" : "MAX SLOTS REACHED";
-    //     int reasonW = MeasureText(reasonTxt, 9);
-    //     DrawText(reasonTxt, buyRegion.x + buyRegion.width / 2 - reasonW / 2, buyRegion.y + buyRegion.height + 4, 9, Config::colorRedAlert);
-    // } else {
-    //     buyClicked = CheckCollisionPointRec(mousePos, buyRegion) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
-    // }
-
-    // if (buyClicked) {
-    //     Daemon stagingbuy = iteminfo;
-    //     stagingbuy.slot = activedaemoninfo.daemons.size() + 1;
-    //     stagingbuy.updateYPosition();
-    //     activedaemoninfo.daemons.push_back(stagingbuy);
-    //     gamestate.balance -= iteminfo.price;
-    //     isSlotSold = true;
-    // }
+    if (buyClicked) {
+        Daemon stagingbuy = iteminfo;
+        stagingbuy.slot = activedaemoninfo.daemons.size() + 1;
+        stagingbuy.updateYPosition();
+        activedaemoninfo.daemons.push_back(stagingbuy);
+        gamestate.balance -= iteminfo.price;
+        isSlotSold = true;
+    }
 
     hoverState.update();
 }
