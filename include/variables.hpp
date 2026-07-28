@@ -7,6 +7,7 @@
 
 class Daemon;
 namespace Config {
+    constexpr bool debugmode = true;
     constexpr int SCREEN_WIDTH = 1280;
     constexpr int SCREEN_HEIGHT = 720;
     constexpr float GRAVITY = 1200.0f;        

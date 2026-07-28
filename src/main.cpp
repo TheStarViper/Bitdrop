@@ -17,6 +17,7 @@
 #include "consumables.hpp"
 #include "payout.hpp"
 #include "transition.hpp"
+#include "debug.hpp"
 #include "formatting.hpp"
 //update 17:
 //screen shake
@@ -370,7 +371,7 @@ void UpdatePhysics(float dt) {
 }
 
 
-void UpdateDrawFrame(void) {
+void UpdateDrawFrame() {
     Vector2 currentMousePos = GetMousePosition();
     if (gamestate.gamestate==GAME){
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -392,6 +393,9 @@ void UpdateDrawFrame(void) {
     }
 
     BeginTextureMode(sceneTarget);
+    if (Config::debugmode){
+        debug_overlay();
+    }
     ClearBackground(Config::COLOR_BG);
     UpdateTransition();
     UpdateDisplayedBalance();

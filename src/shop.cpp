@@ -68,41 +68,52 @@ void UpdateRerollGlitch(void) {
     }
 }
 
+bool CheckCollisionPointPolyCUstom(Vector2 point, const Vector2 *points, int pointCount) {
+    bool inside = false;
+    
+    for (int i = 0, j = pointCount - 1; i < pointCount; j = i++) {
+        bool intersectY = ((points[i].y > point.y) != (points[j].y > point.y));
+        
+        if (intersectY) {
+            float intersectX = (points[j].x - points[i].x) * (point.y - points[i].y) / 
+                               (points[j].y - points[i].y) + points[i].x;
+            if (point.x < intersectX) {
+                inside = !inside;
+            }
+        }
+    }
+    
+    return inside;
+}
+
 void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbool& hoverState) {
     Rectangle destRect = { pos.x, pos.y, Config::shopitemtotalWidth, Config::shopitemtotalHeight };
     Vector2 mousePos = GetMousePosition();
 
-    // bool rawHover = CheckCollisionPointRec(mousePos, destRect) && !isSlotSold;
-    // hoverState = rawHover;
-    // if (hoverState.is_new_true()) {
-    //     playsoundsmart(hoversound, .1, 1.6);
-    // }
-    // bool isHovered = hoverState;
+    Vector2 points[] = {    //hover button points
+        (Vector2){ 744, pos.y+2+15 },
+        (Vector2){ 633, pos.y+2+15 },
+        (Vector2){ 611, pos.y+2+36 },
+        (Vector2){ 611, pos.y+2+59 },
+        (Vector2){ 723, pos.y+2+59 },
+        (Vector2){ 744, pos.y+2+38 }
+    };
+    int pointCount = sizeof(points) / sizeof(points[0]);
+
+    bool rawHover = CheckCollisionPointPolyCUstom(mousePos, points, pointCount) && !isSlotSold;
+
+    hoverState = rawHover;
+    if (hoverState.is_new_true()) {
+        playsoundsmart(hoversound, .1, 1.6);
+    }
+    bool isHovered = hoverState;
 
     Texture2D sprite = GetShopItemSprite();
     Rectangle srcRect = { 0, 0, (float)sprite.width, (float)sprite.height };
     DrawTexturePro(sprite, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
-    // if (isHovered) {
-    //     Vector2 hoverPts[4] = {
-    //         { destRect.x, destRect.y },
-    //         { destRect.x + destRect.width * 0.645f, destRect.y },
-    //         { destRect.x + destRect.width * 0.528f, destRect.y + destRect.height },
-    //         { destRect.x, destRect.y + destRect.height }
-    //     };
-    //     BeginBlendMode(BLEND_ADDITIVE);
-    //     DrawTriangleFan(hoverPts, 4, Fade(WHITE, 0.12f));
-    //     EndBlendMode();
-    // }
-    Vector2 points[] = {
-        (Vector2){ 400, 100 },
-        (Vector2){ 250, 200 },
-        (Vector2){ 200, 350 },
-        (Vector2){ 400, 400 },
-        (Vector2){ 600, 350 },
-        (Vector2){ 550, 200 }
-    };
-    int pointCount = sizeof(points) / sizeof(points[0]);
-    DrawTriangleFan(points, pointCount, MAROON);
+    if (isHovered) {
+        DrawTriangleFan(points, pointCount, Fade(WHITE,.2));
+    }
     
     Color mainColor = iteminfo.GetColor();
     const float targetIconSize = 48.0f;
@@ -172,7 +183,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     //     isSlotSold = true;
     // }
 
-    // hoverState.update();
+    hoverState.update();
 }
 
 void GenerateConsumableShopPool() {
