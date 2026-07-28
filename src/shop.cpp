@@ -12,6 +12,7 @@
 #include "audio.hpp"
 #include "transition.hpp"
 #include "consumables.hpp"
+#include "custom-polygon-generator.hpp"
 struct RerollGlitchState {
     float timer = 0.0f;
     float duration = 0.25f;
