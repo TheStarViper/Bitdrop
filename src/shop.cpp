@@ -177,7 +177,6 @@ static void DrawConsumableTooltip(Rectangle slotRect, const ShopConsumableEntry&
     }
 }
 
-
 void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item, bool& isSlotSold, smartbool& hoverState) {
     Color mainColor = item.color;
     Color textDim   = { (unsigned char)(mainColor.r * 0.7f), (unsigned char)(mainColor.g * 0.7f), (unsigned char)(mainColor.b * 0.7f), 255 };
@@ -194,32 +193,35 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     Rectangle spriteSrc = { 0, 0, (float)slotSprite.width, (float)slotSprite.height };
     DrawSpriteWithHueShader(slotSprite, spriteSrc, slotRect, mainColor, hueShader, hueLoc);
 
-    Vector2 itempoints[] = {
-        (Vector2){ slotRect.x, slotRect.y },
-        (Vector2){ slotRect.x, slotRect.y + 134 },
-        (Vector2){ slotRect.x + slotRect.width, slotRect.y + 134 },
-        (Vector2){ slotRect.x + slotRect.width, slotRect.y + 23 },
-        (Vector2){ slotRect.x + 127, slotRect.y }
-    };
 
-    Vector2 btnpoints[] = {
-        (Vector2){ slotRect.x+6, slotRect.y + 139 },
-        (Vector2){ slotRect.x+8, slotRect.y + 158 },
-        (Vector2){ slotRect.x+12, slotRect.y + 164 },
-        (Vector2){ slotRect.x + 130, slotRect.y + 164 },
-        (Vector2){ slotRect.x + 138, slotRect.y + 158 },
-        (Vector2){ slotRect.x + 138, slotRect.y + 139 }
-    };
+    Polygon itemPoly({
+        { slotRect.x, slotRect.y },
+        { slotRect.x, slotRect.y + 134 },
+        { slotRect.x + slotRect.width, slotRect.y + 134 },
+        { slotRect.x + slotRect.width, slotRect.y + 23 },
+        { slotRect.x + 127, slotRect.y }
+    });
 
-    int btnpointCount = 6;
-    int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
-    bool isbtnhovered =CheckCollisionPointPoly(mousePos,btnpoints,btnpointCount);
-    if (CheckCollisionPointPoly(mousePos,itempoints,itempointCount)&&hasFunds&&hasRoom&&!isSlotSold) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(WHITE, 0.35f));
+    Polygon btnPoly({
+        { slotRect.x + 6, slotRect.y + 139 },
+        { slotRect.x + 8, slotRect.y + 158 },
+        { slotRect.x + 12, slotRect.y + 164 },
+        { slotRect.x + 130, slotRect.y + 164 },
+        { slotRect.x + 138, slotRect.y + 158 },
+        { slotRect.x + 138, slotRect.y + 139 }
+    });
+
+    bool isbtnhovered = btnPoly.CheckCollisionPoint(mousePos);
+
+    if (itemPoly.CheckCollisionPoint(mousePos) && hasFunds && hasRoom && !isSlotSold) {
+        itemPoly.SetFillColor(Fade(WHITE, 0.35f));
+        itemPoly.Draw();
     }
-    if (isbtnhovered&&hasFunds&&hasRoom&&!isSlotSold) {
-        DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE, 0.35f));
+    if (isbtnhovered && hasFunds && hasRoom && !isSlotSold) {
+        btnPoly.SetFillColor(Fade(WHITE, 0.35f));
+        btnPoly.Draw();
     }
+
     float badgeRadius = slotRect.width * 0.2f;
     Vector2 badgeCenter = { slotRect.x + slotRect.width / 2.0f, slotRect.y + slotRect.height * 0.32f };
     DrawPoly(badgeCenter, 4, badgeRadius, 45.0f, Fade(mainColor, 0.18f));
@@ -245,26 +247,32 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     sprintf(priceTxt, "$%d", item.price);
 
     bool buyClicked = false;
-    float txtW = MeasureText(priceTxt,12);
+    float txtW = MeasureText(priceTxt, 12);
     if (isSlotSold) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, .75f));
-        DrawTriangleFan(btnpoints, btnpointCount, Fade(BLACK, 0.75f));
+        itemPoly.SetFillColor(Fade(BLACK, 0.75f));
+        itemPoly.Draw();
+        btnPoly.SetFillColor(Fade(BLACK, 0.75f));
+        btnPoly.Draw();
         DrawText("Owned", slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
     } else if (!hasFunds) {
         DrawText(priceTxt, slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.35f));
-        DrawTriangleFan(btnpoints, btnpointCount, Fade(BLACK, 0.35f));
+        itemPoly.SetFillColor(Fade(BLACK, 0.35f));
+        itemPoly.Draw();
+        btnPoly.SetFillColor(Fade(BLACK, 0.35f));
+        btnPoly.Draw();
         Vector2 textSize = MeasureTextEx(GetFontDefault(), "$", 60.0f,2.0f);
         DrawText("$", slotRect.x + slotRect.width/2-textSize.x/2, slotRect.y + slotRect.height/2-textSize.y/2-20, 60, Config::colorRedAlert);
     } else if (!hasRoom){
         DrawText(priceTxt, slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.35f));
-        DrawTriangleFan(btnpoints, btnpointCount, Fade(BLACK, 0.35f));
+        itemPoly.SetFillColor(Fade(BLACK, 0.35f));
+        itemPoly.Draw();
+        btnPoly.SetFillColor(Fade(BLACK, 0.35f));
+        btnPoly.Draw();
         Vector2 textSize = MeasureTextEx(GetFontDefault(), "FULL", 50.0f,2.0f);
         DrawText("FULL", slotRect.x + slotRect.width/2-textSize.x/2, slotRect.y + slotRect.height/2-textSize.y/2-20, 50, (Color){150,150,150,255});
     } else{
         DrawText(priceTxt, slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
-        buyClicked = isbtnhovered && IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
+        buyClicked = btnPoly.IsReleased(MOUSE_BUTTON_LEFT);
     }
 
     if (buyClicked) {
@@ -286,48 +294,44 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     Rectangle destRect = { pos.x, pos.y, Config::shopitemtotalWidth, Config::shopitemtotalHeight };
     Vector2 mousePos = GetMousePosition();
 
-    Vector2 btnpoints[] = {
-        (Vector2){ Config::shopitemsXbuffer + 692, pos.y + 2 + 15 },
-        (Vector2){ Config::shopitemsXbuffer + 581, pos.y + 2 + 15 },
-        (Vector2){ Config::shopitemsXbuffer + 559, pos.y + 2 + 36 },
-        (Vector2){ Config::shopitemsXbuffer + 559, pos.y + 2 + 59 },
-        (Vector2){ Config::shopitemsXbuffer + 671, pos.y + 2 + 59 },
-        (Vector2){ Config::shopitemsXbuffer + 692, pos.y + 2 + 38 }
-    };
 
-    Vector2 btnpointspressed[] = {
-        (Vector2){ Config::shopitemsXbuffer + 692 - 8, pos.y + 2 + 15 + 7 },
-        (Vector2){ Config::shopitemsXbuffer + 581 - 8, pos.y + 2 + 15 + 7 },
-        (Vector2){ Config::shopitemsXbuffer + 559 - 8, pos.y + 2 + 36 + 7 },
-        (Vector2){ Config::shopitemsXbuffer + 559 - 8, pos.y + 2 + 59 + 7 },
-        (Vector2){ Config::shopitemsXbuffer + 671 - 8, pos.y + 2 + 59 + 7 },
-        (Vector2){ Config::shopitemsXbuffer + 692 - 8, pos.y + 2 + 38 + 7 }
-    };
+    Polygon btnPoly({
+        { Config::shopitemsXbuffer + 692, pos.y + 2 + 15 },
+        { Config::shopitemsXbuffer + 581, pos.y + 2 + 15 },
+        { Config::shopitemsXbuffer + 559, pos.y + 2 + 36 },
+        { Config::shopitemsXbuffer + 559, pos.y + 2 + 59 },
+        { Config::shopitemsXbuffer + 671, pos.y + 2 + 59 },
+        { Config::shopitemsXbuffer + 692, pos.y + 2 + 38 }
+    });
 
-    Vector2 itempoints[] = {
-        (Vector2){ Config::shopitemsXbuffer, pos.y },
-        (Vector2){ Config::shopitemsXbuffer, pos.y + Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer + 678, pos.y + Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer + Config::shopitemtotalWidth, pos.y + 56 },
-        (Vector2){ Config::shopitemsXbuffer + Config::shopitemtotalWidth, pos.y }
-    };
+    Polygon btnPolyPressed({
+        { Config::shopitemsXbuffer + 692 - 8, pos.y + 2 + 15 + 7 },
+        { Config::shopitemsXbuffer + 581 - 8, pos.y + 2 + 15 + 7 },
+        { Config::shopitemsXbuffer + 559 - 8, pos.y + 2 + 36 + 7 },
+        { Config::shopitemsXbuffer + 559 - 8, pos.y + 2 + 59 + 7 },
+        { Config::shopitemsXbuffer + 671 - 8, pos.y + 2 + 59 + 7 },
+        { Config::shopitemsXbuffer + 692 - 8, pos.y + 2 + 38 + 7 }
+    });
 
-    Vector2 hoverpointsmain[] = {
-        (Vector2){ Config::shopitemsXbuffer, pos.y },
-        (Vector2){ Config::shopitemsXbuffer, pos.y + Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer + 371, pos.y + Config::shopitemtotalHeight },
-        (Vector2){ Config::shopitemsXbuffer + 455, pos.y }
-    };
+    Polygon itemPoly({
+        { Config::shopitemsXbuffer, pos.y },
+        { Config::shopitemsXbuffer, pos.y + Config::shopitemtotalHeight },
+        { Config::shopitemsXbuffer + 678, pos.y + Config::shopitemtotalHeight },
+        { Config::shopitemsXbuffer + Config::shopitemtotalWidth, pos.y + 56 },
+        { Config::shopitemsXbuffer + Config::shopitemtotalWidth, pos.y }
+    });
 
-    int pointsmaincount = sizeof(hoverpointsmain) / sizeof(hoverpointsmain[0]);
-    int btnpointCount = sizeof(btnpoints) / sizeof(btnpoints[0]);
-    int btnpointCountpressed = sizeof(btnpointspressed) / sizeof(btnpointspressed[0]);
-    int itempointCount = sizeof(itempoints) / sizeof(itempoints[0]);
+    Polygon mainHoverPoly({
+        { Config::shopitemsXbuffer, pos.y },
+        { Config::shopitemsXbuffer, pos.y + Config::shopitemtotalHeight },
+        { Config::shopitemsXbuffer + 371, pos.y + Config::shopitemtotalHeight },
+        { Config::shopitemsXbuffer + 455, pos.y }
+    });
 
-    bool isBtnHovered = CheckCollisionPointPoly(mousePos, btnpoints, btnpointCount);
-    bool isMainHovered = CheckCollisionPointPoly(mousePos, hoverpointsmain, pointsmaincount);
+    bool isBtnHovered = btnPoly.CheckCollisionPoint(mousePos);
+    bool isMainHovered = mainHoverPoly.CheckCollisionPoint(mousePos);
     bool rawHover = (isBtnHovered || isMainHovered) && !isSlotSold;
-    
+
     bool hasFunds = (gamestate.balance >= iteminfo.price);
     bool hasRoom = activedaemoninfo.daemons.size() < 5;
     bool buyClicked = false;
@@ -343,14 +347,17 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
 
     if (isBtnHovered && hasFunds && hasRoom) {
         if (isMouseDown) {
-            DrawTriangleFan(btnpointspressed, btnpointCountpressed, Fade(WHITE, 0.35f));
+            btnPolyPressed.SetFillColor(Fade(WHITE, 0.35f));
+            btnPolyPressed.Draw();
         } else {
-            DrawTriangleFan(btnpoints, btnpointCount, Fade(WHITE, 0.35f));
+            btnPoly.SetFillColor(Fade(WHITE, 0.35f));
+            btnPoly.Draw();
         }
     }
 
     if (isMainHovered && hasFunds && hasRoom) {
-        DrawTriangleFan(hoverpointsmain, pointsmaincount, Fade(WHITE, 0.35f));
+        mainHoverPoly.SetFillColor(Fade(WHITE, 0.35f));
+        mainHoverPoly.Draw();
     }
 
     const float targetIconSize = 48.0f;
@@ -373,13 +380,15 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
     DrawText(costTxt, destRect.x + destRect.width - 185 - costWidth, destRect.y + destRect.height - 35, 25, WHITE);
 
     if (isSlotSold) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.9f));
+        itemPoly.SetFillColor(Fade(BLACK, 0.9f));
+        itemPoly.Draw();
     } else if (!hasFunds || !hasRoom) {
-        DrawTriangleFan(itempoints, itempointCount, Fade(BLACK, 0.7f));
+        itemPoly.SetFillColor(Fade(BLACK, 0.7f));
+        itemPoly.Draw();
         const char* reasonTxt = !hasFunds ? "INSUFFICIENT FUNDS" : "MAX SLOTS REACHED";
         DrawText(reasonTxt, destRect.x + Config::shopitemtotalWidth / 2 - 200, destRect.y + Config::shopitemtotalHeight / 2 - 15, 35, !hasFunds ? Config::colorRedAlert : Color{ 150, 150, 150, 255 });
     } else {
-        buyClicked = isBtnHovered && !isSlotSold && IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
+        buyClicked = btnPoly.IsReleased(MOUSE_BUTTON_LEFT) && !isSlotSold;
     }
 
     if (buyClicked) {
