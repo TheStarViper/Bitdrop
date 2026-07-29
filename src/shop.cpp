@@ -64,18 +64,17 @@ static int consumableShopSlots[4] = { -1, -1, -1, -1 };
 static bool consumableSold[4] = { false, false, false, false };
 static smartbool consumableHoverStates[4];
 
-float GetRerollGlitchIntensity(void) {
+float GetRerollGlitchIntensity() {
     if (!rerollGlitch.active) return 0.0f;
     float t = rerollGlitch.timer / rerollGlitch.duration;
     if (t >= 1.0f) return 0.0f;
     return sinf(t * PI);
 }
 
-void UpdateRerollGlitch(void) {
+void UpdateRerollGlitch() {
     if (!rerollGlitch.active) return;
     rerollGlitch.timer += GetFrameTime();
     if (rerollGlitch.timer >= rerollGlitch.duration) {
-        
         rerollGlitch.active = false;
         rerollGlitch.timer = 0.0f;
     }
@@ -529,40 +528,40 @@ void drawshop() {
 
         DrawShopConsumableItem(slotRect, consumableShopPool[poolIdx], consumableSold[i], consumableHoverStates[i]);
     }
-    float glitchIntensity = GetRerollGlitchIntensity();
-    if (glitchIntensity > 0.0f) {
-        int clipX = 70;
-        int clipY = (int)Config::shopitemsYbuffer - 5;
-        int clipW = Config::shopitemtotalWidth + 15;
-        int clipH = (int)(consumableRowY + Config::consumableitemsize - clipY) + 10;
+    // float glitchIntensity = GetRerollGlitchIntensity();
+    // if (glitchIntensity > 0.0f) {
+    //     int clipX = 70;
+    //     int clipY = (int)Config::shopitemsYbuffer - 5;
+    //     int clipW = Config::shopitemtotalWidth + 15;
+    //     int clipH = (int)(consumableRowY + Config::consumableitemsize - clipY) + 10;
 
-        BeginScissorMode(clipX, clipY, clipW, clipH);
+    //     BeginScissorMode(clipX, clipY, clipW, clipH);
 
-        int barCount = (int)(glitchIntensity * 8.0f);
-        for (int i = 0; i < barCount; i++) {
-            int barY = GetRandomValue(clipY, clipY + clipH);
-            int barHeight = GetRandomValue(3, 14);
-            int xOffset = GetRandomValue(-15, 15);
+    //     int barCount = (int)(glitchIntensity * 8.0f);
+    //     for (int i = 0; i < barCount; i++) {
+    //         int barY = GetRandomValue(clipY, clipY + clipH);
+    //         int barHeight = GetRandomValue(3, 14);
+    //         int xOffset = GetRandomValue(-15, 15);
 
-            DrawRectangle(clipX + xOffset, barY, clipW, barHeight, (Color){ 0, 255, 120, (unsigned char)(180 * glitchIntensity) });
-        }
+    //         DrawRectangle(clipX + xOffset, barY, clipW, barHeight, (Color){ 0, 255, 120, (unsigned char)(180 * glitchIntensity) });
+    //     }
 
-        int sliceCount = (int)(glitchIntensity * 4.0f);
-        for (int i = 0; i < sliceCount; i++) {
-            int sliceY = GetRandomValue(clipY, clipY + clipH - 8);
-            int sliceHeight = GetRandomValue(4, 10);
-            int shift = GetRandomValue(4, 14);
+    //     int sliceCount = (int)(glitchIntensity * 4.0f);
+    //     for (int i = 0; i < sliceCount; i++) {
+    //         int sliceY = GetRandomValue(clipY, clipY + clipH - 8);
+    //         int sliceHeight = GetRandomValue(4, 10);
+    //         int shift = GetRandomValue(4, 14);
 
-            DrawRectangle(clipX + shift, sliceY, clipW, sliceHeight, Fade(RED, 0.35f * glitchIntensity));
-            DrawRectangle(clipX - shift, sliceY, clipW, sliceHeight, Fade((Color){0,180,255,255}, 0.35f * glitchIntensity));
-        }
+    //         DrawRectangle(clipX + shift, sliceY, clipW, sliceHeight, Fade(RED, 0.35f * glitchIntensity));
+    //         DrawRectangle(clipX - shift, sliceY, clipW, sliceHeight, Fade((Color){0,180,255,255}, 0.35f * glitchIntensity));
+    //     }
 
-        if (glitchIntensity > 0.5f) {
-            DrawRectangle(clipX, clipY, clipW, clipH, Fade(WHITE, (glitchIntensity - 0.5f) * 0.4f));
-        }
+    //     if (glitchIntensity > 0.5f) {
+    //         DrawRectangle(clipX, clipY, clipW, clipH, Fade(WHITE, (glitchIntensity - 0.5f) * 0.4f));
+    //     }
 
-        EndScissorMode();
-    }
+    //     EndScissorMode();
+    // }
 
     //next
     if (DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 35)) {
@@ -591,9 +590,15 @@ void drawshop() {
             shopstate.rerolls +=1;
             GenerateShopPool();
             GenerateConsumableShopPool();
-            rerollGlitch.active = true;
-            rerollGlitch.timer = 0.0f;
+            //rerollGlitch.active = true;
+            //rerollGlitch.timer = 0.0f;
             screenshake(3.0f, 0.2f);
+            float clipX = 70;
+            float clipY = Config::shopitemsYbuffer - 5;
+            float clipW = Config::shopitemtotalWidth + 15;
+            float clipH = (consumableRowY + Config::consumableitemsize - clipY) + 10;
+            Rectangle buttonBounds = { clipX,clipY,clipW,clipH };
+            TriggerGlitchAt(buttonBounds, 0.5f);
         }
     }
 }

@@ -14,9 +14,19 @@ struct TransitionState {
     State pendingState;
 };
 
+typedef struct ContainedGlitch {
+    bool active;
+    Rectangle bounds;
+    float timer;
+    float duration;
+} ContainedGlitch;
+
 inline TransitionState transition;
 void RequestGameStateChange(State newState);
 float GetTransitionProgress();
 void UpdateTransition();
 void DrawGlitchedScene(RenderTexture2D target, Vector2 shake);
 bool IsTransitioning();
+void TriggerGlitchAt(Rectangle area, float duration);
+void UpdateLocalGlitch();
+void DrawGlitchArea(RenderTexture2D target, Vector2 shake);

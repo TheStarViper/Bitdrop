@@ -40,6 +40,7 @@ void UpdateTransition() {
         }
     }
 }
+
 void DrawGlitchedScene(RenderTexture2D target, Vector2 shake) {
     float intensity = GetTransitionProgress();
 
@@ -96,4 +97,96 @@ void DrawGlitchedScene(RenderTexture2D target, Vector2 shake) {
 
 bool IsTransitioning() {
     return transition.phase != TRANS_NONE;
+}
+
+ContainedGlitch localGlitch = { 0 };
+
+void TriggerGlitchAt(Rectangle area, float duration) {
+    localGlitch.bounds = area;
+    localGlitch.duration = (duration > 0.0f) ? duration : 0.1f;
+    localGlitch.timer = 0.0f;
+    localGlitch.active = true;
+}
+
+void UpdateLocalGlitch() {
+    if (!localGlitch.active) return;
+
+    localGlitch.timer += GetFrameTime();
+    if (localGlitch.timer >= localGlitch.duration) {
+        localGlitch.active = false;
+        localGlitch.timer = 0.0f;
+    }
+}
+
+void DrawGlitchArea(RenderTexture2D target, Vector2 shake) {
+    if (!localGlitch.active) return;
+
+    float progress = localGlitch.timer / localGlitch.duration;
+    float intensity = 1.0f - Clamp(progress, 0.0f, 1.0f);
+
+    Rectangle rect = localGlitch.bounds;
+    float texH = (float)target.texture.height;
+
+    BeginScissorMode((int)rect.x, (int)rect.y, (int)rect.width, (int)rect.height);
+
+    Rectangle srcRect = { rect.x, texH - rect.y - rect.height, rect.width, -rect.height };
+
+    DrawTextureRec(target.texture, srcRect,
+        (Vector2){ rect.x + shake.x, rect.y + shake.y }, 
+        Fade(WHITE, 1.0f - intensity * 0.3f));
+
+    int aberration = (int)(intensity * 10.0f);
+    if (aberration > 0) {
+        DrawTextureRec(target.texture, srcRect,
+            (Vector2){ rect.x + shake.x + (float)aberration, rect.y + shake.y }, 
+            Fade(RED, 0.25f * intensity));
+
+        DrawTextureRec(target.texture, srcRect,
+            (Vector2){ rect.x + shake.x - (float)aberration, rect.y + shake.y }, 
+            Fade(SKYBLUE, 0.25f * intensity));
+    }
+
+    int sliceCount = (int)(intensity * 12.0f);
+    for (int i = 0; i < sliceCount; i++) {
+        int sliceY = GetRandomValue((int)rect.y, (int)(rect.y + rect.height - 4));
+        int sliceHeight = GetRandomValue(2, 8);
+        int xShift = GetRandomValue(-15, 15) * (int)(1.0f + intensity * 2.0f);
+
+        Rectangle sliceSrc = { 
+            rect.x, 
+            texH - (float)sliceY - (float)sliceHeight, 
+            rect.width, 
+            -(float)sliceHeight 
+        };
+        Rectangle sliceDst = { 
+            rect.x + shake.x + (float)xShift, 
+            (float)sliceY + shake.y, 
+            rect.width, 
+            (float)sliceHeight 
+        };
+
+        DrawTexturePro(target.texture, sliceSrc, sliceDst, (Vector2){0,0}, 0.0f, WHITE);
+    }
+
+    int blockCount = (int)(intensity * 4.0f);
+    for (int i = 0; i < blockCount; i++) {
+        int bw = GetRandomValue(10, (int)rect.width / 2);
+        int bh = GetRandomValue(4, 12);
+        int bx = GetRandomValue((int)rect.x, (int)(rect.x + rect.width - bw));
+        int by = GetRandomValue((int)rect.y, (int)(rect.y + rect.height - bh));
+
+        Color noiseCol = (GetRandomValue(0, 1) == 0)
+            ? (Color){ 0, 255, 120, 200 }
+            : (Color){ 10, 10, 10, 220 };
+
+        DrawRectangle(bx + (int)shake.x, by + (int)shake.y, bw, bh, Fade(noiseCol, intensity));
+    }
+
+    for (int y = (int)rect.y; y < (int)(rect.y + rect.height); y += 3) {
+        if (GetRandomValue(0, 100) < 20) {
+            DrawRectangle((int)rect.x + (int)shake.x, y + (int)shake.y, (int)rect.width, 1, Fade(BLACK, 0.3f * intensity));
+        }
+    }
+
+    EndScissorMode();
 }

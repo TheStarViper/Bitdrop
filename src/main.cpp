@@ -225,7 +225,6 @@ void UpdatePhysics(float dt) {
             float distance = std::sqrt(distX * distX + distY * distY);
             float minDist = p.radius + node.baseRadius;
 
-
             if (distance < minDist) {
                 Vector2 normal = { distX / distance, distY / distance };
 
@@ -392,6 +391,7 @@ void UpdateDrawFrame() {
     }
     ClearBackground(Config::COLOR_BG);
     UpdateTransition();
+    UpdateLocalGlitch();
     UpdateDisplayedBalance();
     UpdateEnergyOrbs();
     for (auto& d : activedaemoninfo.daemons) {
@@ -497,6 +497,7 @@ void UpdateDrawFrame() {
     EndTextureMode();
     BeginDrawing();
         DrawGlitchedScene(sceneTarget, shake);
+        DrawGlitchArea(sceneTarget, shake);
     EndDrawing();
 }
 
