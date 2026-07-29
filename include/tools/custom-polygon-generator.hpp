@@ -122,14 +122,13 @@ public:
         return CheckCollisionRecs(GetBoundingBox(), other.GetBoundingBox());
     }
 
-
     bool IsHovered() const {
         return CheckCollisionPoint(GetMousePosition());
     }
 
     bool IsClicked(int button = MOUSE_BUTTON_LEFT) const {
-        return IsHovered() && IsMouseButtonPressed(button);
-    }
+            return IsHovered() && IsMouseButtonPressed(button);
+        }
 
     bool IsPressed(int button = MOUSE_BUTTON_LEFT) const {
         return IsHovered() && IsMouseButtonDown(button);
@@ -138,7 +137,6 @@ public:
     bool IsReleased(int button = MOUSE_BUTTON_LEFT) const {
         return IsHovered() && IsMouseButtonReleased(button);
     }
-
 
     void SetFillColor(Color c) { fill = c; }
     void SetOutlineColor(Color c) { outline = c; }

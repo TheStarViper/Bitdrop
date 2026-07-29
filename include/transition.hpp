@@ -18,5 +18,5 @@ inline TransitionState transition;
 void RequestGameStateChange(State newState);
 float GetTransitionProgress();
 void UpdateTransition();
-void DrawGlitchedScene(RenderTexture2D target);
+void DrawGlitchedScene(RenderTexture2D target, Vector2 shake);
 bool IsTransitioning();

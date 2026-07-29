@@ -13,6 +13,7 @@
 #include "transition.hpp"
 #include "consumables.hpp"
 #include "custom-polygon-generator.hpp"
+#include "screenshake.hpp"
 struct RerollGlitchState {
     float timer = 0.0f;
     float duration = 0.25f;
@@ -286,7 +287,6 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     if (isHovered&&hasFunds&&hasRoom) {
         DrawConsumableTooltip(slotRect, item, isSlotSold, hasFunds, hasRoom, mainColor, textDim);
     }
-
     hoverState.update();
 }
 
@@ -593,6 +593,7 @@ void drawshop() {
             GenerateConsumableShopPool();
             rerollGlitch.active = true;
             rerollGlitch.timer = 0.0f;
+            screenshake(3.0f, 0.2f);
         }
     }
 }

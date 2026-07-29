@@ -19,16 +19,7 @@
 #include "transition.hpp"
 #include "debug.hpp"
 #include "formatting.hpp"
-//update 17:
-//screen shake
-//split map.cpp into more files
-
-//update 18:
-//more animations
-// - sell animation daemons
-// - sell animation consumables
-// - buy animation consumables
-
+#include "screenshake.hpp"
 //General
 //more daemons
 //clean up code for more efficiency
@@ -501,9 +492,11 @@ void UpdateDrawFrame() {
     PrepDrawConsumableSlots();
 
     DrawEnergyOrbs();
+    UpdateScreenShake(GetFrameTime());
+    Vector2 shake = GetScreenShakeOffset();
     EndTextureMode();
     BeginDrawing();
-        DrawGlitchedScene(sceneTarget);
+        DrawGlitchedScene(sceneTarget, shake);
     EndDrawing();
 }
 

@@ -40,29 +40,28 @@ void UpdateTransition() {
         }
     }
 }
-
-void DrawGlitchedScene(RenderTexture2D target) {
+void DrawGlitchedScene(RenderTexture2D target, Vector2 shake) {
     float intensity = GetTransitionProgress();
 
     if (intensity <= 0.0f) {
         DrawTextureRec(target.texture,
             (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height },
-            (Vector2){ 0, 0 }, WHITE);
+            (Vector2){ shake.x, shake.y }, WHITE);
         return;
     }
 
     DrawTextureRec(target.texture,
         (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height },
-        (Vector2){ 0, 0 }, Fade(WHITE, 1.0f - intensity * 0.3f));
+        (Vector2){ shake.x, shake.y }, Fade(WHITE, 1.0f - intensity * 0.3f));
 
     int aberration = (int)(intensity * 10.0f);
     if (aberration > 0) {
         DrawTextureRec(target.texture,
             (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height },
-            (Vector2){ (float)aberration, 0 }, Fade(RED, 0.25f * intensity));
+            (Vector2){ shake.x + (float)aberration, shake.y }, Fade(RED, 0.25f * intensity));
         DrawTextureRec(target.texture,
             (Rectangle){ 0, 0, (float)target.texture.width, -(float)target.texture.height },
-            (Vector2){ (float)-aberration, 0 }, Fade(SKYBLUE, 0.25f * intensity));
+            (Vector2){ shake.x + (float)-aberration, shake.y }, Fade(SKYBLUE, 0.25f * intensity));
     }
 
     int sliceCount = (int)(intensity * 18.0f);
@@ -72,7 +71,7 @@ void DrawGlitchedScene(RenderTexture2D target) {
         int xShift = GetRandomValue(-30, 30) * (int)(1.0f + intensity * 3.0f);
 
         Rectangle src = { 0, (float)sliceY, (float)target.texture.width, -(float)sliceHeight };
-        Rectangle dst = { (float)xShift, (float)sliceY, (float)target.texture.width, (float)sliceHeight };
+        Rectangle dst = { shake.x + (float)xShift, shake.y + (float)sliceY, (float)target.texture.width, (float)sliceHeight };
         DrawTexturePro(target.texture, src, dst, (Vector2){0,0}, 0.0f, WHITE);
     }
 
@@ -85,12 +84,12 @@ void DrawGlitchedScene(RenderTexture2D target) {
         Color noiseCol = (GetRandomValue(0,1) == 0)
             ? (Color){ 0, 255, 120, 200 }
             : (Color){ 10, 10, 10, 220 };
-        DrawRectangle(bx, by, bw, bh, Fade(noiseCol, intensity));
+        DrawRectangle(bx + (int)shake.x, by + (int)shake.y, bw, bh, Fade(noiseCol, intensity));
     }
 
     for (int y = 0; y < Config::SCREEN_HEIGHT; y += 3) {
         if (GetRandomValue(0, 100) < 20) {
-            DrawRectangle(0, y, Config::SCREEN_WIDTH, 1, Fade(BLACK, 0.3f * intensity));
+            DrawRectangle((int)shake.x, y + (int)shake.y, Config::SCREEN_WIDTH, 1, Fade(BLACK, 0.3f * intensity));
         }
     }
 }
