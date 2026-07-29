@@ -203,12 +203,12 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     });
 
     Polygon btnPoly({
-        { slotRect.x + 6, slotRect.y + 139 },
-        { slotRect.x + 8, slotRect.y + 158 },
-        { slotRect.x + 12, slotRect.y + 164 },
-        { slotRect.x + 130, slotRect.y + 164 },
-        { slotRect.x + 138, slotRect.y + 158 },
-        { slotRect.x + 138, slotRect.y + 139 }
+        { slotRect.x + 4, slotRect.y + 136 },
+        { slotRect.x + 4, slotRect.y + 158 },
+        { slotRect.x + 10, slotRect.y + 164 },
+        { slotRect.x + 134, slotRect.y + 164 },
+        { slotRect.x + 142, slotRect.y + 158 },
+        { slotRect.x + 142, slotRect.y + 136 }
     });
 
     bool isbtnhovered = btnPoly.CheckCollisionPoint(mousePos);
@@ -253,7 +253,7 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
         itemPoly.Draw();
         btnPoly.SetFillColor(Fade(BLACK, 0.75f));
         btnPoly.Draw();
-        DrawText("Owned", slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
+        //DrawText("Owned", slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
     } else if (!hasFunds) {
         DrawText(priceTxt, slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
         itemPoly.SetFillColor(Fade(BLACK, 0.35f));
