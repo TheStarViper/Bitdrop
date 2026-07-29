@@ -280,6 +280,8 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
         if (TryAddConsumable(purchased)) {
             gamestate.balance -= item.price;
             isSlotSold = true;
+            TriggerGlitchAt(slotRect, 0.3f);
+            screenshake(3.0f, 0.3f);
         }
     }
 
@@ -396,6 +398,8 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
         stagingbuy.updateYPosition();
         activedaemoninfo.daemons.push_back(stagingbuy);
         gamestate.balance -= iteminfo.price;
+        TriggerGlitchAt(destRect, 0.3f);
+        screenshake(3.0f, 0.3f);
         isSlotSold = true;
     }
 
@@ -592,13 +596,13 @@ void drawshop() {
             GenerateConsumableShopPool();
             //rerollGlitch.active = true;
             //rerollGlitch.timer = 0.0f;
-            screenshake(3.0f, 0.2f);
+            screenshake(3.0f, 0.5f);
             float clipX = 70;
             float clipY = Config::shopitemsYbuffer - 5;
             float clipW = Config::shopitemtotalWidth + 15;
             float clipH = (consumableRowY + Config::consumableitemsize - clipY) + 10;
-            Rectangle buttonBounds = { clipX,clipY,clipW,clipH };
-            TriggerGlitchAt(buttonBounds, 0.5f);
+            Rectangle bounds = { clipX,clipY,clipW,clipH };
+            TriggerGlitchAt(bounds, 0.65f);
         }
     }
 }
