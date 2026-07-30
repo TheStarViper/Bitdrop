@@ -7,6 +7,8 @@
 #include <sstream>
 #include <ctime>
 #include "audio.hpp"
+#include "screenshake.hpp"
+#include "transition.hpp"
 
 void DrawCyberpunkEmptySlot(int slotIndex) {
     float x = 830.0f;
@@ -79,6 +81,27 @@ void PrepDrawCyberpunkDaemonSlots(){
         if (!slotOccupied) {
             DrawCyberpunkEmptySlot(slotNum);
         }
+    }
+
+    for (size_t i = 0; i < activedaemoninfo.daemons.size();) {
+        auto& daemon = activedaemoninfo.daemons[i];
+        if (daemon.pendingRemoval) {
+            daemon.removalTimer -= scaledDt;
+            if (daemon.removalTimer <= 0.0f) {
+                int cached_slot = daemon.slot;
+                std::swap(activedaemoninfo.daemons[i], activedaemoninfo.daemons.back());
+                activedaemoninfo.daemons.pop_back();
+
+                for (auto& d2 : activedaemoninfo.daemons) {
+                    if (d2.slot > cached_slot) {
+                        d2.slot--;
+                        d2.updateYPosition();
+                    }
+                }
+                continue;
+            }
+        }
+        i++;
     }
 }
 
@@ -211,19 +234,13 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
         Color sellHoverBg = Color{180, 40, 40, 255};
         
         if (DrawButton(rSell, ButtonType::TextGeneric, alpha, sellNormalBg, sellHoverBg, amberCol, textCol, sellPriceText.c_str(), 11)) {
-            if (daemonidx < activedaemoninfo.daemons.size()) {
-                int cached_slot = d.slot;
+            if (daemonidx < activedaemoninfo.daemons.size() && !d.pendingRemoval) {
                 gamestate.balance += d.getsellval();
-                std::swap(activedaemoninfo.daemons[daemonidx], activedaemoninfo.daemons.back());
-                activedaemoninfo.daemons.pop_back();
+                d.pendingRemoval = true;
+                d.removalTimer = 0.075f;
+                screenshake(5.0f, 0.3f);
+                TriggerGlitchAt((Rectangle){d.x,d.y,d.width,d.height}, 0.3f);
                 *selectedDaemonIndex = -1;
-                
-                for (auto& daemon : activedaemoninfo.daemons) {
-                    if (daemon.slot > cached_slot) {
-                        daemon.slot--;
-                        daemon.updateYPosition();
-                    }
-                }
             }
         }
 

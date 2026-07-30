@@ -26,6 +26,8 @@ struct Consumable {
     bool isHovered = false;
     bool wasHovered = false;
     float expansionTimer = 0.0f;
+    bool pendingRemoval = false;
+    float removalTimer = 0.0f;
 
     Consumable(std::string n, std::string desc, Color c, int sellVal, ConsumableEffectType type,
                void (*fn)(Consumable&), Texture2D* ic = nullptr)

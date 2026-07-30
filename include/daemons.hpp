@@ -43,6 +43,9 @@ public:
     float multiplierState = 1.0f;
     int lastBasketIndex = -1;
     bool flagState = false;
+    bool pendingRemoval = false;
+    float removalTimer = 0.0f;
+    
     Daemon(std::string daemonName, 
            std::string stat, 
            std::string desc, 

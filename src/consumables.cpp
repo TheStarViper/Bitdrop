@@ -2,12 +2,14 @@
 #include "variables.hpp"
 #include "button.hpp"
 #include "audio.hpp"
+#include "screenshake.hpp"
 #include <sstream>
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <cctype>
 #include "payout.hpp"
+#include "transition.hpp"
 
 namespace {
     constexpr int MAX_CONSUMABLE_SLOTS = 2;
@@ -264,9 +266,6 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
 }
 
 void PrepDrawConsumableSlots() {
-    if (pendingIndex != -1 && IsKeyPressed(KEY_ESCAPE)) {
-        pendingIndex = -1;
-    }
     static int selectedIndex = -1;
     Vector2 mPos = GetMousePosition();
 
@@ -294,7 +293,7 @@ void PrepDrawConsumableSlots() {
         c.UpdateExpansion(dt, isSelected);
 
         int action = DrawConsumableSlot(c, mPos, (int)i, isSelected);
-        if (action != 0 && actedIndex == -1) {
+        if (action != 0 && actedIndex == -1 && !c.pendingRemoval) {
             actedIndex = (int)i;
             actedAction = action;
         }
@@ -311,7 +310,10 @@ void PrepDrawConsumableSlots() {
             auto& c = activeconsumableinfo.consumables[actedIndex];
             if (actedAction == 2) {
                 gamestate.balance += c.sellValue;
-                activeconsumableinfo.consumables.erase(activeconsumableinfo.consumables.begin() + actedIndex);
+                c.pendingRemoval = true;
+                c.removalTimer = 0.075f;
+                screenshake(6.0f, 0.3f);
+                TriggerGlitchAt((Rectangle){c.x,c.y,c.width,c.height}, 0.3f);
                 selectedIndex = -1;
             } else if (actedAction == 1) {
                 if (c.effectType == ConsumableEffectType::BOARD_TARGET) {
@@ -323,6 +325,18 @@ void PrepDrawConsumableSlots() {
                 }
             }
         }
+    }
+
+    for (size_t i = 0; i < activeconsumableinfo.consumables.size();) {
+        auto& c = activeconsumableinfo.consumables[i];
+        if (c.pendingRemoval) {
+            c.removalTimer -= dt;
+            if (c.removalTimer <= 0.0f) {
+                activeconsumableinfo.consumables.erase(activeconsumableinfo.consumables.begin() + i);
+                continue;
+            }
+        }
+        i++;
     }
 
     for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
