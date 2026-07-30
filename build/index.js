@@ -68,7 +68,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\andre\AppData\Local\Temp\tmpxn2ghx6y.js
+// include: C:\Users\andre\AppData\Local\Temp\tmp71f0f6af.js
 if (!Module["expectedDataFileDownloads"]) Module["expectedDataFileDownloads"] = 0;
 
 Module["expectedDataFileDownloads"]++;
@@ -198,63 +198,71 @@ Module["expectedDataFileDownloads"]++;
       "start": 16251,
       "end": 29477
     }, {
-      "filename": "/assets/empty-consumable-slot.png",
+      "filename": "/assets/daemon-empty.png",
       "start": 29477,
-      "end": 39651
+      "end": 57142
+    }, {
+      "filename": "/assets/daemon-occupied.png",
+      "start": 57142,
+      "end": 91794
+    }, {
+      "filename": "/assets/empty-consumable-slot.png",
+      "start": 91794,
+      "end": 101968
     }, {
       "filename": "/assets/sfx/glitchloop.ogg",
-      "start": 39651,
-      "end": 476481
+      "start": 101968,
+      "end": 538798
     }, {
       "filename": "/assets/sfx/hover.ogg",
-      "start": 476481,
-      "end": 484738
+      "start": 538798,
+      "end": 547055
     }, {
       "filename": "/assets/sfx/nodehit.ogg",
-      "start": 484738,
-      "end": 551123
+      "start": 547055,
+      "end": 613440
     }, {
       "filename": "/assets/sfx/transition.ogg",
-      "start": 551123,
-      "end": 580264
+      "start": 613440,
+      "end": 642581
     }, {
       "filename": "/assets/shaders/hueshift.fs",
-      "start": 580264,
-      "end": 581175
+      "start": 642581,
+      "end": 643492
     }, {
       "filename": "/assets/shop-item-pressed.png",
-      "start": 581175,
-      "end": 620413
+      "start": 643492,
+      "end": 682730
     }, {
       "filename": "/assets/shop-item.png",
-      "start": 620413,
-      "end": 664407
+      "start": 682730,
+      "end": 726724
     }, {
       "filename": "/assets/used-consumable-slot.png",
-      "start": 664407,
-      "end": 672069
+      "start": 726724,
+      "end": 734386
     } ],
-    "remote_package_size": 672069
+    "remote_package_size": 734386
   });
 })();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmpxn2ghx6y.js
-// include: C:\Users\andre\AppData\Local\Temp\tmphzjd3kyc.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmp71f0f6af.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpb8ts02to.js
 // All the pre-js content up to here must remain later on, we need to run
 // it.
 if ((typeof ENVIRONMENT_IS_WASM_WORKER != "undefined" && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != "undefined" && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != "undefined" && ENVIRONMENT_IS_AUDIO_WORKLET)) Module["preRun"] = [];
 
 var necessaryPreJSTasks = Module["preRun"].slice();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmphzjd3kyc.js
-// include: C:\Users\andre\AppData\Local\Temp\tmphqen66to.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmpb8ts02to.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpbtupksxn.js
 if (!Module["preRun"]) throw "Module.preRun should exist because file support used it; did a pre-js delete it?";
 
 necessaryPreJSTasks.forEach(task => {
   if (Module["preRun"].indexOf(task) < 0) throw "All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?";
 });
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmphqen66to.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmpbtupksxn.js
 var programArgs = [];
 
 var thisProgram = "./this.program";
@@ -7642,7 +7650,13 @@ var _glBindRenderbuffer = _emscripten_glBindRenderbuffer;
 
 var _glBindTexture = _emscripten_glBindTexture;
 
+var _glBlendEquation = _emscripten_glBlendEquation;
+
+var _glBlendEquationSeparate = _emscripten_glBlendEquationSeparate;
+
 var _glBlendFunc = _emscripten_glBlendFunc;
+
+var _glBlendFuncSeparate = _emscripten_glBlendFuncSeparate;
 
 var _glBufferData = _emscripten_glBufferData;
 
@@ -9807,28 +9821,28 @@ function checkIncomingModuleAPI() {
 }
 
 var ASM_CONSTS = {
-  146804: () => {
+  146852: () => {
     if (document.fullscreenElement) return 1;
   },
-  146850: () => document.getElementById("canvas").width,
-  146902: () => parseInt(document.getElementById("canvas").style.width),
-  146970: () => {
+  146898: () => document.getElementById("canvas").width,
+  146950: () => parseInt(document.getElementById("canvas").style.width),
+  147018: () => {
     document.exitFullscreen();
   },
-  146997: () => {
+  147045: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, false);
     }, 100);
   },
-  147070: () => {
+  147118: () => {
     if (document.fullscreenElement) return 1;
   },
-  147116: () => document.getElementById("canvas").width,
-  147168: () => screen.width,
-  147193: () => {
+  147164: () => document.getElementById("canvas").width,
+  147216: () => screen.width,
+  147241: () => {
     document.exitFullscreen();
   },
-  147220: () => {
+  147268: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, true);
       setTimeout(function() {
@@ -9836,53 +9850,53 @@ var ASM_CONSTS = {
       }, 100);
     }, 100);
   },
-  147353: () => window.innerWidth,
-  147379: () => window.innerHeight,
-  147406: () => {
+  147401: () => window.innerWidth,
+  147427: () => window.innerHeight,
+  147454: () => {
     if (document.fullscreenElement) return 1;
   },
-  147452: () => document.getElementById("canvas").width,
-  147504: () => parseInt(document.getElementById("canvas").style.width),
-  147572: () => {
+  147500: () => document.getElementById("canvas").width,
+  147552: () => parseInt(document.getElementById("canvas").style.width),
+  147620: () => {
     if (document.fullscreenElement) return 1;
   },
-  147618: () => document.getElementById("canvas").width,
-  147670: () => screen.width,
-  147695: () => window.innerWidth,
-  147721: () => window.innerHeight,
-  147748: () => {
+  147666: () => document.getElementById("canvas").width,
+  147718: () => screen.width,
+  147743: () => window.innerWidth,
+  147769: () => window.innerHeight,
+  147796: () => {
     if (document.fullscreenElement) return 1;
   },
-  147794: () => document.getElementById("canvas").width,
-  147846: () => screen.width,
-  147871: () => {
+  147842: () => document.getElementById("canvas").width,
+  147894: () => screen.width,
+  147919: () => {
     document.exitFullscreen();
   },
-  147898: () => {
+  147946: () => {
     if (document.fullscreenElement) return 1;
   },
-  147944: () => document.getElementById("canvas").width,
-  147996: () => parseInt(document.getElementById("canvas").style.width),
-  148064: () => {
+  147992: () => document.getElementById("canvas").width,
+  148044: () => parseInt(document.getElementById("canvas").style.width),
+  148112: () => {
     document.exitFullscreen();
   },
-  148091: $0 => {
+  148139: $0 => {
     document.getElementById("canvas").style.opacity = $0;
   },
-  148149: () => screen.width,
-  148174: () => screen.height,
-  148200: () => window.screenX,
-  148227: () => window.screenY,
-  148254: $0 => {
+  148197: () => screen.width,
+  148222: () => screen.height,
+  148248: () => window.screenX,
+  148275: () => window.screenY,
+  148302: $0 => {
     navigator.clipboard.writeText(UTF8ToString($0));
   },
-  148307: $0 => {
+  148355: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  148378: () => {
+  148426: () => {
     document.getElementById("canvas").style.cursor = "none";
   },
-  148435: ($0, $1, $2, $3) => {
+  148483: ($0, $1, $2, $3) => {
     try {
       navigator.getGamepads()[$0].vibrationActuator.playEffect("dual-rumble", {
         startDelay: 0,
@@ -9896,18 +9910,18 @@ var ASM_CONSTS = {
       } catch (e) {}
     }
   },
-  148691: $0 => {
+  148739: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  148762: () => {
+  148810: () => {
     if (document.fullscreenElement) return 1;
   },
-  148808: () => window.innerWidth,
-  148834: () => window.innerHeight,
-  148861: () => {
+  148856: () => window.innerWidth,
+  148882: () => window.innerHeight,
+  148909: () => {
     if (document.pointerLockElement) return 1;
   },
-  148908: ($0, $1, $2, $3, $4) => {
+  148956: ($0, $1, $2, $3, $4) => {
     if (typeof window === "undefined" || (window.AudioContext || window.webkitAudioContext) === undefined) {
       return 0;
     }
@@ -9978,7 +9992,7 @@ var ASM_CONSTS = {
     window.miniaudio.referenceCount += 1;
     return 1;
   },
-  151066: () => {
+  151114: () => {
     if (typeof (window.miniaudio) !== "undefined") {
       window.miniaudio.referenceCount -= 1;
       if (window.miniaudio.referenceCount === 0) {
@@ -9986,8 +10000,8 @@ var ASM_CONSTS = {
       }
     }
   },
-  151230: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
-  151334: () => {
+  151278: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
+  151382: () => {
     try {
       var temp = new (window.AudioContext || window.webkitAudioContext);
       var sampleRate = temp.sampleRate;
@@ -9997,7 +10011,7 @@ var ASM_CONSTS = {
       return 0;
     }
   },
-  151505: ($0, $1, $2, $3, $4, $5) => {
+  151553: ($0, $1, $2, $3, $4, $5) => {
     var deviceType = $0;
     var channels = $1;
     var sampleRate = $2;
@@ -10068,8 +10082,8 @@ var ASM_CONSTS = {
     device.pDevice = pDevice;
     return miniaudio.track_device(device);
   },
-  154333: $0 => miniaudio.get_device_by_index($0).webaudio.sampleRate,
-  154399: $0 => {
+  154381: $0 => miniaudio.get_device_by_index($0).webaudio.sampleRate,
+  154447: $0 => {
     var device = miniaudio.get_device_by_index($0);
     if (device.scriptNode !== undefined) {
       device.scriptNode.onaudioprocess = function(e) {};
@@ -10084,15 +10098,15 @@ var ASM_CONSTS = {
     device.webaudio = undefined;
     device.pDevice = undefined;
   },
-  154792: $0 => {
+  154840: $0 => {
     miniaudio.untrack_device_by_index($0);
   },
-  154835: $0 => {
+  154883: $0 => {
     var device = miniaudio.get_device_by_index($0);
     device.webaudio.resume();
     device.state = miniaudio.device_state.started;
   },
-  154960: $0 => {
+  155008: $0 => {
     var device = miniaudio.get_device_by_index($0);
     device.webaudio.suspend();
     device.state = miniaudio.device_state.stopped;
@@ -10592,7 +10606,10 @@ var wasmImports = {
   /** @export */ glBindFramebuffer: _glBindFramebuffer,
   /** @export */ glBindRenderbuffer: _glBindRenderbuffer,
   /** @export */ glBindTexture: _glBindTexture,
+  /** @export */ glBlendEquation: _glBlendEquation,
+  /** @export */ glBlendEquationSeparate: _glBlendEquationSeparate,
   /** @export */ glBlendFunc: _glBlendFunc,
+  /** @export */ glBlendFuncSeparate: _glBlendFuncSeparate,
   /** @export */ glBufferData: _glBufferData,
   /** @export */ glBufferSubData: _glBufferSubData,
   /** @export */ glCheckFramebufferStatus: _glCheckFramebufferStatus,

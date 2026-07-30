@@ -292,6 +292,7 @@ void GenerateTopologyMap() {
             n->decryptTimer = 0.0f;
             static float baseScore = 204800.0f;
             float exponentVariance = GetRandomValue(70, 130) / 100.0f;
+            if (c == Config::totalmapcolumns - 1){exponentVariance = GetRandomValue(130, 160) / 100.0f;}
             float randomizedExponent = (float)c * exponentVariance;
             n->targetquota = (int)(baseScore * powf(1.0f + Config::exponentialmapscoregrowth, randomizedExponent));
             n->reward = std::round((500.0f + GetRandomValue(0, 100)) + (std::pow((n->column) / 15.0f, 1.5f) * (2100.0f + GetRandomValue(-200, 200))));

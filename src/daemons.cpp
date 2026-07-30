@@ -9,19 +9,50 @@
 #include "audio.hpp"
 #include "screenshake.hpp"
 #include "transition.hpp"
+#include "shop.hpp"
+#include "main.hpp"
+
+Texture2D GetDaemonOccupiedSprite() {
+    static Texture2D tex;
+    static bool loaded = false;
+    if (!loaded) {
+        tex = LoadTexture("assets/daemon-occupied.png");
+        loaded = true;
+    }
+    return tex;
+}
+
+Texture2D GetDaemonEmptySprite() {
+    static Texture2D tex;
+    static bool loaded = false;
+    if (!loaded) {
+        tex = LoadTexture("assets/daemon-empty.png");
+        loaded = true;
+    }
+    return tex;
+}
+
+Rectangle GetUncrunchedSpriteRect(Rectangle destRect, Texture2D sprite) {
+    float scale = destRect.height / (float)sprite.height;
+    float scaledWidth = sprite.width * scale;
+    return { (destRect.x + destRect.width) - scaledWidth, destRect.y, scaledWidth, destRect.height };
+}
 
 void DrawCyberpunkEmptySlot(int slotIndex) {
     float x = 830.0f;
     float targetY = Config::Daemon_Y_Buffer + (slotIndex - 1) * (Config::Daemon_Slot_Spacing+76);
-    DrawRectangle(x, targetY, 420, 76, Color{ 10, 16, 26, 100 });
-    DrawRectangleLinesEx({ x, targetY, 420, 76 }, 1.0f, Color{ 40, 60, 80, 150 });
+    Rectangle destRect = { x, targetY, 420, 76 };
 
-    DrawLineEx({ x, targetY }, { x + 10, targetY }, 1.5f, Color{ 80, 110, 130, 120 });
-    DrawLineEx({ x, targetY }, { x, targetY + 10 }, 1.5f, Color{ 80, 110, 130, 120 });
+    Texture2D emptySprite = GetDaemonEmptySprite();
+    Rectangle emptySrc = { 0, 0, (float)emptySprite.width, (float)emptySprite.height };
+    Rectangle spriteDestRect = GetUncrunchedSpriteRect(destRect, emptySprite);
+    DrawTexturePro(emptySprite, emptySrc, spriteDestRect, { 0, 0 }, 0.0f, Fade(WHITE, 0.75f));
 
     std::string emptyText = "[ EMPTY_SLOT_0" + std::to_string(slotIndex) + " ]";
+
     DrawText(emptyText.c_str(), x + 20, targetY + (76 / 2) - 6, 12, Color{ 60, 90, 110, 180 });
 }
+
 
 void PrepDrawCyberpunkDaemonSlots(){
     static bool isInitialized = false;
@@ -107,18 +138,26 @@ void PrepDrawCyberpunkDaemonSlots(){
 
 void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int daemonidx, int* selectedDaemonIndex) {
     d.isHovered = CheckCollisionPointRec(mousePos, { d.x, d.tempy, d.width, d.height });
-    Color currentBg = d.isHovered ? Color{ 16, 26, 42, 255 } : Color{ 10, 16, 26, 240 };
-    Color borderColor = isSelected ? Config::COLOR_UI_AMBER : (d.isHovered ? Config::COLOR_UI_GREEN : Config::COLOR_SHARD_BORDER);
-    
     Color levelcolor = (d.IsOverclocked()) ? Config::COLOR_OVERCLOCKED : d.GetColor();
 
-    DrawRectangle(d.x, d.tempy, d.width, d.height, currentBg);
-    DrawRectangleLinesEx({ d.x, d.tempy, d.width, d.height }, isSelected ? 1.5f : 1.0f, borderColor);
-    
-    DrawLineEx({ d.x, d.tempy }, { d.x + 20, d.tempy }, 2.5f, d.GetColor());
-    DrawLineEx({ d.x, d.tempy }, { d.x, d.tempy + 20 }, 2.5f , d.GetColor());
-    DrawLineEx({ d.x + d.width - 20, d.tempy + d.height }, { d.x + d.width, d.height + d.tempy }, 2.5f, d.GetColor());
-    
+    Rectangle destRect = { d.x, d.tempy, d.width, d.height };
+
+    Texture2D emptySprite = GetDaemonEmptySprite();
+    Rectangle emptySrc = { 0, 0, (float)emptySprite.width, (float)emptySprite.height };
+    Rectangle spriteDestRect = GetUncrunchedSpriteRect(destRect, emptySprite);
+    DrawTexturePro(emptySprite, emptySrc, spriteDestRect, { 0, 0 }, 0.0f, WHITE);
+
+    Texture2D occupiedSprite = GetDaemonOccupiedSprite();
+    Rectangle occupiedSrc = { 0, 0, (float)occupiedSprite.width, (float)occupiedSprite.height };
+    DrawSpriteWithHueShader(occupiedSprite, occupiedSrc, spriteDestRect, levelcolor, hueShader, hueLoc);
+
+    if (isSelected || d.isHovered) {
+        Color glowColor = isSelected ? Config::COLOR_UI_AMBER : Config::COLOR_UI_GREEN;
+        BeginBlendMode(BLEND_ADDITIVE);
+        DrawRectangleRec(spriteDestRect, Fade(glowColor, 0.08f));
+        EndBlendMode();
+    }
+
     if (d.isHovered.is_new_true()){
         playsoundsmart(hoversound,.1,1.6);
     }
@@ -141,7 +180,6 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
         std::string lvlStr = "LVL " + std::to_string(d.GetLevel());
         DrawText(lvlStr.c_str(), d.x + d.width - 125, level_bar_y-2, 11, Config::COLOR_PROBE);
     }
-    DrawRectangle(d.x + 3, d.tempy + 3, 5, d.height - 6, levelcolor);
 
 
     //titles and tech gibberish
