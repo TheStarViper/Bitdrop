@@ -492,25 +492,49 @@ void InitMap() {
     GenerateTopologyMap();
 }
 
-void DrawMap(void) {
+void DrawMap() {
     state.timeRunning += GetFrameTime();
     Vector2 mousePos = GetMousePosition();
     Vector2 worldMousePos = GetScreenToWorld2D(mousePos, state.camera);
 
-    if (!IsTransitioning() && (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)||IsMouseButtonDown(MOUSE_BUTTON_LEFT))&&mousePos.x<810) {
+    static float scrollVelocity = 0.0f;
+    constexpr float map_friction = 4.0f;
+
+    float dt = GetFrameTime();
+    bool isDragging = !IsTransitioning() &&
+        (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) || IsMouseButtonDown(MOUSE_BUTTON_LEFT)) &&
+        mousePos.x < 810;
+
+    if (isDragging) {
         Vector2 delta = GetMouseDelta();
         state.camera.target.x -= delta.x;
+        if (dt > 0.0f) scrollVelocity = -delta.x / dt;
+    } else {
+        float wheelMove = GetMouseWheelMove()*1.005;
+        bool tickedThisFrame = (wheelMove != 0.0f);
+
+        if (tickedThisFrame) {
+            scrollVelocity -= wheelMove * Config::mapscrollspeed * 8.0f;
+        }
+
+        if (fabsf(scrollVelocity) > 1.0f) {
+            state.camera.target.x += scrollVelocity * dt;
+            if (!tickedThisFrame) {
+                scrollVelocity *= expf(-map_friction * dt);
+            }
+        } else {
+            scrollVelocity = 0.0f;
+        }
     }
 
     float maxMapWidth = 300.0f + (Config::totalmapcolumns - 1) * 220.0f;
-    if (state.camera.target.x < 0) state.camera.target.x = 0;
+    if (state.camera.target.x < 0) {
+        state.camera.target.x = 0;
+        scrollVelocity = 0.0f;
+    }
     if (state.camera.target.x > maxMapWidth - Config::SCREEN_WIDTH + 400.0f) {
         state.camera.target.x = maxMapWidth - Config::SCREEN_WIDTH + 400.0f;
-    }
-
-    float wheelMove = GetMouseWheelMove();
-    if (wheelMove != 0.0f) {
-        state.camera.target.x -= wheelMove * Config::mapscrollspeed;
+        scrollVelocity = 0.0f;
     }
 
     state.selectedNode = NULL;

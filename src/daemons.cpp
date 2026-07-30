@@ -152,7 +152,7 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
     DrawSpriteWithHueShader(occupiedSprite, occupiedSrc, spriteDestRect, levelcolor, hueShader, hueLoc);
 
     if (isSelected || d.isHovered) {
-        Color glowColor = isSelected ? Config::COLOR_UI_AMBER : Config::COLOR_UI_GREEN;
+        Color glowColor = (Color){100,100,100,200};
         BeginBlendMode(BLEND_ADDITIVE);
         DrawRectangleRec(spriteDestRect, Fade(glowColor, 0.08f));
         EndBlendMode();
@@ -162,10 +162,10 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
         playsoundsmart(hoversound,.1,1.6);
     }
     //level bar
-    const int level_bar_x = d.x + d.width - 85;
-    const int level_bar_y = d.tempy + 20;
+    const int level_bar_x = d.x + d.width - 90;
+    const int level_bar_y = d.tempy + 21;
 
-    float barW = 70.0f;
+    float barW = 66.0f;
     DrawRectangle(level_bar_x, level_bar_y, barW, 7, { 20, 35, 45, 255 });
     DrawRectangle(level_bar_x, level_bar_y, barW * (d.GetLevel() / (float)d.getmaxlevel()), 7, levelcolor);
 
@@ -173,18 +173,18 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
     if (d.IsOverclocked()) {
         if (d.getoverclocklvl()>=2){
             std::string lvlnumstr = std::to_string(d.getoverclocklvl())+"x";
-            DrawText(lvlnumstr.c_str(),d.x+ d.width - 190, level_bar_y-1, 9, Config::COLOR_OVERCLOCKED);
+            DrawText(lvlnumstr.c_str(),d.x+ d.width - 190, level_bar_y, 9, Config::COLOR_OVERCLOCKED);
         }
-        DrawText("OVERCLOCKED",d.x+ d.width - 172, level_bar_y-1, 9, Config::COLOR_OVERCLOCKED);
+        DrawText("OVERCLOCKED",d.x+ d.width - 178, level_bar_y, 9, Config::COLOR_OVERCLOCKED);
     } else {
         std::string lvlStr = "LVL " + std::to_string(d.GetLevel());
-        DrawText(lvlStr.c_str(), d.x + d.width - 125, level_bar_y-2, 11, Config::COLOR_PROBE);
+        DrawText(lvlStr.c_str(), d.x + d.width - 130, level_bar_y-1, 11, Config::COLOR_PROBE);
     }
 
 
     //titles and tech gibberish
-    DrawText(d.GetName().c_str(), d.x + 20, d.tempy + 16, 15, d.GetColor());
-    DrawText(d.status.c_str(), d.x + 20, d.tempy + 40, 11, { 110, 140, 160, 255 });
+    DrawText(d.GetName().c_str(), d.x + 15, d.tempy + 20, 15, d.GetColor());
+    DrawText(d.status.c_str(), d.x + 15, d.tempy + 43, 11, { 110, 140, 160, 255 });
 
 
     if (d.isHovered) {
@@ -246,11 +246,11 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
         Color borderCol = { Config::COLOR_SHARD_BORDER.r, Config::COLOR_SHARD_BORDER.g, Config::COLOR_SHARD_BORDER.b, alpha };
 
         float slideOffset = (1.0f - easeProgress) * 15.0f;
-        float bY = (d.tempy + d.height - 32.0f) + slideOffset;
+        float bY = (d.tempy + d.height - 35.0f) + slideOffset;
         
-        Rectangle rUp = { d.x + d.width - 150, bY, 30, 22 };
-        Rectangle rDown = { d.x + d.width - 115, bY, 30, 22 };
-        Rectangle rSell = { d.x + d.width - 80, bY, 70, 22 };
+        Rectangle rUp = { d.x + d.width - 165, bY, 30, 20 };
+        Rectangle rDown = { d.x + d.width - 130, bY, 30, 20 };
+        Rectangle rSell = { d.x + d.width - 95, bY, 70, 20 };
 
         Color baseBg = Color{20, 32, 42, 255};
         int targetSlot = -1;
