@@ -491,7 +491,6 @@ void InitMap() {
     
     GenerateTopologyMap();
 }
-
 void DrawMap() {
     state.timeRunning += GetFrameTime();
     Vector2 mousePos = GetMousePosition();
@@ -627,7 +626,7 @@ void DrawMap() {
 
         if (found) {
             int cur = state.selectedNode->id;
-            hoverPath.push_back(cur);
+            hoverPath.push_back(cur);   
             while (cur != state.currentNodeId) {
                 cur = cameFrom[cur];
                 hoverPath.push_back(cur);

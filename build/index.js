@@ -68,7 +68,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\andre\AppData\Local\Temp\tmphm6lm3v4.js
+// include: C:\Users\andre\AppData\Local\Temp\tmp0kaptucw.js
 if (!Module["expectedDataFileDownloads"]) Module["expectedDataFileDownloads"] = 0;
 
 Module["expectedDataFileDownloads"]++;
@@ -190,79 +190,87 @@ Module["expectedDataFileDownloads"]++;
   }
   loadPackage({
     "files": [ {
-      "filename": "/assets/consumable-shop-item.png",
+      "filename": "/assets/Screenshot 2026-07-30 221518.png",
       "start": 0,
-      "end": 16251
+      "end": 385483
+    }, {
+      "filename": "/assets/consumable-shop-item.png",
+      "start": 385483,
+      "end": 401734
     }, {
       "filename": "/assets/consumables-shop-bg.png",
-      "start": 16251,
-      "end": 29477
+      "start": 401734,
+      "end": 414960
     }, {
       "filename": "/assets/daemon-empty.png",
-      "start": 29477,
-      "end": 57142
+      "start": 414960,
+      "end": 442625
     }, {
       "filename": "/assets/daemon-occupied.png",
-      "start": 57142,
-      "end": 91794
+      "start": 442625,
+      "end": 477277
     }, {
       "filename": "/assets/empty-consumable-slot.png",
-      "start": 91794,
-      "end": 101968
+      "start": 477277,
+      "end": 487451
     }, {
       "filename": "/assets/sfx/glitchloop.ogg",
-      "start": 101968,
-      "end": 538798
+      "start": 487451,
+      "end": 924281
     }, {
       "filename": "/assets/sfx/hover.ogg",
-      "start": 538798,
-      "end": 547055
+      "start": 924281,
+      "end": 932538
     }, {
       "filename": "/assets/sfx/nodehit.ogg",
-      "start": 547055,
-      "end": 613440
+      "start": 932538,
+      "end": 998923
+    }, {
+      "filename": "/assets/sfx/sell.wav",
+      "start": 998923,
+      "end": 1018037
     }, {
       "filename": "/assets/sfx/transition.ogg",
-      "start": 613440,
-      "end": 642581
+      "start": 1018037,
+      "end": 1047178
     }, {
       "filename": "/assets/shaders/hueshift.fs",
-      "start": 642581,
-      "end": 643492
+      "start": 1047178,
+      "end": 1048089
     }, {
       "filename": "/assets/shop-item-pressed.png",
-      "start": 643492,
-      "end": 682730
+      "start": 1048089,
+      "end": 1087327
     }, {
       "filename": "/assets/shop-item.png",
-      "start": 682730,
-      "end": 726724
+      "start": 1087327,
+      "end": 1131321
     }, {
       "filename": "/assets/used-consumable-slot.png",
-      "start": 726724,
-      "end": 734386
+      "start": 1131321,
+      "end": 1138983
     } ],
-    "remote_package_size": 734386
+    "remote_package_size": 1138983
   });
 })();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmphm6lm3v4.js
-// include: C:\Users\andre\AppData\Local\Temp\tmp12nfw21_.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmp0kaptucw.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpo_1s_g_q.js
 // All the pre-js content up to here must remain later on, we need to run
 // it.
 if ((typeof ENVIRONMENT_IS_WASM_WORKER != "undefined" && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != "undefined" && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != "undefined" && ENVIRONMENT_IS_AUDIO_WORKLET)) Module["preRun"] = [];
 
 var necessaryPreJSTasks = Module["preRun"].slice();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmp12nfw21_.js
-// include: C:\Users\andre\AppData\Local\Temp\tmpcaxx_it2.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmpo_1s_g_q.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpps540xxh.js
 if (!Module["preRun"]) throw "Module.preRun should exist because file support used it; did a pre-js delete it?";
 
 necessaryPreJSTasks.forEach(task => {
   if (Module["preRun"].indexOf(task) < 0) throw "All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?";
 });
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmpcaxx_it2.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmpps540xxh.js
 var programArgs = [];
 
 var thisProgram = "./this.program";
@@ -9821,28 +9829,28 @@ function checkIncomingModuleAPI() {
 }
 
 var ASM_CONSTS = {
-  146852: () => {
+  146868: () => {
     if (document.fullscreenElement) return 1;
   },
-  146898: () => document.getElementById("canvas").width,
-  146950: () => parseInt(document.getElementById("canvas").style.width),
-  147018: () => {
+  146914: () => document.getElementById("canvas").width,
+  146966: () => parseInt(document.getElementById("canvas").style.width),
+  147034: () => {
     document.exitFullscreen();
   },
-  147045: () => {
+  147061: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, false);
     }, 100);
   },
-  147118: () => {
+  147134: () => {
     if (document.fullscreenElement) return 1;
   },
-  147164: () => document.getElementById("canvas").width,
-  147216: () => screen.width,
-  147241: () => {
+  147180: () => document.getElementById("canvas").width,
+  147232: () => screen.width,
+  147257: () => {
     document.exitFullscreen();
   },
-  147268: () => {
+  147284: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, true);
       setTimeout(function() {
@@ -9850,53 +9858,53 @@ var ASM_CONSTS = {
       }, 100);
     }, 100);
   },
-  147401: () => window.innerWidth,
-  147427: () => window.innerHeight,
-  147454: () => {
+  147417: () => window.innerWidth,
+  147443: () => window.innerHeight,
+  147470: () => {
     if (document.fullscreenElement) return 1;
   },
-  147500: () => document.getElementById("canvas").width,
-  147552: () => parseInt(document.getElementById("canvas").style.width),
-  147620: () => {
+  147516: () => document.getElementById("canvas").width,
+  147568: () => parseInt(document.getElementById("canvas").style.width),
+  147636: () => {
     if (document.fullscreenElement) return 1;
   },
-  147666: () => document.getElementById("canvas").width,
-  147718: () => screen.width,
-  147743: () => window.innerWidth,
-  147769: () => window.innerHeight,
-  147796: () => {
+  147682: () => document.getElementById("canvas").width,
+  147734: () => screen.width,
+  147759: () => window.innerWidth,
+  147785: () => window.innerHeight,
+  147812: () => {
     if (document.fullscreenElement) return 1;
   },
-  147842: () => document.getElementById("canvas").width,
-  147894: () => screen.width,
-  147919: () => {
+  147858: () => document.getElementById("canvas").width,
+  147910: () => screen.width,
+  147935: () => {
     document.exitFullscreen();
   },
-  147946: () => {
+  147962: () => {
     if (document.fullscreenElement) return 1;
   },
-  147992: () => document.getElementById("canvas").width,
-  148044: () => parseInt(document.getElementById("canvas").style.width),
-  148112: () => {
+  148008: () => document.getElementById("canvas").width,
+  148060: () => parseInt(document.getElementById("canvas").style.width),
+  148128: () => {
     document.exitFullscreen();
   },
-  148139: $0 => {
+  148155: $0 => {
     document.getElementById("canvas").style.opacity = $0;
   },
-  148197: () => screen.width,
-  148222: () => screen.height,
-  148248: () => window.screenX,
-  148275: () => window.screenY,
-  148302: $0 => {
+  148213: () => screen.width,
+  148238: () => screen.height,
+  148264: () => window.screenX,
+  148291: () => window.screenY,
+  148318: $0 => {
     navigator.clipboard.writeText(UTF8ToString($0));
   },
-  148355: $0 => {
+  148371: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  148426: () => {
+  148442: () => {
     document.getElementById("canvas").style.cursor = "none";
   },
-  148483: ($0, $1, $2, $3) => {
+  148499: ($0, $1, $2, $3) => {
     try {
       navigator.getGamepads()[$0].vibrationActuator.playEffect("dual-rumble", {
         startDelay: 0,
@@ -9910,18 +9918,18 @@ var ASM_CONSTS = {
       } catch (e) {}
     }
   },
-  148739: $0 => {
+  148755: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  148810: () => {
+  148826: () => {
     if (document.fullscreenElement) return 1;
   },
-  148856: () => window.innerWidth,
-  148882: () => window.innerHeight,
-  148909: () => {
+  148872: () => window.innerWidth,
+  148898: () => window.innerHeight,
+  148925: () => {
     if (document.pointerLockElement) return 1;
   },
-  148956: ($0, $1, $2, $3, $4) => {
+  148972: ($0, $1, $2, $3, $4) => {
     if (typeof window === "undefined" || (window.AudioContext || window.webkitAudioContext) === undefined) {
       return 0;
     }
@@ -9992,7 +10000,7 @@ var ASM_CONSTS = {
     window.miniaudio.referenceCount += 1;
     return 1;
   },
-  151114: () => {
+  151130: () => {
     if (typeof (window.miniaudio) !== "undefined") {
       window.miniaudio.referenceCount -= 1;
       if (window.miniaudio.referenceCount === 0) {
@@ -10000,8 +10008,8 @@ var ASM_CONSTS = {
       }
     }
   },
-  151278: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
-  151382: () => {
+  151294: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
+  151398: () => {
     try {
       var temp = new (window.AudioContext || window.webkitAudioContext);
       var sampleRate = temp.sampleRate;
@@ -10011,7 +10019,7 @@ var ASM_CONSTS = {
       return 0;
     }
   },
-  151553: ($0, $1, $2, $3, $4, $5) => {
+  151569: ($0, $1, $2, $3, $4, $5) => {
     var deviceType = $0;
     var channels = $1;
     var sampleRate = $2;
@@ -10082,8 +10090,8 @@ var ASM_CONSTS = {
     device.pDevice = pDevice;
     return miniaudio.track_device(device);
   },
-  154381: $0 => miniaudio.get_device_by_index($0).webaudio.sampleRate,
-  154447: $0 => {
+  154397: $0 => miniaudio.get_device_by_index($0).webaudio.sampleRate,
+  154463: $0 => {
     var device = miniaudio.get_device_by_index($0);
     if (device.scriptNode !== undefined) {
       device.scriptNode.onaudioprocess = function(e) {};
@@ -10098,15 +10106,15 @@ var ASM_CONSTS = {
     device.webaudio = undefined;
     device.pDevice = undefined;
   },
-  154840: $0 => {
+  154856: $0 => {
     miniaudio.untrack_device_by_index($0);
   },
-  154883: $0 => {
+  154899: $0 => {
     var device = miniaudio.get_device_by_index($0);
     device.webaudio.resume();
     device.state = miniaudio.device_state.started;
   },
-  155008: $0 => {
+  155024: $0 => {
     var device = miniaudio.get_device_by_index($0);
     device.webaudio.suspend();
     device.state = miniaudio.device_state.stopped;

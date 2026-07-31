@@ -599,6 +599,7 @@ void drawshop() {
             GenerateConsumableShopPool();
             //rerollGlitch.active = true;
             //rerollGlitch.timer = 0.0f;
+            playsoundsmart(transitionsound, .5,2);
             screenshake(3.0f, 0.5f);
             float clipX = 70;
             float clipY = Config::shopitemsYbuffer - 5;

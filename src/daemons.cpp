@@ -276,6 +276,7 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
                 gamestate.balance += d.getsellval();
                 d.pendingRemoval = true;
                 d.removalTimer = 0.075f;
+                playsoundsmart(sellsound, .5,.9);
                 screenshake(5.0f, 0.3f);
                 TriggerGlitchAt((Rectangle){d.x,d.y,d.width,d.height}, 0.3f);
                 *selectedDaemonIndex = -1;
