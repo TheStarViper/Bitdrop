@@ -14,12 +14,16 @@
 #include "consumables.hpp"
 #include "custom-polygon-generator.hpp"
 #include "screenshake.hpp"
+
 struct RerollGlitchState {
     float timer = 0.0f;
     float duration = 0.25f;
     bool active = false;
 };
+
 RerollGlitchState rerollGlitch;
+
+
 struct ShopConsumableEntry {
     std::string name;
     std::string description;

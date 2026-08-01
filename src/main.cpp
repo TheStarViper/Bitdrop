@@ -408,15 +408,6 @@ void UpdateDrawFrame() {
             Vector2 currentMousePos = GetMousePosition();
             for (auto& node : engine.nodes) {
                 if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
-                    SetPendingConsumableContext(&node);
-                    ResolvePendingConsumable();
-                    break;
-                }
-            }
-        }if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending()) {
-            Vector2 currentMousePos = GetMousePosition();
-            for (auto& node : engine.nodes) {
-                if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
                     if (AddPendingConsumableTarget(&node)) {
                         if (GetPendingConsumableTargetCount() >= GetPendingConsumableMaxTargets()) {
                             ResolvePendingConsumable();

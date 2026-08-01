@@ -11,7 +11,7 @@
 #include "payout.hpp"
 #include "transition.hpp"
 namespace {
-    constexpr int MAX_CONSUMABLE_SLOTS = 4;
+    constexpr int MAX_CONSUMABLE_SLOTS = 2;
     constexpr float SLOT_GAP = 8.0f;
     constexpr float SLOT_TOP_MARGIN = 12.0f;
     constexpr float PANEL_CUT = 14.0f;
