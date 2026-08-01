@@ -408,10 +408,8 @@ void UpdateDrawFrame() {
             Vector2 currentMousePos = GetMousePosition();
             for (auto& node : engine.nodes) {
                 if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
-                    if (AddPendingConsumableTarget(&node)) {
-                        if (GetPendingConsumableTargetCount() >= GetPendingConsumableMaxTargets()) {
-                            ResolvePendingConsumable();
-                        }
+                    if (GetPendingConsumableTargetCount() < GetPendingConsumableMaxTargets()) {
+                        AddPendingConsumableTarget(&node);
                     }
                     break;
                 }
@@ -452,6 +450,15 @@ void UpdateDrawFrame() {
             if (node.pulseAnimTimer > 0.0f && node.modifier == MOD_NONE) basePinColor = Config::COLOR_PROBE;
 
             DrawCircleV(node.position, node.currentRadius, basePinColor);
+
+            bool isTargetSelected = false;
+            for (int ti = 0; ti < GetPendingConsumableTargetCount(); ti++) {
+                if (GetPendingConsumableTarget(ti) == (void*)&node) { isTargetSelected = true; break; }
+            }
+            if (isTargetSelected) {
+                DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 16.0f, Config::COLOR_UI_GREEN);
+                DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 19.0f, Fade(Config::COLOR_UI_GREEN, 0.4f));
+            }
 
             if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius  + 24.0f)) {
                 bool selectorMode = IsConsumablePending();

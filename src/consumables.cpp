@@ -211,29 +211,27 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
         int targetCount = GetPendingConsumableTargetCount();
         int maxTargets = c.maxTargets;
 
-        if (maxTargets > 1) {
-            std::string progressStr = std::to_string(targetCount) + "/" + std::to_string(maxTargets) + " SELECTED";
-            int progressW = MeasureText(progressStr.c_str(), 9);
-            DrawText(progressStr.c_str(), c.x + (c.width - progressW) / 2.0f, c.y + c.height - 40, 9, Config::COLOR_UI_AMBER);
-        }
+        std::string progressStr = std::to_string(targetCount) + "/" + std::to_string(maxTargets) + " SELECTED";
+        int progressW = MeasureText(progressStr.c_str(), 9);
+        DrawText(progressStr.c_str(), c.x + (c.width - progressW) / 2.0f, c.y + c.height - 40, 9, Config::COLOR_UI_AMBER);
 
-        bool showConfirm = (maxTargets > 1 && targetCount >= 1 && targetCount < maxTargets);
+        bool canConfirm = targetCount >= 1;
         float btnY = c.y + c.height - 24;
 
-        if (showConfirm) {
-            Rectangle cancelBtn = { c.x + 8, btnY, (c.width - 24) / 2.0f, 16 };
-            Rectangle confirmBtn = { cancelBtn.x + cancelBtn.width + 8, btnY, (c.width - 24) / 2.0f, 16 };
+        Rectangle cancelBtn = { c.x + 8, btnY, (c.width - 24) / 2.0f, 16 };
+        Rectangle confirmBtn = { cancelBtn.x + cancelBtn.width + 8, btnY, (c.width - 24) / 2.0f, 16 };
 
-            bool cancelClicked = DrawButton(cancelBtn, ButtonType::TextGeneric, 255, Color{ 45, 15, 20, 255 }, Color{ 180, 40, 40, 255 }, Config::COLOR_UI_AMBER, WHITE, "CANCEL", 9);
-            bool confirmClicked = DrawButton(confirmBtn, ButtonType::TextGeneric, 255, Color{ 15, 35, 20, 255 }, Color{ 40, 140, 60, 255 }, Config::COLOR_UI_GREEN, WHITE, "CONFIRM", 9);
+        bool cancelClicked = DrawButton(cancelBtn, ButtonType::TextGeneric, 255, Color{ 45, 15, 20, 255 }, Color{ 180, 40, 40, 255 }, Config::COLOR_UI_AMBER, WHITE, "CANCEL", 9);
 
-            if (cancelClicked) action = -1;
-            if (confirmClicked) action = -2;
+        bool confirmClicked = false;
+        if (canConfirm) {
+            confirmClicked = DrawButton(confirmBtn, ButtonType::TextGeneric, 255, Color{ 15, 35, 20, 255 }, Color{ 40, 140, 60, 255 }, Config::COLOR_UI_GREEN, WHITE, "CONFIRM", 9);
         } else {
-            Rectangle cancelBtn = { c.x + 8, btnY, c.width - 16, 16 };
-            bool cancelClicked = DrawButton(cancelBtn, ButtonType::TextGeneric, 255, Color{ 45, 15, 20, 255 }, Color{ 180, 40, 40, 255 }, Config::COLOR_UI_AMBER, WHITE, "CANCEL", 10);
-            if (cancelClicked) action = -1;
+            DrawButton(confirmBtn, ButtonType::TextGeneric, 255, Color{ 30, 30, 30, 255 }, Color{ 30, 30, 30, 255 }, Color{ 65, 65, 65, 255 }, Color{ 65, 65, 65, 255 }, "CONFIRM", 9);
         }
+
+        if (cancelClicked) action = -1;
+        if (confirmClicked) action = -2;
     } else if (c.expansionTimer > 0.01f && !otherPending) {
         unsigned char alpha = (unsigned char)(easeProgress * 255);
         float slideOffset = (1.0f - easeProgress) * 12.0f;
@@ -352,9 +350,13 @@ void PrepDrawConsumableSlots() {
         DrawConsumableEmptySlot(slotNum);
     }
 
+
+    
     if (actedIndex != -1) {
         if (actedAction == -1) {
-            pendingIndex = -1;
+            CancelPendingConsumable();
+        } else if (actedAction == -2) {
+            ResolvePendingConsumable();
         } else {
             auto& c = activeconsumableinfo.consumables[actedIndex];
             if (actedAction == 2) {

@@ -31,6 +31,6 @@ bool DrawButton(Rectangle rect, ButtonType type, unsigned char alpha, Color bgNo
         
         DrawText(text, textX, textY, fontSize, contentCol);
     }
-
+    
     return isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 }
