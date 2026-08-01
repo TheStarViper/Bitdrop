@@ -10,14 +10,14 @@
 #include <cctype>
 #include "payout.hpp"
 #include "transition.hpp"
-
 namespace {
-    constexpr int MAX_CONSUMABLE_SLOTS = 2;
+    constexpr int MAX_CONSUMABLE_SLOTS = 4;
     constexpr float SLOT_GAP = 8.0f;
     constexpr float SLOT_TOP_MARGIN = 12.0f;
     constexpr float PANEL_CUT = 14.0f;
     int pendingIndex = -1;
     void* pendingContext = nullptr;
+    std::vector<void*> pendingTargets;
 
     void GetPanelPoints(Rectangle r, float cut, Vector2 out[6]) {
         out[0] = { r.x, r.y };
@@ -77,6 +77,7 @@ int GetPendingConsumableIndex() {
 void CancelPendingConsumable() {
     pendingIndex = -1;
     pendingContext = nullptr;
+    pendingTargets.clear();
 }
 
 void SetPendingConsumableContext(void* context) {
@@ -87,9 +88,33 @@ void* GetPendingConsumableContext() {
     return pendingContext;
 }
 
+bool AddPendingConsumableTarget(void* target) {
+    for (void* existing : pendingTargets) {
+        if (existing == target) return false;
+    }
+    pendingTargets.push_back(target);
+    return true;
+}
+
+int GetPendingConsumableTargetCount() {
+    return (int)pendingTargets.size();
+}
+
+void* GetPendingConsumableTarget(int index) {
+    if (index < 0 || index >= (int)pendingTargets.size()) return nullptr;
+    return pendingTargets[index];
+}
+
+int GetPendingConsumableMaxTargets() {
+    if (pendingIndex < 0 || pendingIndex >= (int)activeconsumableinfo.consumables.size()) return 1;
+    return activeconsumableinfo.consumables[pendingIndex].maxTargets;
+}
+
 void ResolvePendingConsumable() {
     if (pendingIndex < 0 || pendingIndex >= (int)activeconsumableinfo.consumables.size()) {
         pendingIndex = -1;
+        pendingContext = nullptr;
+        pendingTargets.clear();
         return;
     }
     auto& c = activeconsumableinfo.consumables[pendingIndex];
@@ -97,6 +122,7 @@ void ResolvePendingConsumable() {
     activeconsumableinfo.consumables.erase(activeconsumableinfo.consumables.begin() + pendingIndex);
     pendingIndex = -1;
     pendingContext = nullptr;
+    pendingTargets.clear();
     for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
         activeconsumableinfo.consumables[i].slot = (int)i + 1;
         activeconsumableinfo.consumables[i].updatePosition();
@@ -182,9 +208,32 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
     float easeProgress = c.GetExpansion();
 
     if (isPendingThis) {
-        Rectangle cancelBtn = { c.x + 8, c.y + c.height - 24, c.width - 16, 16 };
-        bool cancelClicked = DrawButton(cancelBtn, ButtonType::TextGeneric, 255, Color{ 45, 15, 20, 255 }, Color{ 180, 40, 40, 255 }, Config::COLOR_UI_AMBER, WHITE, "CANCEL", 10);
-        if (cancelClicked) action = -1;
+        int targetCount = GetPendingConsumableTargetCount();
+        int maxTargets = c.maxTargets;
+
+        if (maxTargets > 1) {
+            std::string progressStr = std::to_string(targetCount) + "/" + std::to_string(maxTargets) + " SELECTED";
+            int progressW = MeasureText(progressStr.c_str(), 9);
+            DrawText(progressStr.c_str(), c.x + (c.width - progressW) / 2.0f, c.y + c.height - 40, 9, Config::COLOR_UI_AMBER);
+        }
+
+        bool showConfirm = (maxTargets > 1 && targetCount >= 1 && targetCount < maxTargets);
+        float btnY = c.y + c.height - 24;
+
+        if (showConfirm) {
+            Rectangle cancelBtn = { c.x + 8, btnY, (c.width - 24) / 2.0f, 16 };
+            Rectangle confirmBtn = { cancelBtn.x + cancelBtn.width + 8, btnY, (c.width - 24) / 2.0f, 16 };
+
+            bool cancelClicked = DrawButton(cancelBtn, ButtonType::TextGeneric, 255, Color{ 45, 15, 20, 255 }, Color{ 180, 40, 40, 255 }, Config::COLOR_UI_AMBER, WHITE, "CANCEL", 9);
+            bool confirmClicked = DrawButton(confirmBtn, ButtonType::TextGeneric, 255, Color{ 15, 35, 20, 255 }, Color{ 40, 140, 60, 255 }, Config::COLOR_UI_GREEN, WHITE, "CONFIRM", 9);
+
+            if (cancelClicked) action = -1;
+            if (confirmClicked) action = -2;
+        } else {
+            Rectangle cancelBtn = { c.x + 8, btnY, c.width - 16, 16 };
+            bool cancelClicked = DrawButton(cancelBtn, ButtonType::TextGeneric, 255, Color{ 45, 15, 20, 255 }, Color{ 180, 40, 40, 255 }, Config::COLOR_UI_AMBER, WHITE, "CANCEL", 10);
+            if (cancelClicked) action = -1;
+        }
     } else if (c.expansionTimer > 0.01f && !otherPending) {
         unsigned char alpha = (unsigned char)(easeProgress * 255);
         float slideOffset = (1.0f - easeProgress) * 12.0f;

@@ -86,6 +86,43 @@ void InitGame() {
     initdaemons();
 }
 
+void SetNodeModifierBoost(Consumable&) {
+    int count = GetPendingConsumableTargetCount();
+    for (int i = 0; i < count; i++) {
+        Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
+        if (target) {
+            target->modifier = MOD_BOOST;
+            target->pulseAnimTimer = 1.0f;
+        }
+    }
+    engine.calculationLog = "BOOST MODIFIER INJECTED";
+}
+
+void SetNodeModifierGlitch(Consumable&) {
+    int count = GetPendingConsumableTargetCount();
+    for (int i = 0; i < count; i++) {
+        Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
+        if (target) {
+            target->modifier = MOD_GLITCH;
+            target->pulseAnimTimer = 1.0f;
+        }
+    }
+    engine.calculationLog = "GLITCH MODIFIER INJECTED";
+}
+
+void SetNodeModifierClone(Consumable&) {
+    int count = GetPendingConsumableTargetCount();
+    for (int i = 0; i < count; i++) {
+        Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
+        if (target) {
+            target->modifier = MOD_CLONE;
+            target->pulseAnimTimer = 1.0f;
+        }
+    }
+    engine.calculationLog = "CLONE MODIFIER INJECTED";
+}
+
+
 int GetUniqueProbeId(GameEngine& eng) {
     if (!eng.recycledProbeIds.empty()) {
         int recycledId = eng.recycledProbeIds.back();
@@ -367,15 +404,24 @@ void UpdatePhysics(float dt) {
 void UpdateDrawFrame() {
     Vector2 currentMousePos = GetMousePosition();
     if (gamestate.gamestate==GAME){
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        Vector2 currentMousePos = GetMousePosition();
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending()) {
+            Vector2 currentMousePos = GetMousePosition();
             for (auto& node : engine.nodes) {
                 if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
-                    int nextState = (int)node.modifier + 1;
-                    node.modifier = (nextState > (int)MOD_CLONE) ? MOD_NONE : (ModifierType)nextState;
-                    node.pulseAnimTimer = 1.0f;
-                    
-                    engine.calculationLog = "EASING PARAMETERS GENERATED";
+                    SetPendingConsumableContext(&node);
+                    ResolvePendingConsumable();
+                    break;
+                }
+            }
+        }if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending()) {
+            Vector2 currentMousePos = GetMousePosition();
+            for (auto& node : engine.nodes) {
+                if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
+                    if (AddPendingConsumableTarget(&node)) {
+                        if (GetPendingConsumableTargetCount() >= GetPendingConsumableMaxTargets()) {
+                            ResolvePendingConsumable();
+                        }
+                    }
                     break;
                 }
             }
@@ -417,7 +463,14 @@ void UpdateDrawFrame() {
             DrawCircleV(node.position, node.currentRadius, basePinColor);
 
             if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius  + 24.0f)) {
-                DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 12.0f, Config::COLOR_UI_AMBER);
+                bool selectorMode = IsConsumablePending();
+                Color hoverRingColor = selectorMode ? MAGENTA : Config::COLOR_UI_AMBER;
+                float ringRadius = node.baseRadius + 12.0f;
+                if (selectorMode) {
+                    float pulse = (sinf((float)GetTime() * 8.0f) * 0.5f + 0.5f);
+                    ringRadius += pulse * 3.0f;
+                }
+                DrawCircleLines(node.position.x, node.position.y, ringRadius, hoverRingColor);
             }
         }
 

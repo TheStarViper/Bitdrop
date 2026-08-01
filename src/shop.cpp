@@ -28,6 +28,7 @@ struct ShopConsumableEntry {
     void (*useFn)(Consumable&);
     int sellValue;
     int price;
+    int maxTargets = 1;
 };
 
 Texture2D GetShopItemSprite(bool pressed) {
@@ -57,7 +58,10 @@ static std::vector<ShopConsumableEntry> consumableShopPool = {
     { "Overclock", "Temporarily overclock a random daemon", Config::MAGENTA_DAEMON, ConsumableEffectType::INSTANT, UseOverclockBooster, 180, 350 },
     { "Board Wipe", "Clear all active glitch modifiers from the board", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, UseBoardWipeCharge, 200, 400 },
     { "Fire Sale", "every daemon in your hand adds its full sell value to your balance", Config::COLOR_UI_AMBER, ConsumableEffectType::INSTANT, firesale, 60, 300 },
-    { "Decrypt", "Select an encrypted node on the map to reveal it", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, UseDecryptNode, 150, 450 }
+    { "Decrypt", "Select an encrypted node on the map to reveal it", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, UseDecryptNode, 150, 450 },
+    { "Overclock Pin", "Set a pin's modifier to a flat boosted payout", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, SetNodeModifierBoost, 130, 260 },
+    { "Volatile Pin", "Set a pin's modifier to an unstable, random payout", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, SetNodeModifierGlitch, 130, 260,2 },
+    { "Mitosis Pin", "Set a pin's modifier to split probes into clones", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, SetNodeModifierClone, 150, 320,2 }
 };
 
 static int consumableShopSlots[4] = { -1, -1, -1, -1 };
@@ -277,6 +281,7 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
 
     if (buyClicked) {
         Consumable purchased(item.name, item.description, item.color, item.sellValue, item.effectType, item.useFn);
+        purchased.maxTargets = item.maxTargets;
         if (TryAddConsumable(purchased)) {
             gamestate.balance -= item.price;
             isSlotSold = true;
