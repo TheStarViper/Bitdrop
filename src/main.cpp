@@ -56,7 +56,7 @@ void InitGame() {
             n.baseRadius = 4.5f; 
             n.currentRadius = 4.5f;
             n.pulseAnimTimer = 0.0f;
-            n.modifier = MOD_NONE;
+            n.modifiers.clear();
             engine.nodes.push_back(n);
 
             if (r == 0 && c == 0) {
@@ -91,7 +91,7 @@ void SetNodeModifierBoost(Consumable&) {
     for (int i = 0; i < count; i++) {
         Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
         if (target) {
-            target->modifier = MOD_BOOST;
+            target->modifiers.push_back(MOD_BOOST);
             target->pulseAnimTimer = 1.0f;
         }
     }
@@ -103,7 +103,7 @@ void SetNodeModifierGlitch(Consumable&) {
     for (int i = 0; i < count; i++) {
         Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
         if (target) {
-            target->modifier = MOD_GLITCH;
+            target->modifiers.push_back(MOD_GLITCH);
             target->pulseAnimTimer = 1.0f;
         }
     }
@@ -115,7 +115,7 @@ void SetNodeModifierClone(Consumable&) {
     for (int i = 0; i < count; i++) {
         Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
         if (target) {
-            target->modifier = MOD_CLONE;
+            target->modifiers.push_back(MOD_CLONE);
             target->pulseAnimTimer = 1.0f;
         }
     }
@@ -286,13 +286,17 @@ void UpdatePhysics(float dt) {
                         }
                     }
                     long double calculatedByteBump = 1024.0;
-                    if (node.modifier == MOD_BOOST) calculatedByteBump *= 2.5;
-                    else if (node.modifier == MOD_GLITCH) calculatedByteBump *= ((float)GetRandomValue(5, 50) * 0.2f);
+                    if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_BOOST) != node.modifiers.end()) {
+                        calculatedByteBump *= 2.5;
+                    }
+                    else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_GLITCH) != node.modifiers.end()) {
+                        calculatedByteBump *= ((float)GetRandomValue(5, 50) * 0.2f);
+                    }
 
                     p.rawPayloadBytes += calculatedByteBump;
-                    p.bufferRate += (node.modifier == MOD_GLITCH ? 0.35f : 0.12f);
+                    p.bufferRate += (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_GLITCH) != node.modifiers.end() ? 0.35f : 0.12f);
 
-                    if (node.modifier == MOD_CLONE) {
+                    if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_CLONE) != node.modifiers.end()) {
                         float pushOffset = p.radius + node.baseRadius + 4.0f;
                         float speedSnap = fabsf(p.velocity.x) > 10.0f ? fabsf(p.velocity.x) : 80.0f;
 
@@ -443,11 +447,19 @@ void UpdateDrawFrame() {
         }
         for (const auto& node : engine.nodes) { 
             Color basePinColor = Config::COLOR_NODE;
-            if (node.modifier == MOD_BOOST) basePinColor = Config::COLOR_UI_GREEN;
-            else if (node.modifier == MOD_GLITCH) basePinColor = { 255, 50, 140, 255 };
-            else if (node.modifier == MOD_CLONE) basePinColor = { 200, 50, 255, 255 }; 
+            if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_BOOST) != node.modifiers.end()) {
+                basePinColor = Config::COLOR_UI_GREEN;
+            }
+            else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_GLITCH) != node.modifiers.end()) {
+                basePinColor = { 255, 50, 140, 255 };
+            }
+            else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_CLONE) != node.modifiers.end()) {
+                basePinColor = { 200, 50, 255, 255 };
+            }
 
-            if (node.pulseAnimTimer > 0.0f && node.modifier == MOD_NONE) basePinColor = Config::COLOR_PROBE;
+            if (node.pulseAnimTimer > 0.0f && node.modifiers.empty()) {
+                basePinColor = Config::COLOR_PROBE;
+            }
 
             DrawCircleV(node.position, node.currentRadius, basePinColor);
 
@@ -473,12 +485,21 @@ void UpdateDrawFrame() {
                 DrawCircleLines(node.position.x, node.position.y, ringRadius, hoverRingColor);
             }
 
-            if (nodeHovered && node.modifier != MOD_NONE) {
+            if (nodeHovered && !node.modifiers.empty()) {
                 std::string modText;
                 Color modColor;
-                if (node.modifier == MOD_BOOST) { modText = "BOOST x2.5"; modColor = Config::COLOR_UI_GREEN; }
-                else if (node.modifier == MOD_GLITCH) { modText = "GLITCH: VOLATILE"; modColor = (Color){ 255, 50, 140, 255 }; }
-                else if (node.modifier == MOD_CLONE) { modText = "CLONE: SPLIT"; modColor = (Color){ 200, 50, 255, 255 }; }
+                if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_BOOST) != node.modifiers.end()) {
+                    modText = "BOOST x2.5";
+                    modColor = Config::COLOR_UI_GREEN;
+                }
+                else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_GLITCH) != node.modifiers.end()) {
+                    modText = "GLITCH: VOLATILE";
+                    modColor = (Color){ 255, 50, 140, 255 };
+                }
+                else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_CLONE) != node.modifiers.end()) {
+                    modText = "CLONE: SPLIT";
+                    modColor = (Color){ 200, 50, 255, 255 };
+                }
 
                 int textW = MeasureText(modText.c_str(), 9);
                 float boxW = (float)textW + 16.0f;
@@ -590,8 +611,3 @@ int main() {
     CloseWindow();
     return 0;
 }
-
-
-
-
-

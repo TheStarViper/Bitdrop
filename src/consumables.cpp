@@ -376,6 +376,8 @@ void PrepDrawConsumableSlots() {
         }
     }
 
+
+
     for (size_t i = 0; i < activeconsumableinfo.consumables.size();) {
         auto& c = activeconsumableinfo.consumables[i];
         if (c.pendingRemoval) {

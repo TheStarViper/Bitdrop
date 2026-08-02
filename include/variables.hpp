@@ -123,7 +123,12 @@ struct smartbool { //from my other project
 
 
 
-enum ModifierType { MOD_NONE = 0, MOD_BOOST, MOD_GLITCH , MOD_CLONE};
+enum ModifierType {
+    MOD_NONE  = 0,
+    MOD_BOOST = 1,
+    MOD_GLITCH = 1,
+    MOD_CLONE = 1
+};
 enum DaemonTriggersType { PASSIVE, BASKET, PINS, COLLISION };
 #include "daemons.hpp"
 
@@ -133,7 +138,7 @@ struct Node {
     float baseRadius;
     float currentRadius;
     float pulseAnimTimer;
-    ModifierType modifier;
+    std::vector<ModifierType> modifiers;
 };
 
 struct Basket {
