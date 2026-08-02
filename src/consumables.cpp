@@ -349,8 +349,6 @@ void PrepDrawConsumableSlots() {
     for (int slotNum = (int)activeconsumableinfo.consumables.size() + 1; slotNum <= MAX_CONSUMABLE_SLOTS; slotNum++) {
         DrawConsumableEmptySlot(slotNum);
     }
-
-
     
     if (actedIndex != -1) {
         if (actedAction == -1) {

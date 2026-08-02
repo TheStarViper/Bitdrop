@@ -460,7 +460,9 @@ void UpdateDrawFrame() {
                 DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 19.0f, Fade(Config::COLOR_UI_GREEN, 0.4f));
             }
 
-            if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius  + 24.0f)) {
+            bool nodeHovered = CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f);
+
+            if (nodeHovered) {
                 bool selectorMode = IsConsumablePending();
                 Color hoverRingColor = selectorMode ? MAGENTA : Config::COLOR_UI_AMBER;
                 float ringRadius = node.baseRadius + 12.0f;
@@ -469,6 +471,25 @@ void UpdateDrawFrame() {
                     ringRadius += pulse * 3.0f;
                 }
                 DrawCircleLines(node.position.x, node.position.y, ringRadius, hoverRingColor);
+            }
+
+            if (nodeHovered && node.modifier != MOD_NONE) {
+                std::string modText;
+                Color modColor;
+                if (node.modifier == MOD_BOOST) { modText = "BOOST x2.5"; modColor = Config::COLOR_UI_GREEN; }
+                else if (node.modifier == MOD_GLITCH) { modText = "GLITCH: VOLATILE"; modColor = (Color){ 255, 50, 140, 255 }; }
+                else if (node.modifier == MOD_CLONE) { modText = "CLONE: SPLIT"; modColor = (Color){ 200, 50, 255, 255 }; }
+
+                int textW = MeasureText(modText.c_str(), 9);
+                float boxW = (float)textW + 16.0f;
+                float boxH = 15.0f;
+                Vector2 boxPos = { node.position.x - (boxW / 2.0f), node.position.y - node.baseRadius - 30.0f };
+
+                DrawRectangle(boxPos.x, boxPos.y, boxW, boxH, Color{ 6, 12, 22, 210 });
+                DrawRectangleLines(boxPos.x, boxPos.y, boxW, boxH, modColor);
+                DrawLine(node.position.x, boxPos.y + boxH, node.position.x, node.position.y - node.baseRadius, modColor);
+
+                DrawText(modText.c_str(), boxPos.x + (boxW - textW) / 2.0f, boxPos.y + 3, 9, modColor);
             }
         }
 
@@ -569,3 +590,8 @@ int main() {
     CloseWindow();
     return 0;
 }
+
+
+
+
+

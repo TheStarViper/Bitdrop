@@ -448,4 +448,4 @@ void initdaemons(){
 // "einstein's cradle" - when two balls hit each other +20
 // "cold storage" - space bar sets bullet time and clicking a ball freezes it's position and drops another ball, if that ball collides into the frozen ball before scoring multiply both balls by 3x
 // bouncy
-// somethin else 
+// somethin else
