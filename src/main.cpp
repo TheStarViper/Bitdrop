@@ -83,7 +83,7 @@ void InitGame() {
         b.multiplier = Config::basketmults[multiplierIndex];
         engine.baskets.push_back(b);
     }
-    initdaemons();
+    initdaemons(); 
 }
 
 void SetNodeModifierBoost(Consumable&) {
@@ -91,19 +91,22 @@ void SetNodeModifierBoost(Consumable&) {
     for (int i = 0; i < count; i++) {
         Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
         if (target) {
-            target->modifiers.push_back(MOD_BOOST);
+            if (std::find(target->modifiers.begin(), target->modifiers.end(), MOD_BOOST) == target->modifiers.end()) {
+                target->modifiers.push_back(MOD_BOOST);
+            }
             target->pulseAnimTimer = 1.0f;
         }
     }
     engine.calculationLog = "BOOST MODIFIER INJECTED";
 }
-
 void SetNodeModifierGlitch(Consumable&) {
     int count = GetPendingConsumableTargetCount();
     for (int i = 0; i < count; i++) {
         Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
         if (target) {
-            target->modifiers.push_back(MOD_GLITCH);
+            if (std::find(target->modifiers.begin(), target->modifiers.end(), MOD_GLITCH) == target->modifiers.end()) {
+                target->modifiers.push_back(MOD_GLITCH);
+            }
             target->pulseAnimTimer = 1.0f;
         }
     }
@@ -115,7 +118,9 @@ void SetNodeModifierClone(Consumable&) {
     for (int i = 0; i < count; i++) {
         Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
         if (target) {
-            target->modifiers.push_back(MOD_CLONE);
+            if (std::find(target->modifiers.begin(), target->modifiers.end(), MOD_CLONE) == target->modifiers.end()) {
+                target->modifiers.push_back(MOD_CLONE);
+            }
             target->pulseAnimTimer = 1.0f;
         }
     }
@@ -486,31 +491,32 @@ void UpdateDrawFrame() {
             }
 
             if (nodeHovered && !node.modifiers.empty()) {
-                std::string modText;
-                Color modColor;
-                if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_BOOST) != node.modifiers.end()) {
-                    modText = "BOOST x2.5";
-                    modColor = Config::COLOR_UI_GREEN;
-                }
-                else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_GLITCH) != node.modifiers.end()) {
-                    modText = "GLITCH: VOLATILE";
-                    modColor = (Color){ 255, 50, 140, 255 };
-                }
-                else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_CLONE) != node.modifiers.end()) {
-                    modText = "CLONE: SPLIT";
-                    modColor = (Color){ 200, 50, 255, 255 };
+                std::vector<std::pair<std::string, Color>> modLines;
+                for (const auto& mod : node.modifiers) {
+                    if (mod == MOD_BOOST) modLines.push_back({ "BOOST x2.5", Config::COLOR_UI_GREEN });
+                    else if (mod == MOD_GLITCH) modLines.push_back({ "GLITCH: VOLATILE", (Color){ 255, 50, 140, 255 } });
+                    else if (mod == MOD_CLONE) modLines.push_back({ "CLONE: SPLIT", (Color){ 200, 50, 255, 255 } });
                 }
 
-                int textW = MeasureText(modText.c_str(), 9);
-                float boxW = (float)textW + 16.0f;
-                float boxH = 15.0f;
-                Vector2 boxPos = { node.position.x - (boxW / 2.0f), node.position.y - node.baseRadius - 30.0f };
+                int maxTextW = 0;
+                for (const auto& line : modLines) {
+                    int w = MeasureText(line.first.c_str(), 9);
+                    if (w > maxTextW) maxTextW = w;
+                }
+
+                float boxW = (float)maxTextW + 16.0f;
+                float lineH = 14.0f;
+                float boxH = lineH * modLines.size() + 4.0f;
+                Vector2 boxPos = { node.position.x - (boxW / 2.0f), node.position.y - node.baseRadius - 16.0f - boxH };
 
                 DrawRectangle(boxPos.x, boxPos.y, boxW, boxH, Color{ 6, 12, 22, 210 });
-                DrawRectangleLines(boxPos.x, boxPos.y, boxW, boxH, modColor);
-                DrawLine(node.position.x, boxPos.y + boxH, node.position.x, node.position.y - node.baseRadius, modColor);
+                DrawRectangleLines(boxPos.x, boxPos.y, boxW, boxH, WHITE);
+                DrawLine(node.position.x, boxPos.y + boxH, node.position.x, node.position.y - node.baseRadius, WHITE);
 
-                DrawText(modText.c_str(), boxPos.x + (boxW - textW) / 2.0f, boxPos.y + 3, 9, modColor);
+                for (size_t mi = 0; mi < modLines.size(); mi++) {
+                    int textW = MeasureText(modLines[mi].first.c_str(), 9);
+                    DrawText(modLines[mi].first.c_str(), boxPos.x + (boxW - textW) / 2.0f, boxPos.y + 2 + mi * lineH, 9, modLines[mi].second);
+                }
             }
         }
 
@@ -611,3 +617,19 @@ int main() {
     CloseWindow();
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
