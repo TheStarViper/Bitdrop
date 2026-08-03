@@ -63,9 +63,8 @@ static std::vector<ShopConsumableEntry> consumableShopPool = {
     { "Board Wipe", "Clear all active glitch modifiers from the board", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, UseBoardWipeCharge, 200, 400 },
     { "Fire Sale", "every daemon in your hand adds its full sell value to your balance", Config::COLOR_UI_AMBER, ConsumableEffectType::INSTANT, firesale, 60, 300 },
     { "Decrypt", "Select an encrypted node on the map to reveal it", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, UseDecryptNode, 150, 450 },
-    { "Overclock Pin", "Set a pin's modifier to a flat boosted payout", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, SetNodeModifierBoost, 130, 260,2 },
-    { "Volatile Pin", "Set a pin's modifier to an unstable, random payout", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, SetNodeModifierGlitch, 130, 260,2 },
-    { "Mitosis Pin", "Set a pin's modifier to split probes into clones", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, SetNodeModifierClone, 150, 320 }
+    { "Overclock Pin", "Set up to two pins' modifiers to a flat boosted payout. Incompatible with Volatile", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, SetNodeModifierBoost, 130, 320, 2 },
+    { "Volatile Pin", "Set up to two pins' modifiers to an unstable, random payout. Incompatible with Overclock", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, SetNodeModifierGlitch, 130, 320, 2 },{ "Mitosis Pin", "Set a pin's modifier to split probes into clones", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, SetNodeModifierClone, 150, 320 }
 };
 
 static int consumableShopSlots[4] = { -1, -1, -1, -1 };

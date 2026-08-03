@@ -86,11 +86,27 @@ void InitGame() {
     initdaemons(); 
 }
 
+void RemoveIncompatibleModifiers(std::vector<ModifierType>& existing, ModifierType incoming) {
+    static const std::vector<std::pair<ModifierType, ModifierType>> incompatiblePairs = {
+        { MOD_BOOST, MOD_GLITCH }
+    };
+
+    for (const auto& pair : incompatiblePairs) {
+        ModifierType conflict = MOD_NONE;
+        if (incoming == pair.first) conflict = pair.second;
+        else if (incoming == pair.second) conflict = pair.first;
+        else continue;
+
+        existing.erase(std::remove(existing.begin(), existing.end(), conflict), existing.end());
+    }
+}
+
 void SetNodeModifierBoost(Consumable&) {
     int count = GetPendingConsumableTargetCount();
     for (int i = 0; i < count; i++) {
         Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
         if (target) {
+            RemoveIncompatibleModifiers(target->modifiers, MOD_BOOST);
             if (std::find(target->modifiers.begin(), target->modifiers.end(), MOD_BOOST) == target->modifiers.end()) {
                 target->modifiers.push_back(MOD_BOOST);
             }
@@ -99,11 +115,13 @@ void SetNodeModifierBoost(Consumable&) {
     }
     engine.calculationLog = "BOOST MODIFIER INJECTED";
 }
+
 void SetNodeModifierGlitch(Consumable&) {
     int count = GetPendingConsumableTargetCount();
     for (int i = 0; i < count; i++) {
         Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
         if (target) {
+            RemoveIncompatibleModifiers(target->modifiers, MOD_GLITCH);
             if (std::find(target->modifiers.begin(), target->modifiers.end(), MOD_GLITCH) == target->modifiers.end()) {
                 target->modifiers.push_back(MOD_GLITCH);
             }
