@@ -14,6 +14,7 @@
 #include "consumables.hpp"
 #include "custom-polygon-generator.hpp"
 #include "screenshake.hpp"
+#include "formatting.hpp"
 
 struct RerollGlitchState {
     float timer = 0.0f;
@@ -64,7 +65,8 @@ static std::vector<ShopConsumableEntry> consumableShopPool = {
     { "Fire Sale", "every daemon in your hand adds its full sell value to your balance", Config::COLOR_UI_AMBER, ConsumableEffectType::INSTANT, firesale, 60, 300 },
     { "Decrypt", "Select an encrypted node on the map to reveal it", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, UseDecryptNode, 150, 450 },
     { "Overclock Pin", "Set up to two pins' modifiers to a flat boosted payout. Incompatible with Volatile", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, SetNodeModifierBoost, 130, 320, 2 },
-    { "Volatile Pin", "Set up to two pins' modifiers to an unstable, random payout. Incompatible with Overclock", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, SetNodeModifierGlitch, 130, 320, 2 },{ "Mitosis Pin", "Set a pin's modifier to split probes into clones", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, SetNodeModifierClone, 150, 320 }
+    { "Volatile Pin", "Set up to two pins' modifiers to an unstable, random payout. Incompatible with Overclock", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, SetNodeModifierGlitch, 130, 320, 2 },
+    { "Clone Pin", "Set a pin's modifier to split probes into clones", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, SetNodeModifierClone, 150, 320 }
 };
 
 static int consumableShopSlots[4] = { -1, -1, -1, -1 };
@@ -622,22 +624,28 @@ void drawshop() {
     if (currentrerollprice<=gamestate.balance){
         affordable = true;
     }
-    std::string rerollstring ="Reroll $" + std::to_string(currentrerollprice);
-    
+
     //reroll
-    if (DrawButton({830, Config::walletY - 77, 205, 65},
-                    ButtonType::TextGeneric, 255, 
-                    (affordable) ? Config::COLOR_GRID_LINE: Config::COLOR_GRID_LINE_DARKER, 
-                    (affordable) ? Config::COLOR_UI_AMBER : Config::COLOR_GRID_LINE_DARKER, 
-                    Config::COLOR_UI_GREEN, WHITE, 
-                    rerollstring.c_str(), 35)) {
+    std::string rerollstring = "Reroll $" + std::to_string(currentrerollprice);
+    Rectangle buttonBounds = { 830, (float)Config::walletY - 77, 205, 65 };
+    float padding = 20.0f;
+    float maxAvailableWidth = buttonBounds.width - padding;
+
+    Font defaultFont = GetFontDefault();
+    float targetFontSize = 30.0f;
+    float finalFontSize = GetFittingFontSize(rerollstring.c_str(), targetFontSize, maxAvailableWidth);
+    
+    if (DrawButton(buttonBounds,
+                ButtonType::TextGeneric, 255, 
+                (affordable) ? Config::COLOR_GRID_LINE : Config::COLOR_GRID_LINE_DARKER, 
+                (affordable) ? Config::COLOR_UI_AMBER : Config::COLOR_GRID_LINE_DARKER, 
+                Config::COLOR_UI_GREEN, WHITE, 
+                rerollstring.c_str(), (int)finalFontSize)) {
         if (affordable){
             gamestate.balance -=currentrerollprice;
             shopstate.rerolls +=1;
             GenerateShopPool();
             GenerateConsumableShopPool();
-            //rerollGlitch.active = true;
-            //rerollGlitch.timer = 0.0f;
             playsoundsmart(transitionsound, .5,2);
             screenshake(3.0f, 0.5f);
             float clipX = 70;

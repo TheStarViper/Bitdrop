@@ -84,6 +84,9 @@ void InitGame() {
         engine.baskets.push_back(b);
     }
     initdaemons(); 
+    if (Config::debugmode){
+        gamestate.balance = 10000000;
+    }
 }
 
 void RemoveIncompatibleModifiers(std::vector<ModifierType>& existing, ModifierType incoming) {
@@ -115,7 +118,7 @@ int GetModifierMaxLevel(ModifierType type) {
     switch (type) {
         case MOD_BOOST: return 2;
         case MOD_GLITCH: return 3;
-        case MOD_CLONE: return 1;
+        case MOD_CLONE: return 2;
         default: return 1;
     }
 }
@@ -369,8 +372,10 @@ void UpdatePhysics(float dt) {
                         cloneL.position.x = node.position.x - pushOffset;
                         cloneL.velocity.x = -speedSnap;
                         cloneL.lastHitNodeIndex = (int)nIdx;
-                        cloneL.rawPayloadBytes /=2; //make so if mitosis 2 then you get same
-                        p.rawPayloadBytes /=2;
+                        if (GetModifierLevel(node, MOD_CLONE) == 1) {
+                            cloneL.rawPayloadBytes /= 2;
+                            p.rawPayloadBytes /= 2;
+                        }
                         p.position.x = node.position.x + pushOffset;
                         p.velocity.x = speedSnap;
                         clonesToSpawn.push_back(cloneL);
@@ -557,10 +562,10 @@ void UpdateDrawFrame() {
             if (nodeHovered && !node.modifiers.empty()) {
                 std::vector<std::pair<std::string, Color>> modLines;
                 for (const auto& mod : node.modifiers) {
-                    std::string lvlSuffix = " Lv" + std::to_string(mod.level) + "/" + std::to_string(GetModifierMaxLevel(mod.type));
+                    std::string lvlSuffix = " Lvl" + std::to_string(mod.level);
                     if (mod.type == MOD_BOOST) modLines.push_back({ "Overclick" + lvlSuffix, Config::COLOR_UI_GREEN });
                     else if (mod.type == MOD_GLITCH) modLines.push_back({ "Volatile" + lvlSuffix, (Color){ 255, 50, 140, 255 } });
-                    else if (mod.type == MOD_CLONE) modLines.push_back({ "Mitosis" + lvlSuffix, (Color){ 200, 50, 255, 255 } });
+                    else if (mod.type == MOD_CLONE) modLines.push_back({ "Clone" + lvlSuffix, (Color){ 200, 50, 255, 255 } });
                 }
 
                 int maxTextW = 0;
@@ -648,7 +653,7 @@ void UpdateDrawFrame() {
     }
     DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });
     DrawRectangleLines(Config::walletX, Config::walletY, 420, 65, Config::COLOR_SHARD_BORDER);
-    DrawText("ACCOUNT STANDALONE BALANCE LEDGER:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
+    DrawText("BALANCE:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
     std::string walletStr = "CREDITS: $ " + formatWithSpaces((long long)displayedBalance);
     DrawText(walletStr.c_str(), Config::walletX+15, Config::walletY + 26, 22, Config::COLOR_UI_GREEN);
 

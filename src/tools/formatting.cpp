@@ -4,6 +4,7 @@
 #include <cmath>
 #include <sstream>
 #include <iomanip>
+#include "raylib.h"
 
 std::string FormatByteSize(long double bytes) {
     if (bytes < 1) return "0 B";
@@ -40,4 +41,14 @@ std::string formatWithSpaces(long long int num) {
 
     std::reverse(result.begin(), result.end());
     return result;
+}
+
+float GetFittingFontSize(const char* text, float maxFontSize, float maxWidth, Font font) {
+    float fontSize = maxFontSize;
+    Vector2 textSize = MeasureTextEx(font, text, fontSize, 1.0f);
+
+    if (textSize.x > maxWidth) {
+        fontSize = (maxWidth / textSize.x) * maxFontSize;
+    }
+    return fontSize;
 }
