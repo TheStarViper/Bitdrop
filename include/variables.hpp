@@ -26,6 +26,13 @@ namespace Config {
     inline float PIN_BOUNCYNESS = 0.20f; 
 
     constexpr float scoreBlockY = 455.0f;
+    
+    //esc menu
+    constexpr float esc_width = 350;
+    constexpr float esc_height = 500;
+    constexpr float esc_x = SCREEN_WIDTH/2-esc_width/2;
+    constexpr float esc_y = SCREEN_HEIGHT/2-esc_height/2;
+
     //credits
     constexpr float walletY = 530.0f;
     constexpr float walletX = 830.0f;

@@ -570,9 +570,9 @@ void drawshop() {
 
         DrawShopConsumableItem(slotRect, consumableShopPool[poolIdx], consumableSold[i], consumableHoverStates[i]);
     }
-
+    
     //next
-    if (DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 35)) {
+    if (!esc_menu&&DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 35)) {
         RequestGameStateChange(MAP);
         for (int i = 0; i < 5; i++) shopstate.slots[i] = -1;
         shopstate.rerolls =0;
@@ -581,6 +581,10 @@ void drawshop() {
         return;
     }
     
+    if (esc_menu){
+        DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Next", 35);
+    }
+
     const static int rerollsprice = 500;
     bool affordable = false;
     int currentrerollprice= 900+shopstate.rerolls*rerollsprice;
@@ -598,13 +602,15 @@ void drawshop() {
     float targetFontSize = 30.0f;
     float finalFontSize = GetFittingFontSize(rerollstring.c_str(), targetFontSize, maxAvailableWidth);
 
+
+
     if (DrawButton(buttonBounds,
                 ButtonType::TextGeneric, 255, 
                 (affordable) ? Config::COLOR_GRID_LINE : Config::COLOR_GRID_LINE_DARKER, 
                 (affordable) ? Config::COLOR_UI_AMBER : Config::COLOR_GRID_LINE_DARKER, 
                 Config::COLOR_UI_GREEN, WHITE, 
                 rerollstring.c_str(), (int)finalFontSize)) {
-        if (affordable){
+        if (affordable&&!esc_menu){
             gamestate.balance -=currentrerollprice;
             shopstate.rerolls +=1;
             GenerateShopPool();
@@ -618,5 +624,14 @@ void drawshop() {
             Rectangle bounds = { clipX,clipY,clipW,clipH };
             TriggerGlitchAt(bounds, 0.65f);
         }
+    }
+
+    if (esc_menu){
+        DrawButton(buttonBounds,
+                ButtonType::TextGeneric, 255, 
+                (affordable) ? Config::COLOR_GRID_LINE : Config::COLOR_GRID_LINE_DARKER, 
+                (affordable) ? Config::COLOR_GRID_LINE : Config::COLOR_GRID_LINE_DARKER, 
+                Config::COLOR_UI_GREEN, WHITE, 
+                rerollstring.c_str(), (int)finalFontSize);
     }
 }
