@@ -100,33 +100,78 @@ void RemoveIncompatibleModifiers(std::vector<ModifierType>& existing, ModifierTy
         existing.erase(std::remove(existing.begin(), existing.end(), conflict), existing.end());
     }
 }
+int GetModifierLevel(const Node& node, ModifierType type) {
+    for (const auto& m : node.modifiers) {
+        if (m.type == type) return m.level;
+    }
+    return 0;
+}
+
+bool HasModifier(const Node& node, ModifierType type) {
+    return GetModifierLevel(node, type) > 0;
+}
+
+int GetModifierMaxLevel(ModifierType type) {
+    switch (type) {
+        case MOD_BOOST: return 2;
+        case MOD_GLITCH: return 3;
+        case MOD_CLONE: return 1;
+        default: return 1;
+    }
+}
+
+void RemoveIncompatibleModifiers(std::vector<ActiveModifier>& existing, ModifierType incoming) {
+    static const std::vector<std::pair<ModifierType, ModifierType>> incompatiblePairs = {
+        { MOD_BOOST, MOD_GLITCH }
+    };
+
+    for (const auto& pair : incompatiblePairs) {
+        ModifierType conflict = MOD_NONE;
+        if (incoming == pair.first) conflict = pair.second;
+        else if (incoming == pair.second) conflict = pair.first;
+        else continue;
+
+        existing.erase(std::remove_if(existing.begin(), existing.end(),
+            [conflict](const ActiveModifier& m) { return m.type == conflict; }), existing.end());
+    }
+}
+
+void ApplyOrLevelModifier(Node* target, ModifierType type) {
+    if (!target) return;
+    RemoveIncompatibleModifiers(target->modifiers, type);
+
+    for (auto& m : target->modifiers) {
+        if (m.type == type) {
+            if (m.level < GetModifierMaxLevel(type)) {
+                m.level++;
+            }
+            target->pulseAnimTimer = 1.0f;
+            return;
+        }
+    }
+
+    target->modifiers.push_back({ type, 1 });
+    target->pulseAnimTimer = 1.0f;
+}
+
+ModifierType GetModifierTypeForConsumableFn(ConsumableUseFn fn) {
+    if (fn == SetNodeModifierBoost) return MOD_BOOST;
+    if (fn == SetNodeModifierGlitch) return MOD_GLITCH;
+    if (fn == SetNodeModifierClone) return MOD_CLONE;
+    return MOD_NONE;
+}
 
 void SetNodeModifierBoost(Consumable&) {
     int count = GetPendingConsumableTargetCount();
     for (int i = 0; i < count; i++) {
-        Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
-        if (target) {
-            RemoveIncompatibleModifiers(target->modifiers, MOD_BOOST);
-            if (std::find(target->modifiers.begin(), target->modifiers.end(), MOD_BOOST) == target->modifiers.end()) {
-                target->modifiers.push_back(MOD_BOOST);
-            }
-            target->pulseAnimTimer = 1.0f;
-        }
+        ApplyOrLevelModifier(static_cast<Node*>(GetPendingConsumableTarget(i)), MOD_BOOST);
     }
     engine.calculationLog = "BOOST MODIFIER INJECTED";
 }
-
 void SetNodeModifierGlitch(Consumable&) {
     int count = GetPendingConsumableTargetCount();
     for (int i = 0; i < count; i++) {
-        Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
-        if (target) {
-            RemoveIncompatibleModifiers(target->modifiers, MOD_GLITCH);
-            if (std::find(target->modifiers.begin(), target->modifiers.end(), MOD_GLITCH) == target->modifiers.end()) {
-                target->modifiers.push_back(MOD_GLITCH);
-            }
-            target->pulseAnimTimer = 1.0f;
-        }
+        ApplyOrLevelModifier(static_cast<Node*>(GetPendingConsumableTarget(i)), MOD_GLITCH);
     }
     engine.calculationLog = "GLITCH MODIFIER INJECTED";
 }
@@ -134,13 +179,7 @@ void SetNodeModifierGlitch(Consumable&) {
 void SetNodeModifierClone(Consumable&) {
     int count = GetPendingConsumableTargetCount();
     for (int i = 0; i < count; i++) {
-        Node* target = static_cast<Node*>(GetPendingConsumableTarget(i));
-        if (target) {
-            if (std::find(target->modifiers.begin(), target->modifiers.end(), MOD_CLONE) == target->modifiers.end()) {
-                target->modifiers.push_back(MOD_CLONE);
-            }
-            target->pulseAnimTimer = 1.0f;
-        }
+        ApplyOrLevelModifier(static_cast<Node*>(GetPendingConsumableTarget(i)), MOD_CLONE);
     }
     engine.calculationLog = "CLONE MODIFIER INJECTED";
 }
@@ -309,17 +348,19 @@ void UpdatePhysics(float dt) {
                         }
                     }
                     long double calculatedByteBump = 1024.0;
-                    if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_BOOST) != node.modifiers.end()) {
-                        calculatedByteBump *= 2.5;
+                    if (HasModifier(node, MOD_BOOST)) {
+                        int lvl = GetModifierLevel(node, MOD_BOOST);
+                        calculatedByteBump *= (2.5 + (lvl - 1) * 1.0);
                     }
-                    else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_GLITCH) != node.modifiers.end()) {
-                        calculatedByteBump *= ((float)GetRandomValue(5, 50) * 0.2f);
+                    else if (HasModifier(node, MOD_GLITCH)) {
+                        int lvl = GetModifierLevel(node, MOD_GLITCH);
+                        calculatedByteBump *= ((float)GetRandomValue(5, 50 + (lvl - 1) * 25) * 0.2f);
                     }
 
                     p.rawPayloadBytes += calculatedByteBump;
-                    p.bufferRate += (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_GLITCH) != node.modifiers.end() ? 0.35f : 0.12f);
+                    p.bufferRate += (HasModifier(node, MOD_GLITCH) ? 0.35f : 0.12f);
 
-                    if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_CLONE) != node.modifiers.end()) {
+                    if (HasModifier(node, MOD_CLONE)) {
                         float pushOffset = p.radius + node.baseRadius + 4.0f;
                         float speedSnap = fabsf(p.velocity.x) > 10.0f ? fabsf(p.velocity.x) : 80.0f;
 
@@ -328,9 +369,10 @@ void UpdatePhysics(float dt) {
                         cloneL.position.x = node.position.x - pushOffset;
                         cloneL.velocity.x = -speedSnap;
                         cloneL.lastHitNodeIndex = (int)nIdx;
+                        cloneL.rawPayloadBytes /=2; //make so if mitosis 2 then you get same
+                        p.rawPayloadBytes /=2;
                         p.position.x = node.position.x + pushOffset;
                         p.velocity.x = speedSnap;
-                        
                         clonesToSpawn.push_back(cloneL);
                         
                         engine.calculationLog = "THREAD SPLIT: DUAL TRAJECTORY CLONE INSTANTIATED";
@@ -436,7 +478,11 @@ void UpdateDrawFrame() {
             for (auto& node : engine.nodes) {
                 if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
                     if (GetPendingConsumableTargetCount() < GetPendingConsumableMaxTargets()) {
-                        AddPendingConsumableTarget(&node);
+                        ModifierType pendingType = GetModifierTypeForConsumableFn(GetPendingConsumableUseFn());
+                        bool maxedOut = (pendingType != MOD_NONE) && (GetModifierLevel(node, pendingType) >= GetModifierMaxLevel(pendingType));
+                        if (!maxedOut) {
+                            AddPendingConsumableTarget(&node);
+                        }
                     }
                     break;
                 }
@@ -470,13 +516,13 @@ void UpdateDrawFrame() {
         }
         for (const auto& node : engine.nodes) { 
             Color basePinColor = Config::COLOR_NODE;
-            if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_BOOST) != node.modifiers.end()) {
+            if (HasModifier(node, MOD_BOOST)) {
                 basePinColor = Config::COLOR_UI_GREEN;
             }
-            else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_GLITCH) != node.modifiers.end()) {
+            else if (HasModifier(node, MOD_GLITCH)) {
                 basePinColor = { 255, 50, 140, 255 };
             }
-            else if (std::find(node.modifiers.begin(), node.modifiers.end(), MOD_CLONE) != node.modifiers.end()) {
+            else if (HasModifier(node, MOD_CLONE)) {
                 basePinColor = { 200, 50, 255, 255 };
             }
 
@@ -511,9 +557,10 @@ void UpdateDrawFrame() {
             if (nodeHovered && !node.modifiers.empty()) {
                 std::vector<std::pair<std::string, Color>> modLines;
                 for (const auto& mod : node.modifiers) {
-                    if (mod == MOD_BOOST) modLines.push_back({ "BOOST x2.5", Config::COLOR_UI_GREEN });
-                    else if (mod == MOD_GLITCH) modLines.push_back({ "GLITCH: VOLATILE", (Color){ 255, 50, 140, 255 } });
-                    else if (mod == MOD_CLONE) modLines.push_back({ "CLONE: SPLIT", (Color){ 200, 50, 255, 255 } });
+                    std::string lvlSuffix = " Lv" + std::to_string(mod.level) + "/" + std::to_string(GetModifierMaxLevel(mod.type));
+                    if (mod.type == MOD_BOOST) modLines.push_back({ "Overclick" + lvlSuffix, Config::COLOR_UI_GREEN });
+                    else if (mod.type == MOD_GLITCH) modLines.push_back({ "Volatile" + lvlSuffix, (Color){ 255, 50, 140, 255 } });
+                    else if (mod.type == MOD_CLONE) modLines.push_back({ "Mitosis" + lvlSuffix, (Color){ 200, 50, 255, 255 } });
                 }
 
                 int maxTextW = 0;

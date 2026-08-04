@@ -129,6 +129,12 @@ enum ModifierType {
     MOD_GLITCH = 2,
     MOD_CLONE = 3
 };
+
+struct ActiveModifier {
+    ModifierType type;
+    int level;
+};
+
 enum DaemonTriggersType { PASSIVE, BASKET, PINS, COLLISION };
 #include "daemons.hpp"
 
@@ -138,7 +144,7 @@ struct Node {
     float baseRadius;
     float currentRadius;
     float pulseAnimTimer;
-    std::vector<ModifierType> modifiers;
+    std::vector<ActiveModifier> modifiers;
 };
 
 struct Basket {

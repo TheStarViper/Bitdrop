@@ -110,6 +110,11 @@ int GetPendingConsumableMaxTargets() {
     return activeconsumableinfo.consumables[pendingIndex].maxTargets;
 }
 
+ConsumableUseFn GetPendingConsumableUseFn() {
+    if (pendingIndex < 0 || pendingIndex >= (int)activeconsumableinfo.consumables.size()) return nullptr;
+    return activeconsumableinfo.consumables[pendingIndex].useFn;
+}
+
 void ResolvePendingConsumable() {
     if (pendingIndex < 0 || pendingIndex >= (int)activeconsumableinfo.consumables.size()) {
         pendingIndex = -1;
@@ -271,22 +276,38 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
 
         Font font = GetFontDefault();
         float maxTextWidth = boxW - (paddingX * 2.0f);
-        std::vector<std::string> lines;
-        std::string currentLine;
-        std::string word;
-        std::stringstream ss(c.description);
 
-        while (ss >> word) {
-            std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
-            Vector2 size = MeasureTextEx(font, testLine.c_str(), fontSize, 1.0f);
-            if (size.x > maxTextWidth) {
-                if (!currentLine.empty()) lines.push_back(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = testLine;
-            }
+        std::string normalPart = c.description;
+        std::string warningPart;
+        size_t incompatPos = c.description.find("Incompatible");
+        if (incompatPos != std::string::npos) {
+            normalPart = c.description.substr(0, incompatPos);
+            warningPart = c.description.substr(incompatPos);
+            while (!normalPart.empty() && normalPart.back() == ' ') normalPart.pop_back();
         }
-        if (!currentLine.empty()) lines.push_back(currentLine);
+
+        std::vector<std::pair<std::string, Color>> lines;
+        auto wrapSegment = [&](const std::string& text, Color color) {
+            std::string currentLine;
+            std::string word;
+            std::stringstream ss(text);
+            while (ss >> word) {
+                std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
+                Vector2 size = MeasureTextEx(font, testLine.c_str(), fontSize, 1.0f);
+                if (size.x > maxTextWidth) {
+                    if (!currentLine.empty()) lines.push_back({ currentLine, color });
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            if (!currentLine.empty()) lines.push_back({ currentLine, color });
+        };
+
+        wrapSegment(normalPart, Config::COLOR_PROBE);
+        if (!warningPart.empty()) {
+            wrapSegment(warningPart, Config::colorRedAlert);
+        }
 
         float lineHeight = fontSize * 1.5f;
         float boxH = (lines.size() * lineHeight) + (paddingY * 2.0f) - (lineHeight - fontSize);
@@ -304,7 +325,7 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
 
         float lineY = boxY + paddingY;
         for (const auto& line : lines) {
-            DrawTextEx(font, line.c_str(), { boxX + paddingX, lineY }, fontSize, 1.0f, Config::COLOR_PROBE);
+            DrawTextEx(font, line.first.c_str(), { boxX + paddingX, lineY }, fontSize, 1.0f, line.second);
             lineY += lineHeight;
         }
     }

@@ -162,7 +162,38 @@ static void DrawConsumableTooltip(Rectangle slotRect, const ShopConsumableEntry&
 
     Font font = GetFontDefault();
     float maxTextWidth = boxW - (paddingX * 2.0f);
-    std::vector<std::string> lines = WrapText(status, font, fontSize, maxTextWidth);
+
+    std::string normalPart = status;
+    std::string warningPart;
+    size_t incompatPos = status.find("Incompatible");
+    if (incompatPos != std::string::npos) {
+        normalPart = status.substr(0, incompatPos);
+        warningPart = status.substr(incompatPos);
+        while (!normalPart.empty() && normalPart.back() == ' ') normalPart.pop_back();
+    }
+
+    std::vector<std::pair<std::string, Color>> lines;
+    auto wrapSegment = [&](const std::string& text, Color color) {
+        std::string currentLine;
+        std::string word;
+        std::stringstream ss(text);
+        while (ss >> word) {
+            std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
+            Vector2 size = MeasureTextEx(font, testLine.c_str(), fontSize, 1.0f);
+            if (size.x > maxTextWidth) {
+                if (!currentLine.empty()) lines.push_back({ currentLine, color });
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+        if (!currentLine.empty()) lines.push_back({ currentLine, color });
+    };
+
+    wrapSegment(normalPart, textDim);
+    if (!warningPart.empty()) {
+        wrapSegment(warningPart, Config::colorRedAlert);
+    }
 
     float lineHeight = fontSize * 1.5f;
     float boxH = (lines.size() * lineHeight) + (paddingY * 2.0f) - (lineHeight - fontSize);
@@ -174,12 +205,12 @@ static void DrawConsumableTooltip(Rectangle slotRect, const ShopConsumableEntry&
     float boxY = slotRect.y - boxH - 8.0f;
     if (boxY < screenMargin) boxY = slotRect.y + slotRect.height + 8.0f;
 
-    DrawRectangle((int)boxX, (int)boxY, (int)boxW, (int)boxH, Color{ 6, 12, 22, 250 });
+    DrawRectangle(boxX, boxY, boxW, boxH, Color{ 6, 12, 22, 250 });
     DrawRectangleLinesEx({ boxX, boxY, boxW, boxH }, 1.0f, mainColor);
 
     float lineY = boxY + paddingY;
     for (const auto& line : lines) {
-        DrawTextEx(font, line.c_str(), { boxX + paddingX, lineY }, fontSize, 1.0f, textDim);
+        DrawTextEx(font, line.first.c_str(), { boxX + paddingX, lineY }, fontSize, 1.0f, line.second);
         lineY += lineHeight;
     }
 }

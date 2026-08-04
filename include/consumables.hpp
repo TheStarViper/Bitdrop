@@ -62,6 +62,9 @@ int GetPendingConsumableTargetCount();
 void* GetPendingConsumableTarget(int index);
 int GetPendingConsumableMaxTargets();
 
+typedef void (*ConsumableUseFn)(Consumable&);
+ConsumableUseFn GetPendingConsumableUseFn();
+
 void UseRerollCharge(Consumable& self);
 void UseOverclockBooster(Consumable& self);
 void UseBoardWipeCharge(Consumable& self);
