@@ -219,7 +219,7 @@ struct GameEngine {
 };
 
 struct GameState{
-    int balance;
+    long long int balance;
     bool allowduplicateshopitems = false;
     State gamestate = SHOP;
 };

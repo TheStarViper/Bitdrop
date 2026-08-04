@@ -219,7 +219,7 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
     Color textDim   = { (unsigned char)(mainColor.r * 0.7f), (unsigned char)(mainColor.g * 0.7f), (unsigned char)(mainColor.b * 0.7f), 255 };
 
     Vector2 mousePos = GetMousePosition();
-    bool rawHover = CheckCollisionPointRec(mousePos, slotRect) && !isSlotSold;
+    bool rawHover = CheckCollisionPointRec(mousePos, slotRect) && !isSlotSold && !esc_menu;
     bool isHovered = hoverState;
     bool hasFunds = (gamestate.balance >= item.price);
     bool hasRoom = (int)activeconsumableinfo.consumables.size() < GetMaxConsumableSlots();
@@ -248,13 +248,13 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
         { slotRect.x + 142, slotRect.y + 136 }
     });
 
-    bool isbtnhovered = btnPoly.CheckCollisionPoint(mousePos);
+    bool isbtnhovered = btnPoly.CheckCollisionPoint(mousePos) && !esc_menu;
 
-    if (itemPoly.CheckCollisionPoint(mousePos) && hasFunds && hasRoom && !isSlotSold) {
+    if (itemPoly.CheckCollisionPoint(mousePos) && hasFunds && hasRoom && !isSlotSold && !esc_menu) {
         itemPoly.SetFillColor(Fade(WHITE, 0.35f));
         itemPoly.Draw();
     }
-    if (isbtnhovered && hasFunds && hasRoom && !isSlotSold) {
+    if (isbtnhovered && hasFunds && hasRoom && !isSlotSold && !esc_menu) {
         btnPoly.SetFillColor(Fade(WHITE, 0.35f));
         btnPoly.Draw();
     }
@@ -309,7 +309,7 @@ void DrawShopConsumableItem(Rectangle slotRect, const ShopConsumableEntry& item,
         DrawText("FULL", slotRect.x + slotRect.width/2-textSize.x/2, slotRect.y + slotRect.height/2-textSize.y/2-20, 50, (Color){150,150,150,255});
     } else{
         DrawText(priceTxt, slotRect.x + slotRect.width/2-txtW/2, slotRect.y + slotRect.height - 20, 14, mainColor);
-        buyClicked = btnPoly.IsReleased(MOUSE_BUTTON_LEFT);
+        buyClicked = btnPoly.IsReleased(MOUSE_BUTTON_LEFT) && !esc_menu;
     }
 
     if (buyClicked) {
@@ -367,8 +367,8 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
         { Config::shopitemsXbuffer + 455, pos.y }
     });
 
-    bool isBtnHovered = btnPoly.CheckCollisionPoint(mousePos);
-    bool isMainHovered = mainHoverPoly.CheckCollisionPoint(mousePos);
+    bool isBtnHovered = btnPoly.CheckCollisionPoint(mousePos)&& !esc_menu;
+    bool isMainHovered = mainHoverPoly.CheckCollisionPoint(mousePos)&& !esc_menu;
     bool rawHover = (isBtnHovered || isMainHovered) && !isSlotSold;
 
     bool hasFunds = (gamestate.balance >= iteminfo.price);
@@ -377,7 +377,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
 
     HandleHoverSoundTrigger(hoverState, rawHover, hasFunds && hasRoom);
 
-    bool isMouseDown = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    bool isMouseDown = IsMouseButtonDown(MOUSE_BUTTON_LEFT) && !esc_menu;
     Texture2D shopitemsprite = GetShopItemSprite(isBtnHovered && isMouseDown && hasFunds && hasRoom);
     Rectangle srcRect = { 0, 0, (float)shopitemsprite.width, (float)shopitemsprite.height };
 
@@ -427,7 +427,7 @@ void DrawShopItem(Vector2 pos, const Daemon& iteminfo, bool& isSlotSold, smartbo
         const char* reasonTxt = !hasFunds ? "INSUFFICIENT FUNDS" : "MAX SLOTS REACHED";
         DrawText(reasonTxt, destRect.x + Config::shopitemtotalWidth / 2 - 200, destRect.y + Config::shopitemtotalHeight / 2 - 15, 35, !hasFunds ? Config::colorRedAlert : Color{ 150, 150, 150, 255 });
     } else {
-        buyClicked = btnPoly.IsReleased(MOUSE_BUTTON_LEFT) && !isSlotSold;
+        buyClicked = btnPoly.IsReleased(MOUSE_BUTTON_LEFT) && !isSlotSold && !esc_menu;
     }
 
     if (buyClicked) {

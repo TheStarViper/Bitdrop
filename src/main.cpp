@@ -88,7 +88,7 @@ void InitGame() {
     }
     initdaemons(); 
     if (Config::debugmode){
-        gamestate.balance = 10000000;
+        gamestate.balance = 10000000000;
     }
 }
 
@@ -155,9 +155,9 @@ void UpdateDisplayedBalance() {
     }
 }
 
-
 void UpdatePhysics(float dt) {
-    
+    if (esc_menu) return;
+
     std::vector<Probe> clonesToSpawn;
     float scaledDt = dt * Config::GAME_SPEED;
 
@@ -177,7 +177,7 @@ void UpdatePhysics(float dt) {
         engine.particles[i].position.y -= 35.0f * scaledDt;
         engine.particles[i].lifetime -= scaledDt;
         if (engine.particles[i].lifetime <= 0) {
-            engine.particles.erase(engine.particles.begin() + i);
+            engine.particles.erase(engine.particles.begin() +i);
         } else {
             i++;
         }
@@ -389,30 +389,31 @@ void UpdatePhysics(float dt) {
     }
 }
 
-
 void UpdateDrawFrame() {
     Vector2 currentMousePos = GetMousePosition();
     if (gamestate.gamestate==GAME){
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending()) {
-            Vector2 currentMousePos = GetMousePosition();
-            for (auto& node : engine.nodes) {
-                if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
-                    if (GetPendingConsumableTargetCount() < GetPendingConsumableMaxTargets()) {
-                        ModifierType pendingType = GetModifierTypeForConsumableFn(GetPendingConsumableUseFn());
-                        bool maxedOut = (pendingType != MOD_NONE) && (GetModifierLevel(node, pendingType) >= GetModifierMaxLevel(pendingType));
-                        if (!maxedOut) {
-                            AddPendingConsumableTarget(&node);
+        if (!esc_menu) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending()) {
+                Vector2 currentMousePos = GetMousePosition();
+                for (auto& node : engine.nodes) {
+                    if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
+                        if (GetPendingConsumableTargetCount() < GetPendingConsumableMaxTargets()) {
+                            ModifierType pendingType = GetModifierTypeForConsumableFn(GetPendingConsumableUseFn());
+                            bool maxedOut = (pendingType != MOD_NONE) && (GetModifierLevel(node, pendingType) >= GetModifierMaxLevel(pendingType));
+                            if (!maxedOut) {
+                                AddPendingConsumableTarget(&node);
+                            }
                         }
+                        break;
                     }
-                    break;
                 }
             }
+            if (IsKeyPressed(KEY_SPACE)&&levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES) InjectProbeFromTurret();
+            
+                UpdatePhysics(GetFrameTime());
+                ProcessLineFades(engine);
         }
-        if (IsKeyPressed(KEY_SPACE)&&levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES) InjectProbeFromTurret();
-        UpdatePhysics(GetFrameTime());
-        ProcessLineFades(engine);
     }
-
     BeginTextureMode(sceneTarget);
     if (Config::debugmode){
         debug_overlay();
@@ -562,31 +563,24 @@ void UpdateDrawFrame() {
         esc_menu = !esc_menu;
     }
 
-    if (esc_menu) {
-        DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 200});
-        return;
-    }
-
-    if (DrawButton((Rectangle){Config::walletX+420-98, Config::walletY+7, 90, 54},
-                ButtonType::TextGeneric, 255, { 16, 22, 12, 240 },
-                { 34, 40, 30, 240 }, Config::COLOR_SHARD_BORDER, WHITE, "Menu", 15)) {
-        esc_menu = true;
-    }
-
-    PrepDrawCyberpunkDaemonSlots();
-    PrepDrawConsumableSlots();
-    DrawEnergyOrbs();
-
-    if (esc_menu){
-        if (IsKeyPressed(KEY_ESCAPE)){
-            esc_menu = false;
+    if (!esc_menu) {
+        if (DrawButton((Rectangle){Config::walletX+420-98, Config::walletY+7, 90, 54},
+                    ButtonType::TextGeneric, 255, { 16, 22, 12, 240 },
+                    { 34, 40, 30, 240 }, Config::COLOR_SHARD_BORDER, WHITE, "Menu", 15)) {
+            esc_menu = true;
         }
 
-        DrawRectangle(0,0,Config::SCREEN_WIDTH,Config::SCREEN_HEIGHT,Color{0,0,0,200});
-        
+        PrepDrawCyberpunkDaemonSlots();
+        PrepDrawConsumableSlots();
+        DrawEnergyOrbs();
     }
 
-    UpdateScreenShake(GetFrameTime());
+    if (esc_menu) {
+        DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 200});
+    } else {
+        UpdateScreenShake(GetFrameTime());
+    }
+
     Vector2 shake = GetScreenShakeOffset();
     EndTextureMode();
     BeginDrawing();
