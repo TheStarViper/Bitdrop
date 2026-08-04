@@ -59,9 +59,6 @@ Texture2D GetConsumableSlotSprite() {
 }
 
 static std::vector<ShopConsumableEntry> consumableShopPool = {
-    { "Reroll", "Reroll all shop offers once", Config::COLOR_UI_AMBER, ConsumableEffectType::INSTANT, UseRerollCharge, 120, 250 },
-    { "Overclock", "Temporarily overclock a random daemon", Config::MAGENTA_DAEMON, ConsumableEffectType::INSTANT, UseOverclockBooster, 180, 350 },
-    { "Board Wipe", "Clear all active glitch modifiers from the board", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, UseBoardWipeCharge, 200, 400 },
     { "Fire Sale", "every daemon in your hand adds its full sell value to your balance", Config::COLOR_UI_AMBER, ConsumableEffectType::INSTANT, firesale, 60, 300 },
     { "Decrypt", "Select an encrypted node on the map to reveal it", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, UseDecryptNode, 150, 450 },
     { "Overclock Pin", "Set up to two pins' modifiers to a flat boosted payout. Incompatible with Volatile", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, SetNodeModifierBoost, 130, 320, 2 },
@@ -573,40 +570,6 @@ void drawshop() {
 
         DrawShopConsumableItem(slotRect, consumableShopPool[poolIdx], consumableSold[i], consumableHoverStates[i]);
     }
-    // float glitchIntensity = GetRerollGlitchIntensity();
-    // if (glitchIntensity > 0.0f) {
-    //     int clipX = 70;
-    //     int clipY = (int)Config::shopitemsYbuffer - 5;
-    //     int clipW = Config::shopitemtotalWidth + 15;
-    //     int clipH = (int)(consumableRowY + Config::consumableitemsize - clipY) + 10;
-
-    //     BeginScissorMode(clipX, clipY, clipW, clipH);
-
-    //     int barCount = (int)(glitchIntensity * 8.0f);
-    //     for (int i = 0; i < barCount; i++) {
-    //         int barY = GetRandomValue(clipY, clipY + clipH);
-    //         int barHeight = GetRandomValue(3, 14);
-    //         int xOffset = GetRandomValue(-15, 15);
-
-    //         DrawRectangle(clipX + xOffset, barY, clipW, barHeight, (Color){ 0, 255, 120, (unsigned char)(180 * glitchIntensity) });
-    //     }
-
-    //     int sliceCount = (int)(glitchIntensity * 4.0f);
-    //     for (int i = 0; i < sliceCount; i++) {
-    //         int sliceY = GetRandomValue(clipY, clipY + clipH - 8);
-    //         int sliceHeight = GetRandomValue(4, 10);
-    //         int shift = GetRandomValue(4, 14);
-
-    //         DrawRectangle(clipX + shift, sliceY, clipW, sliceHeight, Fade(RED, 0.35f * glitchIntensity));
-    //         DrawRectangle(clipX - shift, sliceY, clipW, sliceHeight, Fade((Color){0,180,255,255}, 0.35f * glitchIntensity));
-    //     }
-
-    //     if (glitchIntensity > 0.5f) {
-    //         DrawRectangle(clipX, clipY, clipW, clipH, Fade(WHITE, (glitchIntensity - 0.5f) * 0.4f));
-    //     }
-
-    //     EndScissorMode();
-    // }
 
     //next
     if (DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 35)) {
@@ -634,7 +597,7 @@ void drawshop() {
     Font defaultFont = GetFontDefault();
     float targetFontSize = 30.0f;
     float finalFontSize = GetFittingFontSize(rerollstring.c_str(), targetFontSize, maxAvailableWidth);
-    
+
     if (DrawButton(buttonBounds,
                 ButtonType::TextGeneric, 255, 
                 (affordable) ? Config::COLOR_GRID_LINE : Config::COLOR_GRID_LINE_DARKER, 

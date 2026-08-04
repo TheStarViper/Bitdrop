@@ -77,6 +77,8 @@ namespace Config {
     const Color colorRedAlert  = { 220, 40, 40, 255 };
 }
 
+inline bool esc_menu;
+
 enum State {
         MainMenu,
         LOST,

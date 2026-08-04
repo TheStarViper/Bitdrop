@@ -223,8 +223,8 @@ int DrawConsumableSlot(Consumable& c, Vector2 mousePos, int idx, bool isSelected
         bool canConfirm = targetCount >= 1;
         float btnY = c.y + c.height - 24;
 
-        Rectangle cancelBtn = { c.x + 8, btnY, (c.width - 24) / 2.0f, 16 };
-        Rectangle confirmBtn = { cancelBtn.x + cancelBtn.width + 8, btnY, (c.width - 24) / 2.0f, 16 };
+        Rectangle confirmBtn = { c.x + 8, btnY, (c.width - 24) / 2.0f, 16 };
+        Rectangle cancelBtn = { confirmBtn.x + confirmBtn.width + 8, btnY, (c.width - 24) / 2.0f, 16 };
 
         bool cancelClicked = DrawButton(cancelBtn, ButtonType::TextGeneric, 255, Color{ 45, 15, 20, 255 }, Color{ 180, 40, 40, 255 }, Config::COLOR_UI_AMBER, WHITE, "CANCEL", 9);
 
@@ -337,7 +337,7 @@ void PrepDrawConsumableSlots() {
     static int selectedIndex = -1;
     Vector2 mPos = GetMousePosition();
 
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && pendingIndex == -1) {
+    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && pendingIndex == -1) {
         bool clickedCard = false;
         for (size_t i = 0; i < activeconsumableinfo.consumables.size(); i++) {
             auto& c = activeconsumableinfo.consumables[i];

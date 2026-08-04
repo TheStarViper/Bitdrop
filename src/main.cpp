@@ -20,6 +20,8 @@
 #include "debug.hpp"
 #include "formatting.hpp"
 #include "screenshake.hpp"
+#include "button.hpp"
+
 //General
 //more daemons
 //clean up code for more efficiency
@@ -49,7 +51,7 @@ struct ModifierDef {
 std::string BoostTooltip(int level) {
     float mult = 2.5f + (level - 1) * 1.0f;
     std::ostringstream oss;
-    oss << "BOOST x" << mult;
+    oss << "OVERCLOCK" << mult;
     return oss.str();
 }
 
@@ -58,7 +60,7 @@ void BoostScoreEffect(int level, long double& byteBump, float&) {
 }
 
 std::string GlitchTooltip(int) {
-    return "GLITCH: VOLATILE";
+    return "VOLATILE";
 }
 
 void GlitchScoreEffect(int level, long double& byteBump, float& bufferRateBump) {
@@ -67,7 +69,7 @@ void GlitchScoreEffect(int level, long double& byteBump, float& bufferRateBump) 
 }
 
 std::string CloneTooltip(int) {
-    return "CLONE: SPLIT";
+    return "CLONE";
 }
 
 void CloneScoreEffect(int, long double&, float&) {
@@ -77,7 +79,7 @@ const std::vector<ModifierDef>& GetModifierRegistry() {
     static const std::vector<ModifierDef> registry = {
         { MOD_BOOST, "BOOST", Config::COLOR_UI_GREEN, 2, { MOD_GLITCH }, BoostTooltip, BoostScoreEffect, false, SetNodeModifierBoost },
         { MOD_GLITCH, "GLITCH", (Color){ 255, 50, 140, 255 }, 3, { MOD_BOOST }, GlitchTooltip, GlitchScoreEffect, false, SetNodeModifierGlitch },
-        { MOD_CLONE, "CLONE", (Color){ 200, 50, 255, 255 }, 1, {}, CloneTooltip, CloneScoreEffect, true, SetNodeModifierClone }
+        { MOD_CLONE, "CLONE", (Color){ 200, 50, 255, 255 }, 2, {}, CloneTooltip, CloneScoreEffect, true, SetNodeModifierClone }
     };
     return registry;
 }
@@ -403,10 +405,10 @@ void UpdatePhysics(float dt) {
                         cloneL.position.x = node.position.x - pushOffset;
                         cloneL.velocity.x = -speedSnap;
                         cloneL.lastHitNodeIndex = (int)nIdx;
-                        // if (GetModifierDef(node, MOD_CLONE) == 1) { FIX ME BRO
-                        //     cloneL.rawPayloadBytes /= 2;
-                        //     p.rawPayloadBytes /= 2;
-                        // }
+                        if (GetModifierLevel(node, MOD_CLONE) == 1) {
+                            cloneL.rawPayloadBytes /= 2;
+                            p.rawPayloadBytes /= 2;
+                        }
                         p.position.x = node.position.x + pushOffset;
                         p.velocity.x = speedSnap;
                         clonesToSpawn.push_back(cloneL);
@@ -541,15 +543,16 @@ void UpdateDrawFrame() {
     for (auto& d : activedaemoninfo.daemons) {
         d.UpdateYAnim(GetFrameTime());
     }
-    
-    if (gamestate.gamestate==GAME){
-        
+
+
+    if (gamestate.gamestate == GAME) {
         for (const auto& basket : engine.baskets) {
             DrawRectangleRec(basket.bounds, Config::COLOR_BASKET);
             DrawRectangleLinesEx(basket.bounds, 1.0f, Config::COLOR_GRID_LINE);
             std::string txt = std::to_string(basket.multiplier).substr(0, 3) + "x";
             DrawText(txt.c_str(), basket.bounds.x + ((basket.bounds.width - MeasureText(txt.c_str(), 10)) / 2), basket.bounds.y + 5, 10, Config::COLOR_UI_AMBER);
         }
+
         for (const auto& node : engine.nodes) { 
             Color basePinColor = GetNodePinColor(node);
 
@@ -568,7 +571,7 @@ void UpdateDrawFrame() {
                 DrawCircleLines(node.position.x, node.position.y, node.baseRadius + 19.0f, Fade(Config::COLOR_UI_GREEN, 0.4f));
             }
 
-            bool nodeHovered = CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f);
+            bool nodeHovered = !esc_menu && CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f);
 
             if (nodeHovered) {
                 bool selectorMode = IsConsumablePending();
@@ -581,12 +584,12 @@ void UpdateDrawFrame() {
                 DrawCircleLines(node.position.x, node.position.y, ringRadius, hoverRingColor);
             }
 
-             if (nodeHovered && !node.modifiers.empty()) {
+            if (nodeHovered && !node.modifiers.empty()) {
                 std::vector<std::pair<std::string, Color>> modLines;
                 for (const auto& mod : node.modifiers) {
                     const ModifierDef* def = GetModifierDef(mod.type);
                     if (!def) continue;
-                    std::string label = def->getTooltip(mod.level) + " Lv" + std::to_string(mod.level) + "/" + std::to_string(def->maxLevel);
+                    std::string label = def->getTooltip(mod.level) + " Lvl" + std::to_string(mod.level);
                     modLines.push_back({ label, def->color });
                 }
 
@@ -643,19 +646,10 @@ void UpdateDrawFrame() {
             DrawText(cp.text.c_str(), cp.position.x, cp.position.y, 13, cp.color);
         }
 
-        std::string coreTelemetry = "FLIGHT CONCURRENT ARCH: " + std::to_string(engine.activeProbes.size()) + " UNITS  ||  " + engine.calculationLog;
-        DrawText(coreTelemetry.c_str(), 400 - (MeasureText(coreTelemetry.c_str(), 13) / 2), 652, 13, Config::COLOR_PROBE);
-
-        std::string bottomTip = "SYS ENG: [CLICK PIN] CHANGE MODIFIERS // [SPACEBAR] INJECT LOAD PACKETS";
-        DrawText(bottomTip.c_str(), 400 - (MeasureText(bottomTip.c_str(), 11) / 2), 685, 11, Config::COLOR_GRID_LINE);
-        
-        
         bool targetMet = (levelstate.scoredbytes >= levelstate.TARGET_QUOTA_BYTES);
-        std::string quotaString = "TARGET QUOTA: " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
-        DrawText(quotaString.c_str(), 835, Config::scoreBlockY, 13, targetMet ? Config::COLOR_UI_GREEN : Config::COLOR_UI_AMBER);
 
         std::string rewardstr = "Reward Credits: $ " + formatWithSpaces(levelstate.reward);
-        DrawText(rewardstr.c_str(), 1080, Config::scoreBlockY, 13, Config::COLOR_UI_GREEN);
+        DrawText(rewardstr.c_str(), 835, Config::scoreBlockY, 13, Config::COLOR_UI_GREEN);
 
         DrawText("DATA HACKED PROGRESSION TIER:", 835, Config::scoreBlockY + 24, 12, { 130, 160, 180, 255 });
         std::string dataProgressText = FormatByteSize(levelstate.scoredbytes) + " / " + FormatByteSize(levelstate.TARGET_QUOTA_BYTES);
@@ -665,24 +659,51 @@ void UpdateDrawFrame() {
         DrawLineEx({ Config::Daemon_side_seperator, 0 }, { Config::Daemon_side_seperator, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
         DrawFadingLines(engine);
     }
-    if (gamestate.gamestate==SHOP){
+
+    if (gamestate.gamestate == SHOP) {
         DrawLineEx({ Config::Daemon_side_seperator, 0 }, { Config::Daemon_side_seperator, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
         DrawLineEx({ 0, 530 }, { 810, 530 }, 2.0f, Config::COLOR_SHARD_BORDER);
         drawshop();
     }
-    if (gamestate.gamestate==MAP){
+
+    if (gamestate.gamestate == MAP) {
         DrawMap();
     }
+
     DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });
     DrawRectangleLines(Config::walletX, Config::walletY, 420, 65, Config::COLOR_SHARD_BORDER);
     DrawText("BALANCE:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
     std::string walletStr = "CREDITS: $ " + formatWithSpaces((long long)displayedBalance);
     DrawText(walletStr.c_str(), Config::walletX+15, Config::walletY + 26, 22, Config::COLOR_UI_GREEN);
 
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        esc_menu = !esc_menu;
+    }
+
+    if (esc_menu) {
+        DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 200});
+        return;
+    }
+
+    if (DrawButton((Rectangle){Config::walletX+420-98, Config::walletY+7, 90, 54},
+                ButtonType::TextGeneric, 255, { 16, 22, 12, 240 },
+                { 34, 40, 30, 240 }, Config::COLOR_SHARD_BORDER, WHITE, "Menu", 15)) {
+        esc_menu = true;
+    }
+
     PrepDrawCyberpunkDaemonSlots();
     PrepDrawConsumableSlots();
-
     DrawEnergyOrbs();
+
+    if (esc_menu){
+        if (IsKeyPressed(KEY_ESCAPE)){
+            esc_menu = false;
+        }
+
+        DrawRectangle(0,0,Config::SCREEN_WIDTH,Config::SCREEN_HEIGHT,Color{0,0,0,200});
+        
+    }
+
     UpdateScreenShake(GetFrameTime());
     Vector2 shake = GetScreenShakeOffset();
     EndTextureMode();
