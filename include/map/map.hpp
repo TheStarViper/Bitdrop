@@ -54,5 +54,5 @@ typedef struct {
     float timeRunning;
 } Mapstate;
 
-void InitMap(void);
-void DrawMap(void);
+void InitMap();
+void DrawMap();
