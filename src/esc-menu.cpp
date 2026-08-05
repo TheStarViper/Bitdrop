@@ -4,6 +4,7 @@
 #include "button.hpp"
 #include "transition.hpp"
 #include "animation-timer.hpp"
+#include "audio.hpp"
 
 void drawescmenu(){
     DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 200});
@@ -13,13 +14,17 @@ void drawescmenu(){
     //make sure the menu doesnt close instantly when you click on it make sure its a new click yk yk yk ok good cool
     static bool releasedbuttoncheck = false;
     static Timer exitanimtimer = {0};
-    static bool timerstarted = false;
+    
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
         releasedbuttoncheck = true;
     }
+
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&releasedbuttoncheck&&!CheckCollisionPointRec(GetMousePosition(), { Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height })) {
-        esc_menu = false;
-        releasedbuttoncheck = false;
+        if (!exitanimtimer.started) {
+            TriggerGlitchAt({ Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height }, 0.16f);
+            TimerStartOnce(&exitanimtimer, 0.1f);
+            playsoundsmart(transitionsound, 0.2f, 1.0f);
+        }
     }
 
     std::string title = "PAUSED";
@@ -56,22 +61,32 @@ void drawescmenu(){
 
     }
 
+    
+    //exit and entry glitches
+    static bool wasMenuOpen = false;
+
+    if (esc_menu && !wasMenuOpen) {
+        TriggerGlitchAt({ Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height }, 0.16f);
+        playsoundsmart(transitionsound, 0.2f, 1.0f);
+    }
+    wasMenuOpen = esc_menu;
+
     if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 18)) {
-        if (!timerstarted) {
-            TimerStart(&exitanimtimer, 0.08f);
-            timerstarted = true;
+        if (!exitanimtimer.started) {
+            TriggerGlitchAt({ Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height }, 0.16f);
+            TimerStartOnce(&exitanimtimer, 0.1f);
+            playsoundsmart(transitionsound, 0.2f, 1.0f);
         }
     }
 
-    if (timerstarted) {
+    if (exitanimtimer.active) {
         TimerUpdate(&exitanimtimer);
-        TriggerGlitchAt({ Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height }, 0.16f);
 
         if (TimerJustFinished(&exitanimtimer)) {
             esc_menu = false;
             releasedbuttoncheck = false;
             exitanimtimer = {0};
-            timerstarted = false;
+            wasMenuOpen = false;
         }
-    }   
+    }
 }

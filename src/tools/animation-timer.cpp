@@ -24,6 +24,7 @@ void TimerUpdate(Timer *timer) {
 bool TimerJustFinished(Timer *timer) {
     if (timer->finished) {
         timer->finished = false;
+        timer->started = false;
         return true;
     }
     return false;
@@ -32,4 +33,14 @@ bool TimerJustFinished(Timer *timer) {
 float TimerProgress(Timer *timer) {
     if (timer->duration <= 0) return 1.0f;
     return timer->elapsed / timer->duration;
+}
+
+void TimerStartOnce(Timer *timer, float duration) {
+    if (timer->started) return;
+
+    timer->duration = duration;
+    timer->elapsed = 0.0f;
+    timer->active = true;
+    timer->finished = false;
+    timer->started = true;
 }
