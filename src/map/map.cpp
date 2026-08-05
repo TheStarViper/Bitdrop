@@ -491,6 +491,7 @@ void InitMap() {
     
     GenerateTopologyMap();
 }
+
 void DrawMap() {
     state.timeRunning += GetFrameTime();
     Vector2 mousePos = GetMousePosition();
@@ -502,7 +503,7 @@ void DrawMap() {
     float dt = GetFrameTime();
     bool isDragging = !IsTransitioning() &&
         (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) || IsMouseButtonDown(MOUSE_BUTTON_LEFT)) &&
-        mousePos.x < 810;
+        mousePos.x < 810 && !esc_menu;
 
     if (isDragging) {
         Vector2 delta = GetMouseDelta();

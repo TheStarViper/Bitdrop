@@ -23,11 +23,6 @@
 #include "button.hpp"
 #include "node_mods.hpp"
 
-//General
-//more daemons
-//clean up code for more efficiency
-
-
 //Update eventually:
 //make black market a normal shop and add nodes that are black market with special daemons
 //add insufficient funds and consumables slots full above buy button instead of description box
@@ -437,14 +432,14 @@ void UpdateDrawFrame() {
         }
 
         for (const auto& node : engine.nodes) { 
-            Color basePinColor = GetNodePinColor(node);
+            Color basePinColor = Config::COLOR_NODE;
 
             if (node.pulseAnimTimer > 0.0f && node.modifiers.empty()) {
                 basePinColor = Config::COLOR_PROBE;
             }
 
             DrawCircleV(node.position, node.currentRadius, basePinColor);
-
+            DrawNodeIndicators(node);
             bool isTargetSelected = false;
             for (int ti = 0; ti < GetPendingConsumableTargetCount(); ti++) {
                 if (GetPendingConsumableTarget(ti) == (void*)&node) { isTargetSelected = true; break; }

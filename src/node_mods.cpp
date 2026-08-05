@@ -105,3 +105,35 @@ Color GetNodePinColor(const Node& node) {
     }
     return Config::COLOR_NODE;
 }
+
+void DrawNodeIndicators(const Node& node) {
+    if (node.modifiers.empty()) return;
+
+    int count = (int)node.modifiers.size();
+    float anglePerMod = 360.0f / count;
+    float ringInner = node.currentRadius + 3.0f;
+    float ringOuter = node.currentRadius + 6.0f;
+
+    for (int i = 0; i < count; i++) {
+        const auto& mod = node.modifiers[i];
+        const ModifierDef* def = GetModifierDef(mod.type);
+        if (!def) continue;
+
+        float startAngle = i * anglePerMod;
+        float endAngle = startAngle + anglePerMod - 4.0f;
+
+        DrawRing(node.position, ringInner, ringOuter, startAngle, endAngle, 12, def->color);
+
+        if (def->maxLevel > 1) {
+            float midAngle = ((startAngle + endAngle) / 2.0f) * DEG2RAD;
+            Vector2 pipCenter = {
+                node.position.x + cosf(midAngle) * (ringOuter + 5.0f),
+                node.position.y + sinf(midAngle) * (ringOuter + 5.0f)
+            };
+            for (int lvl = 0; lvl < mod.level; lvl++) {
+                float offset = (lvl - (mod.level - 1) / 2.0f) * 4.0f;
+                DrawCircleV({ pipCenter.x + offset, pipCenter.y }, 1.5f, def->color);
+            }
+        }
+    }
+}

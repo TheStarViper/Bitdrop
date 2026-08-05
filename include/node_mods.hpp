@@ -34,3 +34,4 @@ void ApplyOrLevelModifier(Node* target, ModifierType type);
 ModifierType GetModifierTypeForConsumableFn(ConsumableUseFn fn);
 void ApplyModifierToPendingTargets(ModifierType type);
 Color GetNodePinColor(const Node& node);
+void DrawNodeIndicators(const Node& node);

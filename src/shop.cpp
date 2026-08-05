@@ -462,7 +462,7 @@ void GenerateConsumableShopPool() {
         consumableShopSlots[i] = pool[randomIndex];
         pool.erase(pool.begin() + randomIndex);
     }
-}
+} 
 
 void GenerateShopPool() {
     std::vector<int> pool;
@@ -602,8 +602,7 @@ void drawshop() {
     float targetFontSize = 30.0f;
     float finalFontSize = GetFittingFontSize(rerollstring.c_str(), targetFontSize, maxAvailableWidth);
 
-
-
+    
     if (DrawButton(buttonBounds,
                 ButtonType::TextGeneric, 255, 
                 (affordable) ? Config::COLOR_GRID_LINE : Config::COLOR_GRID_LINE_DARKER, 
