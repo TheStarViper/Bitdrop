@@ -1,4 +1,5 @@
 #include "node_mods.hpp"
+#include <algorithm>
 
 std::string BoostTooltip(int level) {
     float mult = 2.5f + (level - 1) * 1.0f;

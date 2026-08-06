@@ -32,12 +32,14 @@
     #include <emscripten.h>
 #endif
 
-
 void InitGame() {
     InitMap();
+    //shader check if file exists type stuff
     hueShader = LoadShader(0, "assets/shaders/hueshift.fs");
     hueLoc = GetShaderLocation(hueShader, "hueShift");
     TraceLog(LOG_INFO, "hueLoc = %d, shader.id = %d", hueLoc, hueShader.id);
+
+
     sceneTarget = LoadRenderTexture(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT);
     levelstate.scoredbytes = 0.0;
     engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
@@ -468,7 +470,7 @@ void UpdateDrawFrame() {
                 for (const auto& mod : node.modifiers) {
                     const ModifierDef* def = GetModifierDef(mod.type);
                     if (!def) continue;
-                    std::string label = def->getTooltip(mod.level) + " Lvl" + std::to_string(mod.level);
+                    std::string label = def->getTooltip(mod.level) + " Lvl " + std::to_string(mod.level);
                     modLines.push_back({ label, def->color });
                 }
 

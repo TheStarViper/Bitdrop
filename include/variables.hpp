@@ -95,6 +95,22 @@ enum State {
         MAP
     };
 
+enum esc_menu_states{
+    MAIN,
+    SETTINGZ,
+    STATS
+};
+
+inline esc_menu_states esc_menu_state = MAIN;
+
+struct SettingsMenu {
+    bool screenShakeEnabled = true;
+    float masterVolume = 1.0f;
+    float sfxVolume = 1.0f;
+};
+inline SettingsMenu settingsState;
+
+
 namespace Resources{
     inline Sound hoversound;
     inline Sound winsound;
