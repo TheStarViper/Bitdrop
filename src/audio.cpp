@@ -1,9 +1,10 @@
 #include "audio.hpp"
 #include "raylib.h"
+#include "variables.hpp"
 
 void playsoundsmart(Sound sound, float volume,float pitch){
     SetSoundPitch(sound,pitch);
-    SetSoundVolume(sound,volume);
+    SetSoundVolume(sound,volume*settings.masterVolume);
     PlaySound(sound);
 }
 

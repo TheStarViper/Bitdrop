@@ -10,27 +10,18 @@
 #include "variables.hpp"
 #include "consumables.hpp"
 
-struct StatEntry {
-    std::string label;
-    std::function<std::string()> getValue;
-};
 
-std::vector<StatEntry>& GetStatsRegistry() {
-    static std::vector<StatEntry> registry = {
-        { "Balance", []() { return "$" + formatWithSpaces(gamestate.balance); } },
-        { "Daemons Owned", []() { return std::to_string(activedaemoninfo.daemons.size()) + " / 5"; } },
-        { "Consumables Held", []() { return std::to_string(activeconsumableinfo.consumables.size()) + " / " + std::to_string(GetMaxConsumableSlots()); } },
-        { "Bytes Scored (Level)", []() { return FormatByteSize(levelstate.scoredbytes); } },
-        { "Target Quota", []() { return FormatByteSize(levelstate.TARGET_QUOTA_BYTES); } },
-        { "Balls Remaining", []() { return std::to_string(engine.remainingBalls); } }
+std::vector<StatEntry>& GetStatsStats() {
+    static std::vector<StatEntry> statslist = {
+        { "Total Earned", []() { return "$" + formatWithSpaces(stats.money_earned); } },
+        { "Balls Dropped", []() { return formatWithSpaces(stats.balls_dropped); } }
     };
-    return registry;
+    return statslist;
 }
 
 void drawstatsmenu(){
     static float statsScrollOffset = 0.0f;
-
-    DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 200});
+    
     DrawRectangle(Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height, Color{14, 20, 11, 255});
     DrawRectangleLines(Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height, Config::COLOR_SHARD_BORDER);
 
@@ -45,7 +36,7 @@ void drawstatsmenu(){
     float listH = Config::esc_height - 140.0f;
     float rowH = 30.0f;
 
-    auto& registry = GetStatsRegistry();
+    auto& registry = GetStatsStats();
     float contentH = registry.size() * rowH;
     float maxScroll = fmaxf(0.0f, contentH - listH);
 
@@ -69,41 +60,22 @@ void drawstatsmenu(){
     }
     EndScissorMode();
 
-    Rectangle backBtn = { listX, Config::esc_y + Config::esc_height - 54.0f, listW, 40.0f };
-    if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 16)) {
+    Rectangle backBtn = { listX, Config::esc_y + Config::esc_height - 54.0f, listW, 46.0f };
+    if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 18)) {
         esc_menu_state = MAIN;
     }
 }
 
 
-
-
-
-
-
-
-enum class SettingType { TOGGLE, SLIDER };
-
-struct SettingEntry {
-    std::string label;
-    SettingType type;
-    bool* boolValue = nullptr;
-    float* floatValue = nullptr;
-    float minValue = 0.0f;
-    float maxValue = 1.0f;
-};
-
-std::vector<SettingEntry>& GetSettingsRegistry() {
-    static std::vector<SettingEntry> registry = {
-        { "Screen Shake", SettingType::TOGGLE, &settingsState.screenShakeEnabled },
-        { "Master Volume", SettingType::SLIDER, nullptr, &settingsState.masterVolume, 0.0f, 1.0f },
-        { "SFX Volume", SettingType::SLIDER, nullptr, &settingsState.sfxVolume, 0.0f, 1.0f }
+std::vector<SettingEntry>& GetSettingsSettings() {
+    static std::vector<SettingEntry> settingslist = {
+        { "Screen Shake", SettingType::TOGGLE, &settings.screenShakeEnabled },
+        { "Master Volume", SettingType::SLIDER, nullptr, &settings.masterVolume, 0.0f, 2.0f }
     };
-    return registry;
+    return settingslist;
 }
 
 void drawsettingsmenu(){
-    DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 200});
     DrawRectangle(Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height, Color{14, 20, 11, 255});
     DrawRectangleLines(Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height, Config::COLOR_SHARD_BORDER);
 
@@ -119,7 +91,7 @@ void drawsettingsmenu(){
     float rowGap = 12.0f;
 
     Vector2 mousePos = GetMousePosition();
-    auto& registry = GetSettingsRegistry();
+    auto& registry = GetSettingsSettings();
 
     for (const auto& setting : registry) {
         DrawText(setting.label.c_str(), rowX, rowY, 15, Color{ 150, 180, 200, 255 });
@@ -153,8 +125,8 @@ void drawsettingsmenu(){
         rowY += rowH + rowGap;
     }
 
-    Rectangle backBtn = { rowX, Config::esc_y + Config::esc_height - 54.0f, rowW, 40.0f };
-    if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 16)) {
+    Rectangle backBtn = { rowX, Config::esc_y + Config::esc_height - 54.0f, rowW, 46.0f };
+    if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 18)) {
         esc_menu_state = MAIN;
     }
 }
@@ -197,33 +169,34 @@ void drawescmenu(){
     Rectangle mainMenuBtn = {buttonX, startY + (buttonH + buttonGap) * 1, buttonW, buttonH};
     Rectangle settingsBtn = {buttonX, startY + (buttonH + buttonGap) * 2, buttonW, buttonH};
     Rectangle statsBtn = {buttonX, startY + (buttonH + buttonGap) * 3, buttonW, buttonH};
-    Rectangle backBtn = {buttonX, startY + (buttonH + buttonGap) * 4, buttonW, buttonH};
+    Rectangle backBtn = {buttonX, Config::esc_y + Config::esc_height - 54.0f, buttonW, buttonH};
 
 
     //new game so i can ctrl f this
-    if (DrawButton(newRunBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "New Run", 18)) {
-        engine.daemons.clear();
-        gamestate.balance = 0;
-        GenerateTopologyMap();
-        RequestGameStateChange(GAME);
-        //fix this plz gotta figure out how to restart maybe use init game again idk
-    }
+    if (esc_menu_state==MAIN){
+        if (DrawButton(newRunBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "New Run", 18)) {
+            engine.daemons.clear();
+            gamestate.balance = 0;
+            GenerateTopologyMap();
+            RequestGameStateChange(GAME);
+            //fix this plz gotta figure out how to restart maybe use init game again idk
+        }
 
-    //Main Menu so i can ctrl f this
-    if (DrawButton(mainMenuBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Main Menu", 18)) {
-        RequestGameStateChange(MainMenu);
-    }
+        //Main Menu so i can ctrl f this
+        if (DrawButton(mainMenuBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Main Menu", 18)) {
+            RequestGameStateChange(MainMenu);
+        }
 
-    //Settings so i can ctrl f this
-    if (DrawButton(settingsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Settings", 18)) {
-        esc_menu_state = SETTINGZ;
-    }
+        //Settings so i can ctrl f this
+        if (DrawButton(settingsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Settings", 18)) {
+            esc_menu_state = SETTINGZ;
+        }
 
-    //Stats so i can ctrl f this
-    if (DrawButton(statsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Stats", 18)) {
-        esc_menu_state = STATS;
+        //Stats so i can ctrl f this
+        if (DrawButton(statsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Stats", 18)) {
+            esc_menu_state = STATS;
+        }
     }
-
     if (esc_menu_state == SETTINGZ) {
         drawsettingsmenu();
         return;
@@ -240,7 +213,6 @@ void drawescmenu(){
         playsoundsmart(transitionsound, 0.2f, 1.0f);
     }
     wasMenuOpen = esc_menu;
-
     
     if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 18)) {
         if (!exitanimtimer.started) {

@@ -406,8 +406,10 @@ void UpdateDrawFrame() {
                     }
                 }
             }
-            if (IsKeyPressed(KEY_SPACE)&&levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES) InjectProbeFromTurret();
-            
+            if (IsKeyPressed(KEY_SPACE)&&levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES){
+                InjectProbeFromTurret();
+                stats.balls_dropped++;
+            }
                 UpdatePhysics(GetFrameTime());
                 ProcessLineFades(engine);
         }

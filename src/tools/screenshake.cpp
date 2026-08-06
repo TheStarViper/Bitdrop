@@ -1,5 +1,6 @@
 #include "screenshake.hpp"
 #include <cmath>
+#include "variables.hpp"
 
 namespace {
     float shakeDuration = 0.0f;
@@ -9,10 +10,12 @@ namespace {
 }
 
 void screenshake(float intensity, float duration) {
-    if (shakeTimer <= 0.0f || intensity >= shakeIntensity) {
-        shakeIntensity = intensity;
-        shakeDuration = duration;
-        shakeTimer = duration;
+    if (settings.screenShakeEnabled){
+        if (shakeTimer <= 0.0f || intensity >= shakeIntensity) {
+            shakeIntensity = intensity;
+            shakeDuration = duration;
+            shakeTimer = duration;
+        }
     }
 }
 

@@ -95,20 +95,18 @@ enum State {
         MAP
     };
 
-enum esc_menu_states{
-    MAIN,
-    SETTINGZ,
-    STATS
+
+
+struct StatsMenu{
+    long long int money_earned;
+    int balls_dropped;
 };
-
-inline esc_menu_states esc_menu_state = MAIN;
-
+inline StatsMenu stats;
 struct SettingsMenu {
     bool screenShakeEnabled = true;
     float masterVolume = 1.0f;
-    float sfxVolume = 1.0f;
 };
-inline SettingsMenu settingsState;
+inline SettingsMenu settings;
 
 
 namespace Resources{
