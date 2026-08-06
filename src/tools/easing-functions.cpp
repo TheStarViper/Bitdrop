@@ -1,5 +1,5 @@
 #include <cmath>
-#include "easing_functions.hpp"
+#include "easing-functions.hpp"
 #include "raylib.h"
 #include <functional>
 

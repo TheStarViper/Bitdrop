@@ -3,7 +3,7 @@
 #include "raylib.h"
 #include <string>
 #include "variables.hpp"
-#include "easing_functions.hpp"
+#include "easing-functions.hpp"
 #include "shop.hpp"
 #include "raymath.h"
 class GameEngine;//hopefully this doesnt break everything pls pls pls pls pls lps pls plspl s

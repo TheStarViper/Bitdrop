@@ -21,8 +21,9 @@
 #include "formatting.hpp"
 #include "screenshake.hpp"
 #include "button.hpp"
-#include "node_mods.hpp"
+#include "node-mods.hpp"
 #include "esc-menu.hpp"
+#include "main-menu.hpp"
 
 //Update eventually:
 //make black market a normal shop and add nodes that are black market with special daemons
@@ -553,27 +554,32 @@ void UpdateDrawFrame() {
         DrawMap();
     }
 
-    DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });
-    DrawRectangleLines(Config::walletX, Config::walletY, 420, 65, Config::COLOR_SHARD_BORDER);
-    DrawText("BALANCE:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
-    std::string walletStr = "CREDITS: $ " + formatWithSpaces((long long)displayedBalance);
-    DrawText(walletStr.c_str(), Config::walletX+15, Config::walletY + 26, 22, Config::COLOR_UI_GREEN);
+    if (gamestate.gamestate == MainMenu){
+        drawmainmenu();
+    } else {
+        DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });
+        DrawRectangleLines(Config::walletX, Config::walletY, 420, 65, Config::COLOR_SHARD_BORDER);
+        DrawText("BALANCE:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
+        std::string walletStr = "CREDITS: $ " + formatWithSpaces((long long)displayedBalance);
+        DrawText(walletStr.c_str(), Config::walletX+15, Config::walletY + 26, 22, Config::COLOR_UI_GREEN);
 
-    if (IsKeyPressed(KEY_ESCAPE)) {
-        esc_menu = !esc_menu;
-    }
-
-    if (!esc_menu) {
-        if (DrawButton((Rectangle){Config::walletX+420-98, Config::walletY+7, 90, 54},
-                    ButtonType::TextGeneric, 255, { 16, 22, 12, 240 },
-                    { 34, 40, 30, 240 }, Config::COLOR_SHARD_BORDER, WHITE, "Menu", 15)) {
-            esc_menu = true;
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            esc_menu = false;
         }
 
-        PrepDrawCyberpunkDaemonSlots();
-        PrepDrawConsumableSlots();
-        DrawEnergyOrbs();
+        if (!esc_menu) {
+            if (DrawButton((Rectangle){Config::walletX+420-98, Config::walletY+7, 90, 54},
+                        ButtonType::TextGeneric, 255, { 16, 22, 12, 240 },
+                        { 34, 40, 30, 240 }, Config::COLOR_SHARD_BORDER, WHITE, "Menu", 15)) {
+                esc_menu = true;
+            }
+
+            PrepDrawCyberpunkDaemonSlots();
+            PrepDrawConsumableSlots();
+            DrawEnergyOrbs();
+        }
     }
+    
 
     if (esc_menu) {
         drawescmenu();

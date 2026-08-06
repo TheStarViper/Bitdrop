@@ -10,26 +10,38 @@
 #include "variables.hpp"
 #include "consumables.hpp"
 
+struct SpeedNotch {
+    float multiplier;
+    float rawValue;
+};
 
-const std::vector<float>& GetGameSpeedNotches() {
-    static const std::vector<float> notches = {0.25f,0.5f,1.0f,2.0f,3.0f,4.0f,5.0f};
+const std::vector<SpeedNotch>& GetGameSpeedNotches() {
+    static const std::vector<SpeedNotch> notches = {
+        {0.25f, 0.25f * Config::GAME_SPEED_BASE},
+        {0.5f,  0.5f  * Config::GAME_SPEED_BASE},
+        {1.0f,  1.0f  * Config::GAME_SPEED_BASE},
+        {2.0f,  2.0f  * Config::GAME_SPEED_BASE},
+        {3.0f,  3.0f  * Config::GAME_SPEED_BASE},
+        {4.0f,  4.0f  * Config::GAME_SPEED_BASE},
+        {5.0f,  5.0f  * Config::GAME_SPEED_BASE}
+    };
     return notches;
 }
 
-int GetNearestNotchIndex(const std::vector<float>& notches, float value) {
-    int bestindex = 0;
-    float bestdist = fabsf(notches[0] - value);
+int GetNearestNotchIndex(const std::vector<SpeedNotch>& notches, float rawValue) {
+    int bestIndex = 0;
+    float bestDist = fabsf(notches[0].rawValue - rawValue);
     for (int i = 1; i < (int)notches.size(); i++) {
-        float dist = fabsf(notches[i] - value);
-        if (dist < bestdist) {
-            bestdist = dist;
-            bestindex = i;
+        float dist = fabsf(notches[i].rawValue - rawValue);
+        if (dist < bestDist) {
+            bestDist = dist;
+            bestIndex = i;
         }
     }
-    return bestindex;
+    return bestIndex;
 }
 
-void DrawNotchedSlider(Rectangle sliderBar, float* value, const std::vector<float>& notches, Vector2 mousePos) {
+void DrawNotchedSlider(Rectangle sliderBar, float* value, const std::vector<SpeedNotch>& notches, Vector2 mousePos) {
     DrawRectangleRec(sliderBar, Color{ 30, 40, 50, 255 });
 
     int notchCount = (int)notches.size();
@@ -54,13 +66,14 @@ void DrawNotchedSlider(Rectangle sliderBar, float* value, const std::vector<floa
         float rawT = Clamp((mousePos.x - sliderBar.x) / sliderBar.width, 0.0f, 1.0f);
         int hoveredIndex = (int)roundf(rawT * (notchCount - 1));
         hoveredIndex = (int)Clamp((float)hoveredIndex, 0.0f, (float)(notchCount - 1));
-        *value = notches[hoveredIndex];
+        *value = notches[hoveredIndex].rawValue;
     }
 
     for (int i = 0; i < notchCount; i++) {
         float t = (float)i / (float)(notchCount - 1);
         float tickX = sliderBar.x + sliderBar.width * t;
-        std::string label = (notches[i] == (int)notches[i]) ? std::to_string((int)notches[i]) + "x" : "." + std::to_string((int)(notches[i] * 100)) + "x";
+        float m = notches[i].multiplier;
+        std::string label = (m == (int)m) ? std::to_string((int)m) + "x" : "." + std::to_string((int)(m * 100)) + "x";
         int labelW = MeasureText(label.c_str(), 10);
         Color labelColor = (i == currentIndex) ? Config::COLOR_UI_GREEN : Color{ 100, 120, 130, 255 };
         DrawText(label.c_str(), tickX - labelW / 2.0f, sliderBar.y + sliderBar.height + 8.0f, 10, labelColor);
@@ -109,7 +122,7 @@ void drawstatsmenu(){
     float rowY = listY - statsScrollOffset;
     for (const auto& stat : registry) {
         if (rowY + rowH >= listY && rowY <= listY + listH) {
-            DrawText(stat.label.c_str(), listX, rowY + 6, 14, Color{ 150, 180, 200, 255 });
+            DrawText(stat.label.c_str(), listX, rowY + 6, 14, Color{ 150, 180, 200, 255});
             std::string value = stat.getValue();
             int valW = MeasureText(value.c_str(), 14);
             DrawText(value.c_str(), listX + listW - valW, rowY + 6, 14, WHITE);
@@ -192,6 +205,12 @@ void drawsettingsmenu(){
 
     Rectangle backBtn = { rowX, Config::esc_y + Config::esc_height - 54.0f, rowW, 46.0f };
     if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 18)) {
+        if (gamestate.gamestate ==MainMenu){
+            TriggerGlitchAt({ Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height }, 0.16f);
+            TimerStartOnce(&exitanimtimer, 0.1f);
+            playsoundsmart(transitionsound, 0.2f, 1.0f);
+            return;
+        }
         esc_menu_state = MAIN;
     }
 }
@@ -204,7 +223,6 @@ void drawescmenu(){
     
     //make sure the menu doesnt close instantly when you click on it make sure its a new click yk yk yk ok good cool
     static bool releasedbuttoncheck = false;
-    static Timer exitanimtimer = {0};
     
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
         releasedbuttoncheck = true;
@@ -249,6 +267,7 @@ void drawescmenu(){
 
         if (DrawButton(mainMenuBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Main Menu", 18)) {
             RequestGameStateChange(MainMenu);
+            TimerStartOnce(&exitanimtimer, 0.1f);
         }
         if (DrawButton(settingsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Settings", 18)) {
             esc_menu_state = SETTINGZ;
@@ -259,7 +278,6 @@ void drawescmenu(){
     }
     if (esc_menu_state == SETTINGZ) {
         drawsettingsmenu();
-        return;
     } else if (esc_menu_state == STATS) {
         drawstatsmenu();
         return;
@@ -284,7 +302,6 @@ void drawescmenu(){
 
     if (exitanimtimer.active) {
         TimerUpdate(&exitanimtimer);
-
         if (TimerJustFinished(&exitanimtimer)) {
             esc_menu = false;
             releasedbuttoncheck = false;

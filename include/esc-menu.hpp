@@ -1,5 +1,6 @@
 #pragma once
 #include "variables.hpp"
+#include "animation-timer.hpp"
 
 enum esc_menu_states{
     MAIN,
@@ -8,7 +9,7 @@ enum esc_menu_states{
 };
 
 inline esc_menu_states esc_menu_state = MAIN;
-
+inline Timer exitanimtimer = {0};
 struct StatEntry {
     std::string label;
     std::function<std::string()> getValue;

@@ -21,8 +21,9 @@ namespace Config {
     constexpr float PegspacingX = 64.0f; 
 
     inline std::vector<float> basketmults = { 1.0f, 1.5f, 2.0f, 3.0f, 4.0f, 5.0f};
-
-    inline float GAME_SPEED = 0.30f;
+   
+    constexpr float GAME_SPEED_BASE = 0.30f;
+    inline float GAME_SPEED = GAME_SPEED_BASE;
     inline float PIN_BOUNCYNESS = 0.20f; 
 
     constexpr float scoreBlockY = 455.0f;
@@ -246,7 +247,7 @@ struct GameEngine {
 struct GameState{
     long long int balance;
     bool allowduplicateshopitems = false;
-    State gamestate = SHOP;
+    State gamestate = MainMenu;
 };
 
 struct LevelState{

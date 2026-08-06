@@ -1,4 +1,4 @@
-#include "node_mods.hpp"
+#include "node-mods.hpp"
 #include <algorithm>
 
 std::string BoostTooltip(int level) {
