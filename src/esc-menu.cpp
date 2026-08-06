@@ -217,7 +217,12 @@ void drawsettingsmenu(){
 
 
 void drawescmenu(){
-    DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 200});
+    if (gamestate.gamestate == MainMenu){
+        DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 125});
+    } else {
+        DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 200});
+    }
+    
     DrawRectangle(Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height, Color{14, 20, 11, 255});
     DrawRectangleLines(Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height, Config::COLOR_SHARD_BORDER);
     

@@ -12,22 +12,22 @@ void DrawGlowText(const std::string& text, Vector2 pos, int fontSize, Color colo
 
     for (int i = 3; i >= 1; i--) {
         Color glow = Fade(color, 0.10f * i);
-        DrawText(text.c_str(), pos.x - i, pos.y, fontSize, glow);
-        DrawText(text.c_str(), pos.x + i, pos.y, fontSize, glow);
-        DrawText(text.c_str(), pos.x, pos.y - i, fontSize, glow);
-        DrawText(text.c_str(), pos.x, pos.y + i, fontSize, glow);
+        DrawText(text.c_str(), pos.x - i,pos.y,fontSize,glow);
+        DrawText(text.c_str(), pos.x + i, pos.y,fontSize, glow);
+        DrawText(text.c_str(), pos.x, pos.y -i,fontSize,glow);
+        DrawText(text.c_str(), pos.x, pos.y+ i,fontSize,glow);
     }
     DrawText(text.c_str(), pos.x, pos.y, fontSize, color);
 }
 
 void DrawMenuPanel(Rectangle r, float cut, Color fill, Color border, float thickness) {
     Vector2 pts[6] = {
-        { r.x, r.y },
-        { r.x + r.width - cut, r.y },
-        { r.x + r.width, r.y + cut },
-        { r.x + r.width, r.y + r.height },
-        { r.x + cut, r.y + r.height },
-        { r.x, r.y + r.height - cut }
+        {r.x, r.y },
+        {r.x + r.width - cut, r.y},
+        {r.x + r.width, r.y + cut},
+        {r.x + r.width, r.y + r.height},
+        {r.x + cut, r.y + r.height},
+        {r.x, r.y + r.height - cut}
     };
     DrawTriangleFan(pts, 6, fill);
     for (int i = 0; i < 6; i++) {
@@ -42,8 +42,7 @@ struct MenuDataMote {
 };
 
 void drawmainmenu() {
-    ClearBackground(Config::COLOR_BG);
-
+    static bool terminate = false;
     int offsetY = ((int)(GetTime() * 6.0f)) % 40;
     for (int x = 0; x < Config::SCREEN_WIDTH; x += 40) {
         DrawLine(x, 0, x, Config::SCREEN_HEIGHT, Fade(Config::COLOR_GRID_LINE, 0.4f));
@@ -130,28 +129,55 @@ void drawmainmenu() {
     float btnY = panelY + 20.0f;
 
     Rectangle newRunBtn = { btnX, btnY, btnW, buttonH };
-    if (DrawButton(newRunBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "INITIATE RUN", 18)) {
+    if (!terminate&&DrawButton(newRunBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "INITIATE RUN", 18)) {
         RequestGameStateChange(MAP);
     }
     btnY += buttonH + buttonGap;
 
     Rectangle statsBtn = { btnX, btnY, btnW, buttonH };
-    if (DrawButton(statsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, WHITE, "STATS", 16)) {
+    if (!terminate&&DrawButton(statsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, WHITE, "STATS", 16)) {
         esc_menu_state = STATS;
         esc_menu = true;
     }
     btnY += buttonH + buttonGap;
 
     Rectangle settingsBtn = { btnX, btnY, btnW, buttonH };
-    if (DrawButton(settingsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, WHITE, "SETTINGS", 16)) {
+    if (!terminate&&DrawButton(settingsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, WHITE, "SETTINGS", 16)) {
         esc_menu_state = SETTINGZ;
         esc_menu = true;
     }
     btnY += buttonH + buttonGap;
 
     Rectangle quitBtn = { btnX, btnY, btnW, buttonH };
-    if (!esc_menu&&DrawButton(quitBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, (Color){ 255, 70, 70, 255 }, WHITE, "TERMINATE", 16)) {
-        CloseWindow();
+    if (!terminate&&!esc_menu&&DrawButton(quitBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, (Color){ 255, 70, 70, 255 }, WHITE, "TERMINATE", 16)) {
+        terminate = true;
+    }
+
+    static bool releasedbuttoncheck = false;
+    
+    
+
+    if (terminate){
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            releasedbuttoncheck = true;
+        }
+        DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Color{0, 0, 0, 125});
+        DrawRectangle(Config::esc_x, Config::esc_y+200, Config::esc_width, Config::esc_width/2, Color{14, 20, 11, 255});
+        DrawRectangleLines(Config::esc_x, Config::esc_y+200, Config::esc_width, Config::esc_width/2, Config::COLOR_SHARD_BORDER);
+        
+        std::string title = "Its a web game silly";
+        int titleW = MeasureText(title.c_str(), 26);
+        DrawText(title.c_str(), Config::esc_x + (Config::esc_width - titleW) / 2, Config::esc_y + 20+200, 26, Config::COLOR_UI_GREEN);
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&releasedbuttoncheck&&!CheckCollisionPointRec(GetMousePosition(), { Config::esc_x, Config::esc_y+200, Config::esc_width, Config::esc_width/2 })) {
+            terminate = false;
+            releasedbuttoncheck = false;
+        }
+        constexpr static Rectangle backBtn = { Config::esc_x + 30.0f, Config::esc_y + Config::esc_width - 54.0f, Config::esc_width - 60.0f, 46};
+        if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 18)) {
+            terminate = false;
+            releasedbuttoncheck = false;
+        }
     }
 
     std::string statusLine = "CHOOSE YOUR FIGHTER // jk lmao";
