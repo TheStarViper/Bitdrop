@@ -602,7 +602,7 @@ void drawshop() {
     float targetFontSize = 30.0f;
     float finalFontSize = GetFittingFontSize(rerollstring.c_str(), targetFontSize, maxAvailableWidth);
 
-    
+
     if (DrawButton(buttonBounds,
                 ButtonType::TextGeneric, 255, 
                 (affordable) ? Config::COLOR_GRID_LINE : Config::COLOR_GRID_LINE_DARKER, 
@@ -622,6 +622,7 @@ void drawshop() {
             float clipH = (consumableRowY + Config::consumableitemsize - clipY) + 10;
             Rectangle bounds = { clipX,clipY,clipW,clipH };
             TriggerGlitchAt(bounds, 0.65f);
+            stats.items_bought+=1;
         }
     }
 

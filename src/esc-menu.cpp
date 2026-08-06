@@ -11,10 +11,69 @@
 #include "consumables.hpp"
 
 
+const std::vector<float>& GetGameSpeedNotches() {
+    static const std::vector<float> notches = {0.25f,0.5f,1.0f,2.0f,3.0f,4.0f,5.0f};
+    return notches;
+}
+
+int GetNearestNotchIndex(const std::vector<float>& notches, float value) {
+    int bestindex = 0;
+    float bestdist = fabsf(notches[0] - value);
+    for (int i = 1; i < (int)notches.size(); i++) {
+        float dist = fabsf(notches[i] - value);
+        if (dist < bestdist) {
+            bestdist = dist;
+            bestindex = i;
+        }
+    }
+    return bestindex;
+}
+
+void DrawNotchedSlider(Rectangle sliderBar, float* value, const std::vector<float>& notches, Vector2 mousePos) {
+    DrawRectangleRec(sliderBar, Color{ 30, 40, 50, 255 });
+
+    int notchCount = (int)notches.size();
+    int currentIndex = GetNearestNotchIndex(notches, *value);
+
+    for (int i = 0; i < notchCount; i++) {
+        float t = (float)i / (float)(notchCount - 1);
+        float tickX = sliderBar.x + sliderBar.width * t;
+        DrawLineEx({ tickX, sliderBar.y - 4.0f }, { tickX, sliderBar.y + sliderBar.height + 4.0f }, 2.0f, Color{ 60, 80, 90, 255 });
+    }
+
+    float filledT = (float)currentIndex / (float)(notchCount - 1);
+    DrawRectangle(sliderBar.x, sliderBar.y, sliderBar.width * filledT, sliderBar.height, Config::COLOR_UI_GREEN);
+
+    float handleT = (float)currentIndex / (float)(notchCount - 1);
+    float handleX = sliderBar.x + sliderBar.width * handleT;
+    DrawCircleV({ handleX, sliderBar.y + sliderBar.height / 2.0f }, 8.0f, Config::COLOR_UI_GREEN);
+    DrawCircleLines(handleX, sliderBar.y + sliderBar.height / 2.0f, 8.0f, WHITE);
+
+    Rectangle handleHit = { sliderBar.x - 6, sliderBar.y - 8, sliderBar.width + 12, sliderBar.height + 16 };
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mousePos, handleHit)) {
+        float rawT = Clamp((mousePos.x - sliderBar.x) / sliderBar.width, 0.0f, 1.0f);
+        int hoveredIndex = (int)roundf(rawT * (notchCount - 1));
+        hoveredIndex = (int)Clamp((float)hoveredIndex, 0.0f, (float)(notchCount - 1));
+        *value = notches[hoveredIndex];
+    }
+
+    for (int i = 0; i < notchCount; i++) {
+        float t = (float)i / (float)(notchCount - 1);
+        float tickX = sliderBar.x + sliderBar.width * t;
+        std::string label = (notches[i] == (int)notches[i]) ? std::to_string((int)notches[i]) + "x" : "." + std::to_string((int)(notches[i] * 100)) + "x";
+        int labelW = MeasureText(label.c_str(), 10);
+        Color labelColor = (i == currentIndex) ? Config::COLOR_UI_GREEN : Color{ 100, 120, 130, 255 };
+        DrawText(label.c_str(), tickX - labelW / 2.0f, sliderBar.y + sliderBar.height + 8.0f, 10, labelColor);
+    }
+}
+
 std::vector<StatEntry>& GetStatsStats() {
     static std::vector<StatEntry> statslist = {
-        { "Total Earned", []() { return "$" + formatWithSpaces(stats.money_earned); } },
-        { "Balls Dropped", []() { return formatWithSpaces(stats.balls_dropped); } }
+        {"Total Earned", []() { return "$" + formatWithSpaces(stats.money_earned); }}, //FIX
+        {"Balls Dropped", []() { return formatWithSpaces(stats.balls_dropped); }},
+        {"Items Bought", []() { return "$" + formatWithSpaces(stats.items_bought); }},
+        {"Highest Score", []() { return FormatByteSize(stats.highest_score); }}, // FIX
+        {"Daemons Triggered", []() { return formatWithSpaces(stats.daemons_triggered); }} //FIX
     };
     return statslist;
 }
@@ -69,8 +128,9 @@ void drawstatsmenu(){
 
 std::vector<SettingEntry>& GetSettingsSettings() {
     static std::vector<SettingEntry> settingslist = {
-        { "Screen Shake", SettingType::TOGGLE, &settings.screenShakeEnabled },
-        { "Master Volume", SettingType::SLIDER, nullptr, &settings.masterVolume, 0.0f, 2.0f }
+        { "Game Speed", SettingType::NOTCHED_SLIDER, nullptr, &Config::GAME_SPEED, 0.0f, 0.0f},
+        {"Master Volume", SettingType::SLIDER, nullptr, &settings.masterVolume, 0.0f, 2.0f},
+        {"Screen Shake", SettingType::TOGGLE, &settings.screenShakeEnabled},
     };
     return settingslist;
 }
@@ -120,6 +180,11 @@ void drawsettingsmenu(){
             std::string valText = std::to_string((int)(t * 100)) + "%";
             int valW = MeasureText(valText.c_str(), 12);
             DrawText(valText.c_str(), rowX + rowW - valW, rowY, 12, WHITE);
+        }
+        else if (setting.type == SettingType::NOTCHED_SLIDER && setting.floatValue) {
+            Rectangle sliderBar = { rowX, rowY + 20.0f, rowW, 8.0f };
+            DrawNotchedSlider(sliderBar, setting.floatValue, GetGameSpeedNotches(), mousePos);
+            rowY += 14.0f;
         }
 
         rowY += rowH + rowGap;
@@ -182,17 +247,12 @@ void drawescmenu(){
             //fix this plz gotta figure out how to restart maybe use init game again idk
         }
 
-        //Main Menu so i can ctrl f this
         if (DrawButton(mainMenuBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Main Menu", 18)) {
             RequestGameStateChange(MainMenu);
         }
-
-        //Settings so i can ctrl f this
         if (DrawButton(settingsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Settings", 18)) {
             esc_menu_state = SETTINGZ;
         }
-
-        //Stats so i can ctrl f this
         if (DrawButton(statsBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Stats", 18)) {
             esc_menu_state = STATS;
         }

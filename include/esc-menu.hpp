@@ -15,7 +15,7 @@ struct StatEntry {
 };
 
 
-enum class SettingType { TOGGLE, SLIDER };
+enum class SettingType {TOGGLE,SLIDER,NOTCHED_SLIDER};
 
 struct SettingEntry {
     std::string label;

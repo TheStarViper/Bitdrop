@@ -100,7 +100,11 @@ enum State {
 struct StatsMenu{
     long long int money_earned;
     int balls_dropped;
+    int items_bought;
+    long long int highest_score;
+    int daemons_triggered;
 };
+
 inline StatsMenu stats;
 struct SettingsMenu {
     bool screenShakeEnabled = true;
