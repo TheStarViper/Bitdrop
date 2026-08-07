@@ -9,6 +9,7 @@
 #include "formatting.hpp"
 #include "variables.hpp"
 #include "consumables.hpp"
+#include "main.hpp"
 
 struct SpeedNotch {
     float multiplier;
@@ -271,11 +272,11 @@ void drawescmenu(){
     //new game so i can ctrl f this
     if (esc_menu_state==MAIN){
         if (DrawButton(newRunBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "New Run", 18)) {
-            engine.daemons.clear();
-            gamestate.balance = 0;
-            GenerateTopologyMap();
-            RequestGameStateChange(GAME);
-            //fix this plz gotta figure out how to restart maybe use init game again idk
+            StartNewRun();
+            gamestate.gamestate = MAP;
+            TriggerGlitchAt({ Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height }, 0.16f);
+            TimerStartOnce(&exitanimtimer, 0.1f);
+            playsoundsmart(transitionsound, 0.2f, 1.0f);
         }
 
         if (DrawButton(mainMenuBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "Main Menu", 18)) {

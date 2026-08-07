@@ -19,6 +19,7 @@
 #include "colortools.hpp"
 #include <random>
 #include "tutorial.hpp"
+#include "formatting.hpp"
 
 static Mapstate state;
 

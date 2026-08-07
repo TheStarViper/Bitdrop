@@ -34,15 +34,18 @@
     #include <emscripten.h>
 #endif
 
-void InitGame() {
-    InitMap();
-    //shader check if file exists type stuff
-    hueShader = LoadShader(0, "assets/shaders/hueshift.fs");
-    hueLoc = GetShaderLocation(hueShader, "hueShift");
-    TraceLog(LOG_INFO, "hueLoc = %d, shader.id = %d", hueLoc, hueShader.id);
+void StartNewRun() {
+    endless_mode_loop_count = 0;
+    activedaemoninfo.daemons.clear();
+    activeconsumableinfo.consumables.clear();
+    CancelPendingConsumable();
+    gamestate.balance = 0;
+    engine.activeProbes.clear();
+    engine.particles.clear();
+    engine.fadingLines.clear();
+    engine.nodes.clear();
+    engine.baskets.clear();
 
-
-    sceneTarget = LoadRenderTexture(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT);
     levelstate.scoredbytes = 0.0;
     engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
     engine.turretBarrelFlash = 0.0f;
@@ -86,10 +89,17 @@ void InitGame() {
         b.multiplier = Config::basketmults[multiplierIndex];
         engine.baskets.push_back(b);
     }
-    initdaemons(); 
-    if (Config::debugmode){
-        gamestate.balance += 10000000;
-    }
+    initdaemons();
+    InitMap();
+}
+
+void InitGame() {
+    //shader check if file exists type stuff
+    hueShader = LoadShader(0, "assets/shaders/hueshift.fs");
+    hueLoc = GetShaderLocation(hueShader, "hueShift");
+    TraceLog(LOG_INFO, "hueLoc = %d, shader.id = %d", hueLoc, hueShader.id);
+    sceneTarget = LoadRenderTexture(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT);
+    StartNewRun();
 }
 
 void SetNodeModifierBoost(Consumable&) {

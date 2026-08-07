@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "variables.hpp"
 
-std::string FormatByteSize(long double bytes);
+
+void StartNewRun();
 inline Shader hueShader;
 inline int hueLoc;

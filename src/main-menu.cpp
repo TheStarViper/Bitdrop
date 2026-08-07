@@ -131,6 +131,7 @@ void drawmainmenu() {
     Rectangle newRunBtn = { btnX, btnY, btnW, buttonH };
     if (!terminate&&DrawButton(newRunBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "INITIATE RUN", 18)) {
         RequestGameStateChange(MAP);
+        StartNewRun();
     }
     btnY += buttonH + buttonGap;
 
