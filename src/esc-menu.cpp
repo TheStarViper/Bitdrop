@@ -260,6 +260,7 @@ void drawescmenu(){
     Rectangle backBtn = {buttonX, Config::esc_y + Config::esc_height - 54.0f, buttonW, buttonH};
 
 
+    
     //new game so i can ctrl f this
     if (esc_menu_state==MAIN){
         if (DrawButton(newRunBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "New Run", 18)) {

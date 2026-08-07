@@ -643,14 +643,6 @@ void DrawMap() {
     DrawLine(0, 50, Config::SCREEN_WIDTH, 50, (Color){ 0, 255, 80, 255 });
     DrawText("HACKING ITINUARY", 20, 15, 18, (Color){ 0, 255, 100, 255 });
 
-    char statusBuf[128];
-    if (state.currentNodeId == -1) {
-        strcpy(statusBuf, "STATUS: SELECT ENTRY NODE");
-    } else {
-        snprintf(statusBuf, sizeof(statusBuf), "NODE LOCATION: ID %02d | COLUMN: %d/%d", state.currentNodeId, state.currentColumn, Config::totalmapcolumns - 1);
-    }
-    DrawText(statusBuf, 550, 18, 14, (Color){ 0, 200, 255, 255 });
-
     int panX = 800;
     int panY = 50;
     int panW = 480;
@@ -741,5 +733,4 @@ void DrawMap() {
     }
 
     DrawRectangle(0, Config::SCREEN_HEIGHT - 35, Config::SCREEN_WIDTH - panW, 35, (Color){ 2, 10, 5, 240 });
-    DrawText("CONTROLS: LEFT-CLICK to select/hack | RIGHT-MOUSE DRAG to scroll graph map", 15, Config::SCREEN_HEIGHT - 24, 12, (Color){ 0, 180, 70, 255 });
 }

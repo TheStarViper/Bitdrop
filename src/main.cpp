@@ -581,6 +581,8 @@ void UpdateDrawFrame() {
     }
     
 
+
+    
     if (esc_menu) {
         drawescmenu();
     } else {

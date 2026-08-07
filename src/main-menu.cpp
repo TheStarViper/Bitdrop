@@ -152,11 +152,8 @@ void drawmainmenu() {
     if (!terminate&&!esc_menu&&DrawButton(quitBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, (Color){ 255, 70, 70, 255 }, WHITE, "TERMINATE", 16)) {
         terminate = true;
     }
-
+    
     static bool releasedbuttoncheck = false;
-    
-    
-
     if (terminate){
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
             releasedbuttoncheck = true;
