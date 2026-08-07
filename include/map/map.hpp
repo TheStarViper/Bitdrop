@@ -57,3 +57,4 @@ typedef struct {
 void InitMap();
 void DrawMap();
 void GenerateTopologyMap();
+bool wasfinalnode();

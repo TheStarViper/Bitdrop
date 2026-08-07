@@ -16,7 +16,7 @@
 #include "screenshake.hpp"
 #include "formatting.hpp"
 #include "tutorial.hpp"
-
+#include "map.hpp"
 struct RerollGlitchState {
     float timer = 0.0f;
     float duration = 0.25f;
@@ -574,8 +574,18 @@ void drawshop() {
     
     //next
     if (!esc_menu&&DrawButton({1045, Config::walletY - 77, 205, 65}, ButtonType::TextGeneric, 255, Config::COLOR_GRID_LINE, Config::COLOR_UI_AMBER, Config::COLOR_UI_GREEN, WHITE, "Next", 35)) {
-        RequestGameStateChange(MAP);
         for (int i = 0; i < 5; i++) shopstate.slots[i] = -1;
+        if (wasfinalnode()) {
+            if (endless_mode) {
+                endless_mode_loop_count++;
+                InitMap();
+                RequestGameStateChange(MAP);
+            } else {
+                gamestate.gamestate = WIN;
+            }
+        } else {
+            RequestGameStateChange(MAP);
+        }
         shopstate.rerolls =0;
         GenerateShopPool();
         GenerateConsumableShopPool();

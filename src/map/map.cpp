@@ -76,6 +76,13 @@ const char* GetNodeName(MapNodeType type) {
     return "UNKNOWN";
 }
 
+bool wasfinalnode(){
+    MapNode* node = FindNodeById(state.currentNodeId);
+    return node && node->type == MAINFRAME_GATEWAY;
+}
+
+
+
 void SimulateNodeClear(MapNode* node, float tracePercentage) {
     if (!node) return;
     
@@ -146,10 +153,11 @@ void GenerateTopologyMap() {
             n->decryptTimer = 0.0f;
             static float baseScore = 204800.0f;
             float exponentVariance = GetRandomValue(120, 160) / 100.0f;
+            float effectiveColumn = (float)c + (float)endless_mode_loop_count * Config::totalmapcolumns;
             if (c == Config::totalmapcolumns - 1){exponentVariance = GetRandomValue(160, 200) / 100.0f;}
-            float randomizedExponent = (float)c * exponentVariance;
+            float randomizedExponent = (float)effectiveColumn * exponentVariance;
             n->targetquota = (int)(baseScore * powf(1.0f + Config::exponentialmapscoregrowth, randomizedExponent));
-            n->reward = std::round((500.0f + GetRandomValue(0, 100)) + (std::pow((n->column) / 15.0f, 1.5f) * (2100.0f + GetRandomValue(-200, 200))));
+            n->reward = std::round((500.0f + GetRandomValue(0, 100)) + (std::pow((effectiveColumn) / 15.0f, 1.5f) * (2100.0f + GetRandomValue(-200, 200))));
 
             float jitterX = (float)GetRandomValue(-20, 20);
             float jitterY = (float)GetRandomValue(-20, 20);
@@ -652,6 +660,12 @@ void DrawMap() {
     DrawRectangle(0, 0, Config::SCREEN_WIDTH, 50, (Color){ 5, 20, 10, 230 });
     DrawLine(0, 50, Config::SCREEN_WIDTH, 50, (Color){ 0, 255, 80, 255 });
     DrawText("HACKING ITINUARY", 20, 15, 18, (Color){ 0, 255, 100, 255 });
+
+    if (endless_mode_loop_count >= 1){
+        std::string ascension_num = "Ascension #"+std::to_string(endless_mode_loop_count);
+        DrawText(ascension_num.c_str(), 195, 19, 12, (Color){ 65, 200, 193, 255 });
+    }
+    
 
     int panX = 800;
     int panY = 50;

@@ -550,7 +550,7 @@ void UpdateDrawFrame() {
     if (gamestate.gamestate == SHOP) {
         triggerhint("welcome-shop",290,230);
         triggerhint("welcome-shop2",290,230);
-        triggerhint("welcome-shop3",300,560);
+        triggerhint("welcome-shop3",210,520,400);
         DrawLineEx({ Config::Daemon_side_seperator, 0 }, { Config::Daemon_side_seperator, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
         DrawLineEx({ 0, 530 }, { 810, 530 }, 2.0f, Config::COLOR_SHARD_BORDER);
         drawshop();
@@ -559,6 +559,17 @@ void UpdateDrawFrame() {
     if (gamestate.gamestate == MAP) {
         triggerhint("welcome-map",540,370);
         DrawMap();
+    }
+
+    if (gamestate.gamestate==WIN){
+        ClearBackground(Config::COLOR_BG);
+        std::string winText = "MAINFRAME BREACHED";
+        int winW = MeasureText(winText.c_str(), 42);
+        DrawText(winText.c_str(), Config::SCREEN_WIDTH/2 - winW/2, 280, 42, Config::COLOR_UI_GREEN);
+        Rectangle menuBtn = { Config::SCREEN_WIDTH/2.0f - 130.0f, 360.0f, 260.0f, 46.0f };
+        if (DrawButton(menuBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "MAIN MENU", 18)) {
+            gamestate.gamestate = MainMenu;
+        }
     }
 
     if (gamestate.gamestate == MainMenu){

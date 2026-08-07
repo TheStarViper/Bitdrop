@@ -86,6 +86,8 @@ namespace Config {
 }
 
 inline bool esc_menu;
+inline bool endless_mode = false;
+inline int endless_mode_loop_count;
 
 enum State {
         MainMenu,
@@ -93,7 +95,8 @@ enum State {
         GAME,
         SETTINGS,
         SHOP,
-        MAP
+        MAP,
+        WIN
     };
 
 

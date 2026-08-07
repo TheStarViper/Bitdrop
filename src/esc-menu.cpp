@@ -150,6 +150,7 @@ std::vector<SettingEntry>& GetSettingsSettings() {
         { "Game Speed", SettingType::NOTCHED_SLIDER, nullptr, &Config::GAME_SPEED, 0.0f, 0.0f},
         {"Master Volume", SettingType::SLIDER, nullptr, &settings.masterVolume, 0.0f, 2.0f},
         {"Screen Shake", SettingType::TOGGLE, &settings.screenShakeEnabled},
+        {"Endless Mode", SettingType::TOGGLE, &endless_mode},
     };
     return settingslist;
 }
