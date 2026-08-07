@@ -24,6 +24,7 @@
 #include "node-mods.hpp"
 #include "esc-menu.hpp"
 #include "main-menu.hpp"
+#include "tutorial.hpp"
 
 //Update eventually:
 //make black market a normal shop and add nodes that are black market with special daemons
@@ -407,6 +408,8 @@ void UpdateDrawFrame() {
                     }
                 }
             }
+            triggerhint("welcome",440,45,300);
+            triggerhint("welcome-quota",829,530,300);
             if (IsKeyPressed(KEY_SPACE)&&levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES){
                 InjectProbeFromTurret();
                 stats.balls_dropped++;
@@ -582,7 +585,7 @@ void UpdateDrawFrame() {
     
 
 
-    
+    drawhint();
     if (esc_menu) {
         drawescmenu();
     } else {
