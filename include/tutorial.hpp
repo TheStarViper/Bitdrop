@@ -10,5 +10,5 @@ struct TutHint{
     int width;
 };
 
-void triggerhint(const std::string& id, int x, int y, int width=420);
+void triggerhint(const std::string& id, int x, int y, int width=300);
 void drawhint();

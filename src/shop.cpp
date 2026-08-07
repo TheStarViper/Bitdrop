@@ -15,6 +15,7 @@
 #include "custom-polygon-generator.hpp"
 #include "screenshake.hpp"
 #include "formatting.hpp"
+#include "tutorial.hpp"
 
 struct RerollGlitchState {
     float timer = 0.0f;

@@ -408,8 +408,8 @@ void UpdateDrawFrame() {
                     }
                 }
             }
-            triggerhint("welcome",440,45,300);
-            triggerhint("welcome-quota",829,530,300);
+            triggerhint("welcome",440,45);
+            triggerhint("welcome-quota",829,530);
             if (IsKeyPressed(KEY_SPACE)&&levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES){
                 InjectProbeFromTurret();
                 stats.balls_dropped++;
@@ -548,12 +548,16 @@ void UpdateDrawFrame() {
     }
 
     if (gamestate.gamestate == SHOP) {
+        triggerhint("welcome-shop",290,230);
+        triggerhint("welcome-shop2",290,230);
+        triggerhint("welcome-shop3",300,560);
         DrawLineEx({ Config::Daemon_side_seperator, 0 }, { Config::Daemon_side_seperator, 720 }, 2.0f, Config::COLOR_SHARD_BORDER);
         DrawLineEx({ 0, 530 }, { 810, 530 }, 2.0f, Config::COLOR_SHARD_BORDER);
         drawshop();
     }
 
     if (gamestate.gamestate == MAP) {
+        triggerhint("welcome-map",540,370);
         DrawMap();
     }
 

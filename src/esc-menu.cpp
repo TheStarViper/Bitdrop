@@ -134,6 +134,12 @@ void drawstatsmenu(){
 
     Rectangle backBtn = { listX, Config::esc_y + Config::esc_height - 54.0f, listW, 46.0f };
     if (DrawButton(backBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_UI_AMBER, Config::COLOR_UI_AMBER, WHITE, "Back", 18)) {
+        if (gamestate.gamestate==MainMenu){
+            TriggerGlitchAt({ Config::esc_x, Config::esc_y, Config::esc_width,Config::esc_height}, 0.16f);
+            TimerStartOnce(&exitanimtimer, 0.1f);
+            playsoundsmart(transitionsound, 0.2f, 1.0f);
+            return;
+        }
         esc_menu_state = MAIN;
     }
 }

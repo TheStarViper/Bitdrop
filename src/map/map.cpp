@@ -17,6 +17,8 @@
 #include "consumables.hpp"
 #include "nodeicons.hpp"
 #include "colortools.hpp"
+#include <random>
+#include "tutorial.hpp"
 
 static Mapstate state;
 
@@ -143,8 +145,8 @@ void GenerateTopologyMap() {
             n->isDecrypting = false;
             n->decryptTimer = 0.0f;
             static float baseScore = 204800.0f;
-            float exponentVariance = GetRandomValue(70, 130) / 100.0f;
-            if (c == Config::totalmapcolumns - 1){exponentVariance = GetRandomValue(130, 160) / 100.0f;}
+            float exponentVariance = GetRandomValue(120, 160) / 100.0f;
+            if (c == Config::totalmapcolumns - 1){exponentVariance = GetRandomValue(160, 200) / 100.0f;}
             float randomizedExponent = (float)c * exponentVariance;
             n->targetquota = (int)(baseScore * powf(1.0f + Config::exponentialmapscoregrowth, randomizedExponent));
             n->reward = std::round((500.0f + GetRandomValue(0, 100)) + (std::pow((n->column) / 15.0f, 1.5f) * (2100.0f + GetRandomValue(-200, 200))));
@@ -260,13 +262,21 @@ void GenerateTopologyMap() {
     }
 }
 
+float PseudoRandom01(float seed) {
+    float x = sinf(seed * 12.9898f) * 43758.5453f;
+    return x - floorf(x);
+}
+
 void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time, float alphaMul) {
-    float flicker = (sinf(time * 17.0f) * 0.5f + 0.5f) * (sinf(time * 6.3f) * 0.5f + 0.5f);
-    bool visibleFrame = (GetRandomValue(0, 100) < 85);
+    //float flicker = (sinf(time * 17.0f) * 0.5f + 0.5f) * (sinf(time * 6.3f) * 0.5f + 0.5f);
+    float flicker = .25;
+    // float glitchStep = floorf(time * 8.0f);
+    // float visSeed = glitchStep + pos.x * 0.13f + pos.y * 0.29f;
+    // bool visibleFrame = (PseudoRandom01(visSeed) < 0.85f);
 
-    if (!visibleFrame) return;
+    // if (!visibleFrame) return;
 
-    Color staticColor = (Color){ 0, 255, 140, (unsigned char)(120 + flicker * 100) };
+    Color staticColor = (Color){ 0, 255, 140, 255 };
 
     DrawCircleV(pos, radius, ScaleAlpha(Fade((Color){ 20, 30, 25, 255 }, 0.6f), alphaMul));
 
@@ -670,10 +680,17 @@ void DrawMap() {
                 hoverRadius * 2
             };
             static bool wasHoveringGlitch = false;
+            static bool firstglitchhover = false;
             bool isHovering = CheckCollisionPointRec(GetMousePosition(), posthing) && IsWindowFocused();
 
             if (isHovering && !wasHoveringGlitch && !IsConsumablePending()) {
                 playsoundsmart(glitchloopsound, .35f, .9f);
+                if (!firstglitchhover){
+                    triggerhint("encrypted-node",screenPos.x,screenPos.y);
+                    scrollVelocity = 0;
+                    StopSound(glitchloopsound);
+                    firstglitchhover = true;
+                }
             } else if (!isHovering && wasHoveringGlitch) {
                 StopSound(glitchloopsound);
             }

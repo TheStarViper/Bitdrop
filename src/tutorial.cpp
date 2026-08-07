@@ -11,12 +11,23 @@
 namespace {
     std::vector<TutHint> hints = {
         { "welcome", "SPACEBAR launches a ball. Balls have a base score of 1MB and hitting a pin adds 1MB, score data by landing in baskets and baskets multiply score by label" },
-        { "welcome-quota", "Each level has a score quota for this level it's 200MB so score the quota to cash out" },
-        { "basket_score", "Nice hit! Probes convert to credits the instant they land in a basket, based on that basket's multiplier." },
-        { "shop_intro", "Spend your credits here. Daemons give passive or triggered bonuses; consumables are one-time board effects." },
-        { "consumable_target", "This consumable needs a target. Click a pin on the board, then hit CONFIRM to lock it in." },
-        { "map_intro", "Choose your next node. Higher-value nodes usually carry more risk or a tougher quota." },
-        { "encrypted_node", "This node is encrypted. You'll need a Decrypt consumable to see what's actually there before committing." }
+        { "welcome-quota", "Each level has a score quota, for this level it's 200MB so score the quota to cash out" },
+        { "welcome-shop", "Congrats on beating your first level and welcome to the shop! Here is where you buy all sorts of goodies to try and progress furthur in the game!" },
+        { "welcome-shop2", "In this top section are DAEMONS. Daemons are like jokers in balatro, there are a ton of DAEMONS to choose from in BITDROP which all help improve scoring or something else. You can read DAEMON descriptions for more info" },
+        { "welcome-shop3", "In this bottom section are CONSUMABLES. These consumables can be used for all sorts of things like modifying pins or one time use consumables that give you a one time bonus!" },
+        { "welcome-map", "Welcome to BITDROP! The first thing you want to do is you wanna click one of the nodes in the green column to enter a level." },
+        { "encrypted-node", "This node is encrypted so you don't know what is has in store for you! Choose at your own risk!" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
+        { "", "" },
     };
     std::deque<std::string> hintQueue;
 }
