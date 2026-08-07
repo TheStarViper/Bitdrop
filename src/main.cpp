@@ -376,11 +376,16 @@ void UpdatePhysics(float dt) {
 
         if (timetracker>=waitabit){
             engine.particles.clear();
-            RequestGameStateChange(SHOP);
             timetracker = 0;
             energyOrbsTriggered = false;
             levelstate.scoredbytes = 0;
             engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
+
+            if (wasfinalnode()) {
+                RequestGameStateChange(WIN);
+            } else {
+                RequestGameStateChange(SHOP);
+            }
         }
     }
     if (levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES && engine.activeProbes.size()==0 && engine.remainingBalls==0){
@@ -571,20 +576,35 @@ void UpdateDrawFrame() {
         DrawMap();
     }
 
-    if (gamestate.gamestate==WIN){
+    if (gamestate.gamestate == MainMenu){
+        drawmainmenu();
+    } else if (gamestate.gamestate == WIN){
         ClearBackground(Config::COLOR_BG);
         std::string winText = "MAINFRAME BREACHED";
         int winW = MeasureText(winText.c_str(), 42);
-        DrawText(winText.c_str(), Config::SCREEN_WIDTH/2 - winW/2, 280, 42, Config::COLOR_UI_GREEN);
-        Rectangle menuBtn = { Config::SCREEN_WIDTH/2.0f - 130.0f, 360.0f, 260.0f, 46.0f };
-        if (DrawButton(menuBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "MAIN MENU", 18)) {
+        DrawText(winText.c_str(), Config::SCREEN_WIDTH/2 - winW/2, 200, 42, Config::COLOR_UI_GREEN);
+        std::string statsLine = "Columns Cleared: " + std::to_string((endless_mode_loop_count + 1) * Config::totalmapcolumns)
+                                + "   //   Final Balance: $" + formatWithSpaces(gamestate.balance);
+        int statsW = MeasureText(statsLine.c_str(), 14);
+        DrawText(statsLine.c_str(), Config::SCREEN_WIDTH/2 - statsW/2, 190, 14, Fade(WHITE, 0.8f));
+
+        std::string prompt = "Continue into Endless Mode?";
+        int promptW = MeasureText(prompt.c_str(), 18);
+        DrawText(prompt.c_str(), Config::SCREEN_WIDTH/2 - promptW/2, 250, 18, Config::COLOR_UI_AMBER);
+
+        Rectangle continueBtn = { Config::SCREEN_WIDTH/2.0f - 270.0f, 300.0f, 260.0f, 50.0f };
+        Rectangle endBtn = { Config::SCREEN_WIDTH/2.0f + 10.0f, 300.0f, 260.0f, 50.0f };
+
+        if (DrawButton(continueBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "CONTINUE (ENDLESS)", 16)) {
+            endless_mode = true;
+            endless_mode_loop_count++;
+            InitMap();
+            RequestGameStateChange(MAP);
+        }
+        if (DrawButton(endBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, (Color){ 255, 70, 70, 255 }, WHITE, "END RUN", 16)) {
             gamestate.gamestate = MainMenu;
         }
-    }
-
-    if (gamestate.gamestate == MainMenu){
-        drawmainmenu();
-    } else {
+    } else{
         DrawRectangle(Config::walletX, Config::walletY, 420, 65, { 16, 22, 12, 240 });
         DrawRectangleLines(Config::walletX, Config::walletY, 420, 65, Config::COLOR_SHARD_BORDER);
         DrawText("BALANCE:", Config::walletX+15, Config::walletY + 10, 11, Config::COLOR_NODE);
