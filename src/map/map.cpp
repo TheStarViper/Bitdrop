@@ -271,19 +271,10 @@ void GenerateTopologyMap() {
     }
 }
 
-float PseudoRandom01(float seed) {
-    float x = sinf(seed * 12.9898f) * 43758.5453f;
-    return x - floorf(x);
-}
 
 void DrawEncryptedPlaceholder(Vector2 pos, float radius, float time, float alphaMul) {
     //float flicker = (sinf(time * 17.0f) * 0.5f + 0.5f) * (sinf(time * 6.3f) * 0.5f + 0.5f);
     float flicker = .25;
-    // float glitchStep = floorf(time * 8.0f);
-    // float visSeed = glitchStep + pos.x * 0.13f + pos.y * 0.29f;
-    // bool visibleFrame = (PseudoRandom01(visSeed) < 0.85f);
-
-    // if (!visibleFrame) return;
 
     Color staticColor = (Color){ 0, 255, 140, 255 };
 

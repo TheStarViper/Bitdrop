@@ -1,7 +1,7 @@
 # mingw32-make
 # maybe also zip all the files together afterward to put on itchio easier maybe idk
-SRC = $(wildcard src/*.cpp) $(wildcard src/graphics/*.cpp) $(wildcard src/map/*.cpp) $(wildcard src/tools/*.cpp)
-INC = -Isrc -Iinclude -Iinclude/graphics -Iinclude/map -Iinclude/tools -I"C:/raylib/raylib/src" 
+SRC = $(wildcard src/*.cpp) $(wildcard src/graphics/*.cpp) $(wildcard src/shop/*.cpp) $(wildcard src/map/*.cpp) $(wildcard src/tools/*.cpp)
+INC = -Isrc -Iinclude -Iinclude/graphics -Iinclude/shop -Iinclude/map -Iinclude/tools -I"C:/raylib/raylib/src" 
 
 BUILD_DIR = build
 

@@ -13,3 +13,13 @@ Color DarkenColor(Color c, float factor) {
         c.a
     };
 }
+
+void DrawSpriteWithHueShader(Texture2D texture, Rectangle srcRect, Rectangle destRect, Color baseColor, Shader shader, int hueLoc) {
+    Vector3 hsv = ColorToHSV(baseColor);
+    float hue = 0.2f + hsv.x / 360.0f;
+    SetShaderValue(shader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
+
+    BeginShaderMode(shader);
+    DrawTexturePro(texture, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
+    EndShaderMode();
+}

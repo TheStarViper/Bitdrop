@@ -4,6 +4,7 @@
 #include <cmath>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 #include "raylib.h"
 
 std::string FormatByteSize(long double bytes) {
@@ -51,4 +52,31 @@ float GetFittingFontSize(const char* text, float maxFontSize, float maxWidth, Fo
         fontSize = (maxWidth / textSize.x) * maxFontSize;
     }
     return fontSize;
+}
+
+static std::vector<std::string> WrapText(const std::string& text, Font font, float fontSize, float maxWidth) {
+    std::vector<std::string> lines;
+    std::string currentLine;
+    std::string word;
+    std::stringstream ss(text);
+
+    while (ss >> word) {
+        std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
+        Vector2 size = MeasureTextEx(font, testLine.c_str(), fontSize, 1.0f);
+        if (size.x > maxWidth) {
+            if (!currentLine.empty()) lines.push_back(currentLine);
+            currentLine = word;
+        } else {
+            currentLine = testLine;
+        }
+    }
+    if (!currentLine.empty()) lines.push_back(currentLine);
+    return lines;
+}
+
+std::string ToUpperString(std::string text) {
+    for (auto& ch : text) {
+        ch = (char)toupper((unsigned char)ch);
+    }
+    return text;
 }

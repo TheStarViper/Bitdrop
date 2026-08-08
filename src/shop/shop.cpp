@@ -17,6 +17,10 @@
 #include "formatting.hpp"
 #include "tutorial.hpp"
 #include "map.hpp"
+#include "shop-consumables.hpp"
+#include "shop-helpers.hpp"
+#include "colortools.hpp"
+
 struct RerollGlitchState {
     float timer = 0.0f;
     float duration = 0.25f;
@@ -25,91 +29,15 @@ struct RerollGlitchState {
 
 RerollGlitchState rerollGlitch;
 
-
-struct ShopConsumableEntry {
-    std::string name;
-    std::string description;
-    Color color;
-    ConsumableEffectType effectType;
-    void (*useFn)(Consumable&);
-    int sellValue;
-    int price;
-    int maxTargets = 1;
-};
-
-Texture2D GetShopItemSprite(bool pressed) {
-    static Texture2D tex;
-    static Texture2D texpressed;
-    static bool loaded = false;
-    if (!loaded) {
-        tex = LoadTexture("assets/shop-item.png");
-        texpressed = LoadTexture("assets/shop-item-pressed.png");
-        loaded = true;
-    }
-    return !pressed ? tex : texpressed;
-}
-
-Texture2D GetConsumableSlotSprite() {
-    static Texture2D tex;
-    static bool loaded = false;
-    if (!loaded) {
-        tex = LoadTexture("assets/consumable-shop-item.png");
-        loaded = true;
-    }
-    return tex;
-}
-
-static std::vector<ShopConsumableEntry> consumableShopPool = {
-    { "Fire Sale", "every daemon in your hand adds its full sell value to your balance", Config::COLOR_UI_AMBER, ConsumableEffectType::INSTANT, firesale, 60, 300 },
-    { "Decrypt", "Select an encrypted node on the map to reveal it", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, UseDecryptNode, 150, 450 },
-    { "Overclock Pin", "Set up to two pins' modifiers to a flat boosted payout. Incompatible with Volatile", Config::COLOR_UI_GREEN, ConsumableEffectType::BOARD_TARGET, SetNodeModifierBoost, 130, 320, 2 },
-    { "Volatile Pin", "Set up to two pins' modifiers to an unstable, random payout. Incompatible with Overclock", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, SetNodeModifierGlitch, 130, 320, 2 },
-    { "Clone Pin", "Set a pin's modifier to split probes into clones", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, SetNodeModifierClone, 150, 320 },
-    { "Port Overclock", "Select a basket to permanently boost its multiplier by 1.5x", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, boostbasketmult, 200, 500 },
-};
-
 static int consumableShopSlots[4] = { -1, -1, -1, -1 };
 static bool consumableSold[4] = { false, false, false, false };
 static smartbool consumableHoverStates[4];
-
-float GetRerollGlitchIntensity() {
-    if (!rerollGlitch.active) return 0.0f;
-    float t = rerollGlitch.timer / rerollGlitch.duration;
-    if (t >= 1.0f) return 0.0f;
-    return sinf(t * PI);
-}
-
-void UpdateRerollGlitch() {
-    if (!rerollGlitch.active) return;
-    rerollGlitch.timer += GetFrameTime();
-    if (rerollGlitch.timer >= rerollGlitch.duration) {
-        rerollGlitch.active = false;
-        rerollGlitch.timer = 0.0f;
-    }
-}
-
-void DrawSpriteWithHueShader(Texture2D texture, Rectangle srcRect, Rectangle destRect, Color baseColor, Shader shader, int hueLoc) {
-    Vector3 hsv = ColorToHSV(baseColor);
-    float hue = 0.2f + hsv.x / 360.0f;
-    SetShaderValue(shader, hueLoc, &hue, SHADER_UNIFORM_FLOAT);
-
-    BeginShaderMode(shader);
-    DrawTexturePro(texture, srcRect, destRect, { 0, 0 }, 0.0f, WHITE);
-    EndShaderMode();
-}
 
 void HandleHoverSoundTrigger(smartbool& hoverState, bool rawHover, bool conditionsMet = true) {
     hoverState = rawHover;
     if (hoverState.is_new_true() && conditionsMet) {
         playsoundsmart(hoversound, 0.1f, 1.6f);
     }
-}
-
-std::string ToUpperString(std::string text) {
-    for (auto& ch : text) {
-        ch = (char)toupper((unsigned char)ch);
-    }
-    return text;
 }
 
 void DrawIconMatrix(const IconGrid& grid, Vector2 position, float targetSize, Color color) {
@@ -127,26 +55,6 @@ void DrawIconMatrix(const IconGrid& grid, Vector2 position, float targetSize, Co
             }
         }
     }
-}
-
-static std::vector<std::string> WrapText(const std::string& text, Font font, float fontSize, float maxWidth) {
-    std::vector<std::string> lines;
-    std::string currentLine;
-    std::string word;
-    std::stringstream ss(text);
-
-    while (ss >> word) {
-        std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
-        Vector2 size = MeasureTextEx(font, testLine.c_str(), fontSize, 1.0f);
-        if (size.x > maxWidth) {
-            if (!currentLine.empty()) lines.push_back(currentLine);
-            currentLine = word;
-        } else {
-            currentLine = testLine;
-        }
-    }
-    if (!currentLine.empty()) lines.push_back(currentLine);
-    return lines;
 }
 
 static void DrawConsumableTooltip(Rectangle slotRect, const ShopConsumableEntry& item, bool isSlotSold, bool hasFunds, bool hasRoom, Color mainColor, Color textDim) {
@@ -509,7 +417,6 @@ void GenerateShopPool() {
 
 
 void drawshop() {
-    UpdateRerollGlitch();
     DrawText("BLACK MARKET", 200, 25, 50, WHITE);
 
     if (!activedaemoninfo.daemons.empty() &&

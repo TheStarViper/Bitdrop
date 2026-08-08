@@ -73,4 +73,3 @@ struct ShopState {
 inline ShopState shopstate;
 void drawshop();
 void GenerateShopPool() ;
-void DrawSpriteWithHueShader(Texture2D texture, Rectangle srcRect, Rectangle destRect, Color baseColor, Shader shader, int hueLoc);

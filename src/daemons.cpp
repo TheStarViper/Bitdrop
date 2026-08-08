@@ -11,6 +11,7 @@
 #include "transition.hpp"
 #include "shop.hpp"
 #include "main.hpp"
+#include "colortools.hpp"
 
 Texture2D GetDaemonOccupiedSprite() {
     static Texture2D tex;
