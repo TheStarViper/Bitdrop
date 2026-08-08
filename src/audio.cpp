@@ -16,4 +16,8 @@ void init_sounds(){
     glitchloopsound = LoadSound("assets/sfx/glitchloop.ogg");
     transitionsound = LoadSound("assets/sfx/transition.ogg");
     sellsound = LoadSound("assets/sfx/sell.wav");
+
+    //music
+    mainmenumusic = LoadMusicStream("assets/music/mainmenumusic.wav");
+    bgmusic = LoadMusicStream("assets/music/bgmusic.mp3");
 }

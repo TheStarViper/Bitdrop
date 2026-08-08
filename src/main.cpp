@@ -642,11 +642,24 @@ void UpdateDrawFrame() {
 
     if (gamestate.gamestate == MAP) {
         triggerhint("welcome-map",540,370);
+        triggerhint("welcome-map2",100,300);
         DrawMap();
     }
-
+    UpdateMusicStream(bgmusic);
     if (gamestate.gamestate == MainMenu){
         drawmainmenu();
+        UpdateMusicStream(mainmenumusic);
+        static bool firsttime = false;
+        if (!firsttime){
+            StopMusicStream(bgmusic);
+            PlayMusicStream(mainmenumusic);
+            firsttime = true;
+        }
+        if (gamestate.gamestate != MainMenu){
+            StopMusicStream(mainmenumusic);
+            PlayMusicStream(bgmusic);
+            firsttime = false;
+        }
     } else if (gamestate.gamestate == WIN){
         ClearBackground(Config::COLOR_BG);
         std::string winText = "MAINFRAME BREACHED";

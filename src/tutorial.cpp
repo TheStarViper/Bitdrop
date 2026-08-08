@@ -16,9 +16,9 @@ namespace {
         { "welcome-shop2", "In this top section are DAEMONS. Daemons are like jokers in balatro, there are a ton of DAEMONS to choose from in BITDROP which all help improve scoring or something else. You can read DAEMON descriptions for more info" },
         { "welcome-shop3", "In this bottom section are CONSUMABLES. These consumables can be used for all sorts of things like modifying pins or one time use consumables that give you a one time bonus!" },
         { "welcome-map", "Welcome to BITDROP! The first thing you want to do is you wanna click one of the nodes in the green column to enter a level." },
+        { "welcome-map2", "Each node has a quota which is the score you have to score to hack the node successfully and a reward which is how much you get paid out. So keep these in mind when making a route!" },
         { "encrypted-node", "This node is encrypted so you don't know what is has in store for you! Choose at your own risk!" },
-        { "", "" },
-        { "", "" },
+        { "multipleballs", "" },
         { "", "" },
         { "", "" },
         { "", "" },
@@ -114,10 +114,12 @@ void drawhint(){
         lineY += lineHeight;
     }
 
+    PauseMusicStream(bgmusic);
     Rectangle dismissBtn = { boxX + boxW - 110.0f, boxY + boxH - 34.0f, 94.0f, 24.0f };
     if (DrawButton(dismissBtn, ButtonType::TextGeneric, 255, Config::colorButtonBg, Config::COLOR_GRID_LINE, Config::COLOR_UI_GREEN, WHITE, "GOT IT", 12)) {
         hintQueue.pop_front();
         TriggerGlitchAt({ boxX, boxY, boxW, boxH }, 0.12f);
         playsoundsmart(transitionsound, 0.2f, 1.5f);
+        ResumeMusicStream(bgmusic);
     }
 }
