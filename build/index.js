@@ -68,7 +68,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\andre\AppData\Local\Temp\tmp5_yslqkt.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpmh7pqs9_.js
 if (!Module["expectedDataFileDownloads"]) Module["expectedDataFileDownloads"] = 0;
 
 Module["expectedDataFileDownloads"]++;
@@ -258,23 +258,23 @@ Module["expectedDataFileDownloads"]++;
   });
 })();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmp5_yslqkt.js
-// include: C:\Users\andre\AppData\Local\Temp\tmpu_ysdtcv.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmpmh7pqs9_.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpyap2c4o8.js
 // All the pre-js content up to here must remain later on, we need to run
 // it.
 if ((typeof ENVIRONMENT_IS_WASM_WORKER != "undefined" && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != "undefined" && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != "undefined" && ENVIRONMENT_IS_AUDIO_WORKLET)) Module["preRun"] = [];
 
 var necessaryPreJSTasks = Module["preRun"].slice();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmpu_ysdtcv.js
-// include: C:\Users\andre\AppData\Local\Temp\tmpejshe0g0.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmpyap2c4o8.js
+// include: C:\Users\andre\AppData\Local\Temp\tmphwg18gmh.js
 if (!Module["preRun"]) throw "Module.preRun should exist because file support used it; did a pre-js delete it?";
 
 necessaryPreJSTasks.forEach(task => {
   if (Module["preRun"].indexOf(task) < 0) throw "All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?";
 });
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmpejshe0g0.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmphwg18gmh.js
 var programArgs = [];
 
 var thisProgram = "./this.program";
@@ -9833,28 +9833,28 @@ function checkIncomingModuleAPI() {
 }
 
 var ASM_CONSTS = {
-  149756: () => {
+  149836: () => {
     if (document.fullscreenElement) return 1;
   },
-  149802: () => document.getElementById("canvas").width,
-  149854: () => parseInt(document.getElementById("canvas").style.width),
-  149922: () => {
+  149882: () => document.getElementById("canvas").width,
+  149934: () => parseInt(document.getElementById("canvas").style.width),
+  150002: () => {
     document.exitFullscreen();
   },
-  149949: () => {
+  150029: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, false);
     }, 100);
   },
-  150022: () => {
+  150102: () => {
     if (document.fullscreenElement) return 1;
   },
-  150068: () => document.getElementById("canvas").width,
-  150120: () => screen.width,
-  150145: () => {
+  150148: () => document.getElementById("canvas").width,
+  150200: () => screen.width,
+  150225: () => {
     document.exitFullscreen();
   },
-  150172: () => {
+  150252: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, true);
       setTimeout(function() {
@@ -9862,53 +9862,53 @@ var ASM_CONSTS = {
       }, 100);
     }, 100);
   },
-  150305: () => window.innerWidth,
-  150331: () => window.innerHeight,
-  150358: () => {
+  150385: () => window.innerWidth,
+  150411: () => window.innerHeight,
+  150438: () => {
     if (document.fullscreenElement) return 1;
   },
-  150404: () => document.getElementById("canvas").width,
-  150456: () => parseInt(document.getElementById("canvas").style.width),
-  150524: () => {
+  150484: () => document.getElementById("canvas").width,
+  150536: () => parseInt(document.getElementById("canvas").style.width),
+  150604: () => {
     if (document.fullscreenElement) return 1;
   },
-  150570: () => document.getElementById("canvas").width,
-  150622: () => screen.width,
-  150647: () => window.innerWidth,
-  150673: () => window.innerHeight,
-  150700: () => {
+  150650: () => document.getElementById("canvas").width,
+  150702: () => screen.width,
+  150727: () => window.innerWidth,
+  150753: () => window.innerHeight,
+  150780: () => {
     if (document.fullscreenElement) return 1;
   },
-  150746: () => document.getElementById("canvas").width,
-  150798: () => screen.width,
-  150823: () => {
+  150826: () => document.getElementById("canvas").width,
+  150878: () => screen.width,
+  150903: () => {
     document.exitFullscreen();
   },
-  150850: () => {
+  150930: () => {
     if (document.fullscreenElement) return 1;
   },
-  150896: () => document.getElementById("canvas").width,
-  150948: () => parseInt(document.getElementById("canvas").style.width),
-  151016: () => {
+  150976: () => document.getElementById("canvas").width,
+  151028: () => parseInt(document.getElementById("canvas").style.width),
+  151096: () => {
     document.exitFullscreen();
   },
-  151043: $0 => {
+  151123: $0 => {
     document.getElementById("canvas").style.opacity = $0;
   },
-  151101: () => screen.width,
-  151126: () => screen.height,
-  151152: () => window.screenX,
-  151179: () => window.screenY,
-  151206: $0 => {
+  151181: () => screen.width,
+  151206: () => screen.height,
+  151232: () => window.screenX,
+  151259: () => window.screenY,
+  151286: $0 => {
     navigator.clipboard.writeText(UTF8ToString($0));
   },
-  151259: $0 => {
+  151339: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  151330: () => {
+  151410: () => {
     document.getElementById("canvas").style.cursor = "none";
   },
-  151387: ($0, $1, $2, $3) => {
+  151467: ($0, $1, $2, $3) => {
     try {
       navigator.getGamepads()[$0].vibrationActuator.playEffect("dual-rumble", {
         startDelay: 0,
@@ -9922,18 +9922,18 @@ var ASM_CONSTS = {
       } catch (e) {}
     }
   },
-  151643: $0 => {
+  151723: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  151714: () => {
+  151794: () => {
     if (document.fullscreenElement) return 1;
   },
-  151760: () => window.innerWidth,
-  151786: () => window.innerHeight,
-  151813: () => {
+  151840: () => window.innerWidth,
+  151866: () => window.innerHeight,
+  151893: () => {
     if (document.pointerLockElement) return 1;
   },
-  151860: ($0, $1, $2, $3, $4) => {
+  151940: ($0, $1, $2, $3, $4) => {
     if (typeof window === "undefined" || (window.AudioContext || window.webkitAudioContext) === undefined) {
       return 0;
     }
@@ -10004,7 +10004,7 @@ var ASM_CONSTS = {
     window.miniaudio.referenceCount += 1;
     return 1;
   },
-  154018: () => {
+  154098: () => {
     if (typeof (window.miniaudio) !== "undefined") {
       window.miniaudio.referenceCount -= 1;
       if (window.miniaudio.referenceCount === 0) {
@@ -10012,8 +10012,8 @@ var ASM_CONSTS = {
       }
     }
   },
-  154182: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
-  154286: () => {
+  154262: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
+  154366: () => {
     try {
       var temp = new (window.AudioContext || window.webkitAudioContext);
       var sampleRate = temp.sampleRate;
@@ -10023,7 +10023,7 @@ var ASM_CONSTS = {
       return 0;
     }
   },
-  154457: ($0, $1, $2, $3, $4, $5) => {
+  154537: ($0, $1, $2, $3, $4, $5) => {
     var deviceType = $0;
     var channels = $1;
     var sampleRate = $2;
@@ -10094,8 +10094,8 @@ var ASM_CONSTS = {
     device.pDevice = pDevice;
     return miniaudio.track_device(device);
   },
-  157285: $0 => miniaudio.get_device_by_index($0).webaudio.sampleRate,
-  157351: $0 => {
+  157365: $0 => miniaudio.get_device_by_index($0).webaudio.sampleRate,
+  157431: $0 => {
     var device = miniaudio.get_device_by_index($0);
     if (device.scriptNode !== undefined) {
       device.scriptNode.onaudioprocess = function(e) {};
@@ -10110,15 +10110,15 @@ var ASM_CONSTS = {
     device.webaudio = undefined;
     device.pDevice = undefined;
   },
-  157744: $0 => {
+  157824: $0 => {
     miniaudio.untrack_device_by_index($0);
   },
-  157787: $0 => {
+  157867: $0 => {
     var device = miniaudio.get_device_by_index($0);
     device.webaudio.resume();
     device.state = miniaudio.device_state.started;
   },
-  157912: $0 => {
+  157992: $0 => {
     var device = miniaudio.get_device_by_index($0);
     device.webaudio.suspend();
     device.state = miniaudio.device_state.stopped;
@@ -10198,9 +10198,9 @@ var dynCall_iiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiii");
 
 var dynCall_jii = makeInvalidEarlyAccess("dynCall_jii");
 
-var dynCall_v = makeInvalidEarlyAccess("dynCall_v");
-
 var dynCall_vi = makeInvalidEarlyAccess("dynCall_vi");
+
+var dynCall_v = makeInvalidEarlyAccess("dynCall_v");
 
 var dynCall_ff = makeInvalidEarlyAccess("dynCall_ff");
 
@@ -10301,8 +10301,8 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports["dynCall_iiiji"] != "undefined", "missing Wasm export: dynCall_iiiji");
   assert(typeof wasmExports["dynCall_iiiiiii"] != "undefined", "missing Wasm export: dynCall_iiiiiii");
   assert(typeof wasmExports["dynCall_jii"] != "undefined", "missing Wasm export: dynCall_jii");
-  assert(typeof wasmExports["dynCall_v"] != "undefined", "missing Wasm export: dynCall_v");
   assert(typeof wasmExports["dynCall_vi"] != "undefined", "missing Wasm export: dynCall_vi");
+  assert(typeof wasmExports["dynCall_v"] != "undefined", "missing Wasm export: dynCall_v");
   assert(typeof wasmExports["dynCall_ff"] != "undefined", "missing Wasm export: dynCall_ff");
   assert(typeof wasmExports["dynCall_vffff"] != "undefined", "missing Wasm export: dynCall_vffff");
   assert(typeof wasmExports["dynCall_vf"] != "undefined", "missing Wasm export: dynCall_vf");
@@ -10369,8 +10369,8 @@ function assignWasmExports(wasmExports) {
   dynCall_iiiji = dynCalls["iiiji"] = createExportWrapper("dynCall_iiiji", 5);
   dynCall_iiiiiii = dynCalls["iiiiiii"] = createExportWrapper("dynCall_iiiiiii", 7);
   dynCall_jii = dynCalls["jii"] = createExportWrapper("dynCall_jii", 3);
-  dynCall_v = dynCalls["v"] = createExportWrapper("dynCall_v", 1);
   dynCall_vi = dynCalls["vi"] = createExportWrapper("dynCall_vi", 2);
+  dynCall_v = dynCalls["v"] = createExportWrapper("dynCall_v", 1);
   dynCall_ff = dynCalls["ff"] = createExportWrapper("dynCall_ff", 2);
   dynCall_vffff = dynCalls["vffff"] = createExportWrapper("dynCall_vffff", 5);
   dynCall_vf = dynCalls["vf"] = createExportWrapper("dynCall_vf", 2);

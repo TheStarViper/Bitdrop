@@ -102,6 +102,16 @@ void InitGame() {
     StartNewRun();
 }
 
+void boostbasketmult(Consumable&){
+    int count = GetPendingConsumableTargetCount();
+    for (int i = 0; i < count; i++){
+        Basket* target = static_cast<Basket*>(GetPendingConsumableTarget(i));
+        if (target){
+            target->multiplier *=1.5f;
+        }
+    }
+}
+
 void SetNodeModifierBoost(Consumable&) {
     ApplyModifierToPendingTargets(MOD_BOOST);
 }
@@ -423,6 +433,17 @@ void UpdateDrawFrame() {
                     }
                 }
             }
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending() && GetPendingConsumableUseFn() == boostbasketmult) {
+                Vector2 currentMousePos = GetMousePosition();
+                for (auto& basket : engine.baskets) {
+                    if (CheckCollisionPointRec(currentMousePos, basket.bounds)) {
+                        if (GetPendingConsumableTargetCount() < GetPendingConsumableMaxTargets()) {
+                            AddPendingConsumableTarget(&basket);
+                        }
+                        break;
+                    }
+                }
+            }
             triggerhint("welcome",440,45);
             triggerhint("welcome-quota",829,530);
             if (IsKeyPressed(KEY_SPACE)&&levelstate.scoredbytes<levelstate.TARGET_QUOTA_BYTES){
@@ -450,7 +471,29 @@ void UpdateDrawFrame() {
     if (gamestate.gamestate == GAME) {
         for (const auto& basket : engine.baskets) {
             DrawRectangleRec(basket.bounds, Config::COLOR_BASKET);
-            DrawRectangleLinesEx(basket.bounds, 1.0f, Config::COLOR_GRID_LINE);
+
+            bool istarget = false;
+            for (int ti=0; ti<GetPendingConsumableTargetCount(); ti++){
+                if (GetPendingConsumableTarget(ti) == (void*)&basket) {
+                    istarget = true;
+                    break;
+                }
+            }
+
+            bool basketHovered = CheckCollisionPointRec(currentMousePos, basket.bounds);
+            bool basketSelectorMode = IsConsumablePending() && GetPendingConsumableUseFn() == boostbasketmult;
+
+            Color bordercolor = Config::COLOR_GRID_LINE;
+            float borderthickness = 1.0f;
+            if (istarget){
+                bordercolor = Config::COLOR_UI_GREEN;
+                borderthickness = 2.5f;
+            } else if (basketHovered && basketSelectorMode){
+                bordercolor = MAGENTA;
+                borderthickness = 2.0f;
+            }
+
+            DrawRectangleLinesEx(basket.bounds, borderthickness, bordercolor);
             std::string txt = std::to_string(basket.multiplier).substr(0, 3) + "x";
             DrawText(txt.c_str(), basket.bounds.x + ((basket.bounds.width - MeasureText(txt.c_str(), 10)) / 2), basket.bounds.y + 5, 10, Config::COLOR_UI_AMBER);
         }

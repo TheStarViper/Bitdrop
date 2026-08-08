@@ -73,6 +73,7 @@ void UseDecryptNode(Consumable& self);
 void SetNodeModifierBoost(Consumable& self);
 void SetNodeModifierGlitch(Consumable& self);
 void SetNodeModifierClone(Consumable& self);
+void boostbasketmult(Consumable& self);
 
 int GetMaxConsumableSlots();
 bool TryAddConsumable(const Consumable& tmpl);
