@@ -243,6 +243,7 @@ void drawescmenu(){
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&releasedbuttoncheck&&!CheckCollisionPointRec(GetMousePosition(), { Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height })) {
         if (!exitanimtimer.started) {
+            esc_menu_state = MAIN;
             TriggerGlitchAt({ Config::esc_x, Config::esc_y, Config::esc_width, Config::esc_height }, 0.16f);
             TimerStartOnce(&exitanimtimer, 0.1f);
             playsoundsmart(transitionsound, 0.2f, 1.0f);
@@ -292,9 +293,14 @@ void drawescmenu(){
     }
     if (esc_menu_state == SETTINGZ) {
         drawsettingsmenu();
+        if (!(gamestate.gamestate == MainMenu)){
+            return;
+        }
     } else if (esc_menu_state == STATS) {
         drawstatsmenu();
-        return;
+        if (!(gamestate.gamestate == MainMenu)){
+            return;
+        }
     }
 
     //exit and entry glitches
