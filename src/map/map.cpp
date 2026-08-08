@@ -108,6 +108,17 @@ void UseDecryptNode(Consumable&) {
     }
 }
 
+void UseQuotaBreak(Consumable&) {
+    MapNode* target = static_cast<MapNode*>(GetPendingConsumableContext());
+    if (target) {
+        target->targetquota = target->targetquota * 0.75;
+    }
+}
+
+bool IsMapTargetingConsumable(ConsumableUseFn fn) {
+    return fn == UseDecryptNode || fn == UseQuotaBreak;
+}
+
 
 bool IsNodeSelectable(MapNode* target) {
     if (state.currentNodeId == -1) {
@@ -418,8 +429,12 @@ void DrawMap() {
                             state.ddosTargetMode = false;
                         }
                     }
-                    else if (IsConsumablePending() && GetPendingConsumableUseFn() == UseDecryptNode) {
-                        if (n->isEncrypted) {
+                    else if (IsConsumablePending() && IsMapTargetingConsumable(GetPendingConsumableUseFn())) {
+                        bool validTarget = true;
+                        if (GetPendingConsumableUseFn() == UseDecryptNode) {
+                            validTarget = n->isEncrypted;
+                        }
+                        if (validTarget) {
                             SetPendingConsumableContext(n);
                             ResolvePendingConsumable();
                         }
@@ -739,8 +754,8 @@ void DrawMap() {
         float minoffset = (sn->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
         float maxoffset = (sn->type == MAINFRAME_GATEWAY) ? 30.0f : 18.0f;
         float offset = GetPulseOffset(minoffset, maxoffset, 10.0f, Easings::EaseInOutQuad);
-        bool decryptSelectorMode = IsConsumablePending() && GetPendingConsumableUseFn() == UseDecryptNode;
-        Color pulseColor = Fade(decryptSelectorMode ? ORANGE : GREEN, 255);
+        bool mapSelectorMode = IsConsumablePending() && IsMapTargetingConsumable(GetPendingConsumableUseFn());
+        Color pulseColor = Fade(mapSelectorMode ? ORANGE : GREEN, 255);
 
         float bracketSize = 6.0f;
         float thickness = 2.0f;

@@ -70,9 +70,12 @@ void UseOverclockBooster(Consumable& self);
 void UseBoardWipeCharge(Consumable& self);
 void firesale(Consumable& self);
 void UseDecryptNode(Consumable& self);
+void UseQuotaBreak(Consumable& self);
 void SetNodeModifierBoost(Consumable& self);
 void SetNodeModifierGlitch(Consumable& self);
 void SetNodeModifierClone(Consumable& self);
+void SetNodeModifierMagnet(Consumable& self);
+void SecondWind(Consumable& self);
 void boostbasketmult(Consumable& self);
 
 int GetMaxConsumableSlots();

@@ -171,16 +171,16 @@ void DrawCyberpunkDaemonSlot(Daemon& d, Vector2 mousePos, bool isSelected, int d
     DrawRectangle(level_bar_x, level_bar_y, barW * (d.GetLevel() / (float)d.getmaxlevel()), 7, levelcolor);
 
     //overclocked indicator
-    if (d.IsOverclocked()) {
-        if (d.getoverclocklvl()>=2){
-            std::string lvlnumstr = std::to_string(d.getoverclocklvl())+"x";
-            DrawText(lvlnumstr.c_str(),d.x+ d.width - 190, level_bar_y, 9, Config::COLOR_OVERCLOCKED);
-        }
-        DrawText("OVERCLOCKED",d.x+ d.width - 178, level_bar_y, 9, Config::COLOR_OVERCLOCKED);
-    } else {
-        std::string lvlStr = "LVL " + std::to_string(d.GetLevel());
-        DrawText(lvlStr.c_str(), d.x + d.width - 130, level_bar_y-1, 11, Config::COLOR_PROBE);
-    }
+    // if (d.IsOverclocked()) {
+    //     if (d.getoverclocklvl()>=2){
+    //         std::string lvlnumstr = std::to_string(d.getoverclocklvl())+"x";
+    //         DrawText(lvlnumstr.c_str(),d.x+ d.width - 190, level_bar_y, 9, Config::COLOR_OVERCLOCKED);
+    //     }
+    //     DrawText("OVERCLOCKED",d.x+ d.width - 178, level_bar_y, 9, Config::COLOR_OVERCLOCKED);
+    // } else {
+    //     std::string lvlStr = "LVL " + std::to_string(d.GetLevel());
+    //     DrawText(lvlStr.c_str(), d.x + d.width - 130, level_bar_y-1, 11, Config::COLOR_PROBE);
+    // }
 
 
     //titles and tech gibberish

@@ -68,7 +68,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\andre\AppData\Local\Temp\tmpq3ivyni8.js
+// include: C:\Users\andre\AppData\Local\Temp\tmpk5y9joxi.js
 if (!Module["expectedDataFileDownloads"]) Module["expectedDataFileDownloads"] = 0;
 
 Module["expectedDataFileDownloads"]++;
@@ -258,23 +258,23 @@ Module["expectedDataFileDownloads"]++;
   });
 })();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmpq3ivyni8.js
-// include: C:\Users\andre\AppData\Local\Temp\tmpzalczfdy.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmpk5y9joxi.js
+// include: C:\Users\andre\AppData\Local\Temp\tmp6vkbbbwn.js
 // All the pre-js content up to here must remain later on, we need to run
 // it.
 if ((typeof ENVIRONMENT_IS_WASM_WORKER != "undefined" && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != "undefined" && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != "undefined" && ENVIRONMENT_IS_AUDIO_WORKLET)) Module["preRun"] = [];
 
 var necessaryPreJSTasks = Module["preRun"].slice();
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmpzalczfdy.js
-// include: C:\Users\andre\AppData\Local\Temp\tmpg7hgo9z0.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmp6vkbbbwn.js
+// include: C:\Users\andre\AppData\Local\Temp\tmp2v_84p7w.js
 if (!Module["preRun"]) throw "Module.preRun should exist because file support used it; did a pre-js delete it?";
 
 necessaryPreJSTasks.forEach(task => {
   if (Module["preRun"].indexOf(task) < 0) throw "All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?";
 });
 
-// end include: C:\Users\andre\AppData\Local\Temp\tmpg7hgo9z0.js
+// end include: C:\Users\andre\AppData\Local\Temp\tmp2v_84p7w.js
 var programArgs = [];
 
 var thisProgram = "./this.program";
@@ -9833,28 +9833,28 @@ function checkIncomingModuleAPI() {
 }
 
 var ASM_CONSTS = {
-  149836: () => {
+  150060: () => {
     if (document.fullscreenElement) return 1;
   },
-  149882: () => document.getElementById("canvas").width,
-  149934: () => parseInt(document.getElementById("canvas").style.width),
-  150002: () => {
+  150106: () => document.getElementById("canvas").width,
+  150158: () => parseInt(document.getElementById("canvas").style.width),
+  150226: () => {
     document.exitFullscreen();
   },
-  150029: () => {
+  150253: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, false);
     }, 100);
   },
-  150102: () => {
+  150326: () => {
     if (document.fullscreenElement) return 1;
   },
-  150148: () => document.getElementById("canvas").width,
-  150200: () => screen.width,
-  150225: () => {
+  150372: () => document.getElementById("canvas").width,
+  150424: () => screen.width,
+  150449: () => {
     document.exitFullscreen();
   },
-  150252: () => {
+  150476: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, true);
       setTimeout(function() {
@@ -9862,53 +9862,53 @@ var ASM_CONSTS = {
       }, 100);
     }, 100);
   },
-  150385: () => window.innerWidth,
-  150411: () => window.innerHeight,
-  150438: () => {
+  150609: () => window.innerWidth,
+  150635: () => window.innerHeight,
+  150662: () => {
     if (document.fullscreenElement) return 1;
   },
-  150484: () => document.getElementById("canvas").width,
-  150536: () => parseInt(document.getElementById("canvas").style.width),
-  150604: () => {
+  150708: () => document.getElementById("canvas").width,
+  150760: () => parseInt(document.getElementById("canvas").style.width),
+  150828: () => {
     if (document.fullscreenElement) return 1;
   },
-  150650: () => document.getElementById("canvas").width,
-  150702: () => screen.width,
-  150727: () => window.innerWidth,
-  150753: () => window.innerHeight,
-  150780: () => {
+  150874: () => document.getElementById("canvas").width,
+  150926: () => screen.width,
+  150951: () => window.innerWidth,
+  150977: () => window.innerHeight,
+  151004: () => {
     if (document.fullscreenElement) return 1;
   },
-  150826: () => document.getElementById("canvas").width,
-  150878: () => screen.width,
-  150903: () => {
+  151050: () => document.getElementById("canvas").width,
+  151102: () => screen.width,
+  151127: () => {
     document.exitFullscreen();
   },
-  150930: () => {
+  151154: () => {
     if (document.fullscreenElement) return 1;
   },
-  150976: () => document.getElementById("canvas").width,
-  151028: () => parseInt(document.getElementById("canvas").style.width),
-  151096: () => {
+  151200: () => document.getElementById("canvas").width,
+  151252: () => parseInt(document.getElementById("canvas").style.width),
+  151320: () => {
     document.exitFullscreen();
   },
-  151123: $0 => {
+  151347: $0 => {
     document.getElementById("canvas").style.opacity = $0;
   },
-  151181: () => screen.width,
-  151206: () => screen.height,
-  151232: () => window.screenX,
-  151259: () => window.screenY,
-  151286: $0 => {
+  151405: () => screen.width,
+  151430: () => screen.height,
+  151456: () => window.screenX,
+  151483: () => window.screenY,
+  151510: $0 => {
     navigator.clipboard.writeText(UTF8ToString($0));
   },
-  151339: $0 => {
+  151563: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  151410: () => {
+  151634: () => {
     document.getElementById("canvas").style.cursor = "none";
   },
-  151467: ($0, $1, $2, $3) => {
+  151691: ($0, $1, $2, $3) => {
     try {
       navigator.getGamepads()[$0].vibrationActuator.playEffect("dual-rumble", {
         startDelay: 0,
@@ -9922,18 +9922,18 @@ var ASM_CONSTS = {
       } catch (e) {}
     }
   },
-  151723: $0 => {
+  151947: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  151794: () => {
+  152018: () => {
     if (document.fullscreenElement) return 1;
   },
-  151840: () => window.innerWidth,
-  151866: () => window.innerHeight,
-  151893: () => {
+  152064: () => window.innerWidth,
+  152090: () => window.innerHeight,
+  152117: () => {
     if (document.pointerLockElement) return 1;
   },
-  151940: ($0, $1, $2, $3, $4) => {
+  152164: ($0, $1, $2, $3, $4) => {
     if (typeof window === "undefined" || (window.AudioContext || window.webkitAudioContext) === undefined) {
       return 0;
     }
@@ -10004,7 +10004,7 @@ var ASM_CONSTS = {
     window.miniaudio.referenceCount += 1;
     return 1;
   },
-  154098: () => {
+  154322: () => {
     if (typeof (window.miniaudio) !== "undefined") {
       window.miniaudio.referenceCount -= 1;
       if (window.miniaudio.referenceCount === 0) {
@@ -10012,8 +10012,8 @@ var ASM_CONSTS = {
       }
     }
   },
-  154262: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
-  154366: () => {
+  154486: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
+  154590: () => {
     try {
       var temp = new (window.AudioContext || window.webkitAudioContext);
       var sampleRate = temp.sampleRate;
@@ -10023,7 +10023,7 @@ var ASM_CONSTS = {
       return 0;
     }
   },
-  154537: ($0, $1, $2, $3, $4, $5) => {
+  154761: ($0, $1, $2, $3, $4, $5) => {
     var deviceType = $0;
     var channels = $1;
     var sampleRate = $2;
@@ -10094,8 +10094,8 @@ var ASM_CONSTS = {
     device.pDevice = pDevice;
     return miniaudio.track_device(device);
   },
-  157365: $0 => miniaudio.get_device_by_index($0).webaudio.sampleRate,
-  157431: $0 => {
+  157589: $0 => miniaudio.get_device_by_index($0).webaudio.sampleRate,
+  157655: $0 => {
     var device = miniaudio.get_device_by_index($0);
     if (device.scriptNode !== undefined) {
       device.scriptNode.onaudioprocess = function(e) {};
@@ -10110,15 +10110,15 @@ var ASM_CONSTS = {
     device.webaudio = undefined;
     device.pDevice = undefined;
   },
-  157824: $0 => {
+  158048: $0 => {
     miniaudio.untrack_device_by_index($0);
   },
-  157867: $0 => {
+  158091: $0 => {
     var device = miniaudio.get_device_by_index($0);
     device.webaudio.resume();
     device.state = miniaudio.device_state.started;
   },
-  157992: $0 => {
+  158216: $0 => {
     var device = miniaudio.get_device_by_index($0);
     device.webaudio.suspend();
     device.state = miniaudio.device_state.stopped;

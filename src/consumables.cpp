@@ -442,6 +442,11 @@ bool TryAddConsumable(const Consumable& tmpl) {
     return true;
 }
 
+void SecondWind(Consumable&) {
+    engine.remainingBalls = levelstate.MAX_LAUNCH_CAPACITY;
+    engine.calculationLog = "RESERVE FULLY REPLENISHED";
+}
+
 void firesale(Consumable& self) {
     Vector2 walletTarget = { Config::walletX + 210.0f, Config::walletY + 32.0f };
     Vector2 consumableOrigin = { self.x + self.width / 2.0f, self.y + self.height / 2.0f };

@@ -158,7 +158,8 @@ enum ModifierType {
     MOD_NONE  = 0,
     MOD_BOOST = 1,
     MOD_GLITCH = 2,
-    MOD_CLONE = 3
+    MOD_CLONE = 3,
+    MOD_MAGNET = 4
 };
 
 struct ActiveModifier {

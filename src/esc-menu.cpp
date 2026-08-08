@@ -85,7 +85,7 @@ std::vector<StatEntry>& GetStatsStats() {
     static std::vector<StatEntry> statslist = {
         {"Total Earned", []() { return "$" + formatWithSpaces(stats.money_earned); }},
         {"Balls Dropped", []() { return formatWithSpaces(stats.balls_dropped); }},
-        {"Items Bought", []() { return "$" + formatWithSpaces(stats.items_bought); }},
+        {"Items Bought", []() { return formatWithSpaces(stats.items_bought); }},
         {"Highest Score", []() { return FormatByteSize(stats.highest_score); }}, // FIX
         {"Daemons Triggered", []() { return formatWithSpaces(stats.daemons_triggered); }}
     };

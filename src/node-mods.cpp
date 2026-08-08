@@ -28,11 +28,19 @@ std::string CloneTooltip(int) {
 void CloneScoreEffect(int, long double&, float&) {
 }
 
+std::string MagnetTooltip(int level) {
+    return "MAGNET" + std::to_string(level);
+}
+
+void MagnetScoreEffect(int, long double&, float&) {
+}
+
 const std::vector<ModifierDef>& GetModifierRegistry() {
     static const std::vector<ModifierDef> registry = {
         { MOD_BOOST, "BOOST", Config::COLOR_UI_GREEN, 2, { MOD_GLITCH }, BoostTooltip, BoostScoreEffect, false, SetNodeModifierBoost },
         { MOD_GLITCH, "GLITCH", (Color){ 255, 50, 140, 255 }, 3, { MOD_BOOST }, GlitchTooltip, GlitchScoreEffect, false, SetNodeModifierGlitch },
-        { MOD_CLONE, "CLONE", (Color){ 200, 50, 255, 255 }, 2, {}, CloneTooltip, CloneScoreEffect, true, SetNodeModifierClone }
+        { MOD_CLONE, "CLONE", (Color){ 200, 50, 255, 255 }, 2, {}, CloneTooltip, CloneScoreEffect, true, SetNodeModifierClone },
+        { MOD_MAGNET, "MAGNET", (Color){ 0, 220, 255, 255 }, 2, {}, MagnetTooltip, MagnetScoreEffect, false, SetNodeModifierMagnet }
     };
     return registry;
 }

@@ -23,4 +23,7 @@ inline std::vector<ShopConsumableEntry> consumableShopPool = {
     { "Volatile Pin", "Set up to two pins' modifiers to an unstable, random payout. Incompatible with Overclock", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, SetNodeModifierGlitch, 130, 320, 2 },
     { "Clone Pin", "Set a pin's modifier to split and divide score between two balls", Config::MAGENTA_DAEMON, ConsumableEffectType::BOARD_TARGET, SetNodeModifierClone, 150, 320, 1,25},
     { "Port Overclock", "Select a basket to permanently boost its multiplier by 1.5x", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, boostbasketmult, 200, 500 ,1,25},
+    { "Magnet Pin", "Set a pin's modifier to pull nearby balls toward it", (Color){ 0, 220, 255, 255 }, ConsumableEffectType::BOARD_TARGET, SetNodeModifierMagnet, 130, 280 },
+    { "Second Wind", "Instantly refill your ball reserve to max", Config::COLOR_UI_GREEN, ConsumableEffectType::INSTANT, SecondWind, 100, 350 },
+    { "Quota Break", "Select a map node to permanently reduce its target quota by 25%", Config::COLOR_UI_AMBER, ConsumableEffectType::BOARD_TARGET, UseQuotaBreak, 180, 400 },
 };

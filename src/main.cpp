@@ -103,7 +103,7 @@ void InitGame() {
 }
 
 bool IsPinTargetingConsumable(ConsumableUseFn fn) {
-    return fn == SetNodeModifierBoost || fn == SetNodeModifierGlitch || fn == SetNodeModifierClone;
+    return fn == SetNodeModifierBoost || fn == SetNodeModifierGlitch || fn == SetNodeModifierClone || fn == SetNodeModifierMagnet;
 }
 
 bool IsBasketTargetingConsumable(ConsumableUseFn fn) {
@@ -129,7 +129,9 @@ void SetNodeModifierGlitch(Consumable&) {
 void SetNodeModifierClone(Consumable&) {
     ApplyModifierToPendingTargets(MOD_CLONE);
 }
-
+void SetNodeModifierMagnet(Consumable&) {
+    ApplyModifierToPendingTargets(MOD_MAGNET);
+}
 int GetUniqueProbeId(GameEngine& eng) {
     if (!eng.recycledProbeIds.empty()) {
         int recycledId = eng.recycledProbeIds.back();
@@ -247,6 +249,22 @@ void UpdatePhysics(float dt) {
     for (size_t i = 0; i < engine.activeProbes.size(); i++) {
         Probe& p = engine.activeProbes[i];
         
+        for (const auto& magnetNode : engine.nodes) {
+            int magnetLevel = GetModifierLevel(magnetNode, MOD_MAGNET);
+            if (magnetLevel <= 0) continue;
+
+            float dx = magnetNode.position.x - p.position.x;
+            float dy = magnetNode.position.y - p.position.y;
+            float dist = sqrtf(dx * dx + dy * dy);
+            float pullRange = 40.0f + magnetLevel * 20.0f;
+
+            if (dist > 0.1f && dist < pullRange) {
+                float pullStrength = (1.0f - dist / pullRange) * 220.0f * magnetLevel;
+                p.velocity.x += (dx / dist) * pullStrength * scaledDt;
+                p.velocity.y += (dy / dist) * pullStrength * scaledDt;
+            }
+        }
+
         p.velocity.y += Config::GRAVITY * scaledDt;
         p.position.x += p.velocity.x * scaledDt;
         p.position.y += p.velocity.y * scaledDt;
