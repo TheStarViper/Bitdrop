@@ -368,11 +368,26 @@ void GenerateConsumableShopPool() {
 
     for (int i = 0; i < 4; i++) {
         if (pool.empty()) break;
-        int randomIndex = GetRandomValue(0, (int)pool.size() - 1);
-        consumableShopSlots[i] = pool[randomIndex];
-        pool.erase(pool.begin() + randomIndex);
+
+        int totalWeight = 0;
+        for (int poolIdx : pool) {
+            totalWeight += consumableShopPool[poolIdx].rarityweight;
+        }
+
+        int roll = GetRandomValue(1, totalWeight);
+        int chosenPoolPos = 0;
+        int cumulative = 0;
+        for (size_t p = 0; p < pool.size(); p++) {
+            cumulative += consumableShopPool[pool[p]].rarityweight;
+            if (roll <= cumulative) {
+                chosenPoolPos = (int)p;
+                break;
+            }
+        }
+        consumableShopSlots[i] = pool[chosenPoolPos];
+        pool.erase(pool.begin() + chosenPoolPos);
     }
-} 
+}
 
 void GenerateShopPool() {
     std::vector<int> pool;

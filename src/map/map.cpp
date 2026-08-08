@@ -418,7 +418,7 @@ void DrawMap() {
                             state.ddosTargetMode = false;
                         }
                     }
-                    else if (IsConsumablePending()) {
+                    else if (IsConsumablePending() && GetPendingConsumableUseFn() == UseDecryptNode) {
                         if (n->isEncrypted) {
                             SetPendingConsumableContext(n);
                             ResolvePendingConsumable();
@@ -739,7 +739,8 @@ void DrawMap() {
         float minoffset = (sn->type == MAINFRAME_GATEWAY) ? 28.0f : 16.0f;
         float maxoffset = (sn->type == MAINFRAME_GATEWAY) ? 30.0f : 18.0f;
         float offset = GetPulseOffset(minoffset, maxoffset, 10.0f, Easings::EaseInOutQuad);
-        Color pulseColor = Fade(IsConsumablePending() ? ORANGE : GREEN, 255);
+        bool decryptSelectorMode = IsConsumablePending() && GetPendingConsumableUseFn() == UseDecryptNode;
+        Color pulseColor = Fade(decryptSelectorMode ? ORANGE : GREEN, 255);
 
         float bracketSize = 6.0f;
         float thickness = 2.0f;

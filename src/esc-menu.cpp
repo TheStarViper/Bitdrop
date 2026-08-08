@@ -83,11 +83,11 @@ void DrawNotchedSlider(Rectangle sliderBar, float* value, const std::vector<Spee
 
 std::vector<StatEntry>& GetStatsStats() {
     static std::vector<StatEntry> statslist = {
-        {"Total Earned", []() { return "$" + formatWithSpaces(stats.money_earned); }}, //FIX
+        {"Total Earned", []() { return "$" + formatWithSpaces(stats.money_earned); }},
         {"Balls Dropped", []() { return formatWithSpaces(stats.balls_dropped); }},
         {"Items Bought", []() { return "$" + formatWithSpaces(stats.items_bought); }},
         {"Highest Score", []() { return FormatByteSize(stats.highest_score); }}, // FIX
-        {"Daemons Triggered", []() { return formatWithSpaces(stats.daemons_triggered); }} //FIX
+        {"Daemons Triggered", []() { return formatWithSpaces(stats.daemons_triggered); }}
     };
     return statslist;
 }
@@ -151,7 +151,7 @@ std::vector<SettingEntry>& GetSettingsSettings() {
         { "Game Speed", SettingType::NOTCHED_SLIDER, nullptr, &Config::GAME_SPEED, 0.0f, 0.0f},
         {"Master Volume", SettingType::SLIDER, nullptr, &settings.masterVolume, 0.0f, 2.0f},
         {"Screen Shake", SettingType::TOGGLE, &settings.screenShakeEnabled},
-        {"Endless Mode", SettingType::TOGGLE, &endless_mode},
+        {"Debug Mode", SettingType::TOGGLE, &Config::debugmode},
     };
     return settingslist;
 }

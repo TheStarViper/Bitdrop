@@ -46,6 +46,7 @@ void UpdateEnergyOrbs() {
             orb.bursting = true;
             orb.burstTimer = 0.0f;
             gamestate.balance += orb.value;
+            stats.money_earned += orb.value;
         }
     }
 

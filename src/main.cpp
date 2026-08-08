@@ -102,6 +102,14 @@ void InitGame() {
     StartNewRun();
 }
 
+bool IsPinTargetingConsumable(ConsumableUseFn fn) {
+    return fn == SetNodeModifierBoost || fn == SetNodeModifierGlitch || fn == SetNodeModifierClone;
+}
+
+bool IsBasketTargetingConsumable(ConsumableUseFn fn) {
+    return fn == boostbasketmult;
+}
+
 void boostbasketmult(Consumable&){
     int count = GetPendingConsumableTargetCount();
     for (int i = 0; i < count; i++){
@@ -418,7 +426,7 @@ void UpdateDrawFrame() {
     Vector2 currentMousePos = GetMousePosition();
     if (gamestate.gamestate==GAME){
         if (!esc_menu) {
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending()) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending() && IsPinTargetingConsumable(GetPendingConsumableUseFn())) {
                 Vector2 currentMousePos = GetMousePosition();
                 for (auto& node : engine.nodes) {
                     if (CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f)) {
@@ -433,7 +441,7 @@ void UpdateDrawFrame() {
                     }
                 }
             }
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending() && GetPendingConsumableUseFn() == boostbasketmult) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsConsumablePending() && IsBasketTargetingConsumable(GetPendingConsumableUseFn())) {
                 Vector2 currentMousePos = GetMousePosition();
                 for (auto& basket : engine.baskets) {
                     if (CheckCollisionPointRec(currentMousePos, basket.bounds)) {
@@ -481,7 +489,7 @@ void UpdateDrawFrame() {
             }
 
             bool basketHovered = CheckCollisionPointRec(currentMousePos, basket.bounds);
-            bool basketSelectorMode = IsConsumablePending() && GetPendingConsumableUseFn() == boostbasketmult;
+            bool basketSelectorMode = IsConsumablePending() && IsBasketTargetingConsumable(GetPendingConsumableUseFn());
 
             Color bordercolor = Config::COLOR_GRID_LINE;
             float borderthickness = 1.0f;
@@ -519,7 +527,7 @@ void UpdateDrawFrame() {
             bool nodeHovered = !esc_menu && CheckCollisionPointCircle(currentMousePos, node.position, node.baseRadius + 24.0f);
 
             if (nodeHovered) {
-                bool selectorMode = IsConsumablePending();
+                bool selectorMode = IsConsumablePending() && IsPinTargetingConsumable(GetPendingConsumableUseFn());
                 Color hoverRingColor = selectorMode ? MAGENTA : Config::COLOR_UI_AMBER;
                 float ringRadius = node.baseRadius + 12.0f;
                 if (selectorMode) {

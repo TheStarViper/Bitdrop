@@ -113,6 +113,7 @@ public:
     void TriggerAction(Probe& probe) {
         if (actionCallback != nullptr) {
             actionCallback(*this,probe);
+            stats.daemons_triggered ++;
         }
     }
     
